@@ -1,0 +1,179 @@
+[gd_scene load_steps=3 format=3 uid="uid://visitor_settings_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/Settings.gd" id="1"]
+[ext_resource type="Theme" path="res://theme/visitor_theme.tres" id="2"]
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.039, 0.102, 0.039, 1)
+
+[node name="SettingsVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -360.0
+offset_right = 320.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+
+[node name="TitleLabel" type="Label" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="MusicRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="MusicLabel" type="Label" parent="SettingsVBox/MusicRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "MUSIC VOLUME"
+
+[node name="MusicSlider" type="HSlider" parent="SettingsVBox/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 0.7
+
+[node name="SfxRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="SfxLabel" type="Label" parent="SettingsVBox/SfxRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "SFX VOLUME"
+
+[node name="SfxSlider" type="HSlider" parent="SettingsVBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="VoiceRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="VoiceLabel" type="Label" parent="SettingsVBox/VoiceRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "VOICE VOLUME"
+
+[node name="VoiceSlider" type="HSlider" parent="SettingsVBox/VoiceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 0.9
+
+[node name="TextSpeedRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TextSpeedLabel" type="Label" parent="SettingsVBox/TextSpeedRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "TEXT SPEED"
+
+[node name="TextSpeedSlider" type="HSlider" parent="SettingsVBox/TextSpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.01
+max_value = 0.1
+step = 0.005
+value = 0.03
+
+[node name="CrtRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="CrtLabel" type="Label" parent="SettingsVBox/CrtRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "CRT EFFECT"
+
+[node name="CrtToggle" type="CheckButton" parent="SettingsVBox/CrtRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+
+[node name="CrtIntensityRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="CrtIntensityLabel" type="Label" parent="SettingsVBox/CrtIntensityRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "CRT INTENSITY"
+
+[node name="CrtIntensitySlider" type="HSlider" parent="SettingsVBox/CrtIntensityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 0.8
+
+[node name="BrightnessRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="BrightnessLabel" type="Label" parent="SettingsVBox/BrightnessRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "BRIGHTNESS"
+
+[node name="BrightnessSlider" type="HSlider" parent="SettingsVBox/BrightnessRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="LanguageRow" type="HBoxContainer" parent="SettingsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="LanguageLabel" type="Label" parent="SettingsVBox/LanguageRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = "LANGUAGE"
+
+[node name="LanguageOption" type="OptionButton" parent="SettingsVBox/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 2
+popup/item_0/text = "English"
+popup/item_0/id = 0
+popup/item_1/text = "Portugues (BR)"
+popup/item_1/id = 1
+
+[node name="BackButton" type="Button" parent="SettingsVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+text = "◀ BACK"

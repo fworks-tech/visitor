@@ -1,0 +1,9 @@
+BLACKMIRE STUDIOS — PSX SCHOOL & ASYLUM (FREE DEMO PACK)
+Source: https://blackmirestudios.itch.io/psx-abandoned-school-asylum-low-poly-horror-props
+License: royalty-free perpetual commercial license, modification allowed.
+NOT allowed: resell/share raw files, include in open-source repos,
+distribute as standalone models, extract from builds.
+=> Keep this repository private; ship assets only inside compiled builds.
+Pack is a single showcase .glb; House3D._pack_prop() instances items by
+name. Items used: bed, chair, chim chair_001, Armchair red, office table,
+radiator small, caffetaria_001. Skipped: Cube_051, Sphere (unidentified).

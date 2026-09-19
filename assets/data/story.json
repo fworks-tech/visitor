@@ -1,0 +1,517 @@
+{
+  "version": "1.0.0",
+  "title": "Visitor - Main Narrative Arc",
+  "game_title": "Visitor",
+  "description": "7-night narrative structure, night briefings, day phase shelter events, and 7 branching endings.",
+  "tracked_stats": [
+    "trust",
+    "corruption",
+    "morale",
+    "food_rations",
+    "medicine_supplies",
+    "ammo_count",
+    "infected_admitted",
+    "humans_killed",
+    "visitors_turned_away",
+    "player_infected"
+  ],
+  "total_nights": 7,
+  "events": {
+    "day1_night": {
+      "title": "Night 1: First Knocks",
+      "dialogue": [
+        {"speaker": "Radio Broadcast", "text": "Verify every soul at the door. One mistake destroys everyone inside.", "emotion": "neutral"},
+        {"speaker": "Protagonist", "text": "They are knocking outside. I need to look through the peep-hole before opening.", "emotion": "tense"}
+      ]
+    },
+    "day1_day": {
+      "title": "Day 1 Morning",
+      "dialogue": [
+        {"speaker": "Viktor", "text": "Keep your weapon loaded and your eyes sharp. They look like us until they rip your throat out.", "emotion": "stern"},
+        {"speaker": "Vera", "text": "If someone is truly human, do not let Viktor convince you to shoot them.", "emotion": "calm"}
+      ]
+    },
+    "day2_night": {
+      "title": "Night 2: Shadows in the Fog",
+      "dialogue": [
+        {"speaker": "Radio Broadcast", "text": "Stage 2 infected roam the highway. Trust nothing on sight alone.", "emotion": "neutral"},
+        {"speaker": "Protagonist", "text": "Freezing rain tonight. Fever could mean infection, or just the cold.", "emotion": "tense"}
+      ]
+    },
+    "day2_day": {
+      "title": "Day 2 Morning",
+      "dialogue": [
+        {"speaker": "Dr. Stern", "text": "A fever over 38.5 usually means viral replication. But fear and cold distort readings too.", "emotion": "calm"}
+      ]
+    },
+    "day3_night": {
+      "title": "Night 3: Enemy Within",
+      "dialogue": [
+        {"speaker": "Viktor", "text": "A bite is a bite, Mason! You know the protocol!", "emotion": "angry"},
+        {"speaker": "Mason", "text": "It was just a scratch from the barbed wire! I swear it!", "emotion": "afraid"}
+      ]
+    },
+    "day3_day": {
+      "title": "Day 3 Morning",
+      "dialogue": [
+        {"speaker": "Log Entry", "text": "The shelter turned on itself this morning. I check every sleeve twice now.", "emotion": "tense"}
+      ]
+    },
+    "day4_night": {
+      "title": "Night 4: Safety in Numbers",
+      "dialogue": [
+        {"speaker": "Nia", "text": "A military convoy is evacuating survivors with verified medical passes, 20 miles north.", "emotion": "hopeful"},
+        {"speaker": "Vera", "text": "With new mouths to feed, rations run out in three days.", "emotion": "worried"}
+      ]
+    },
+    "day4_day": {
+      "title": "Day 4 Morning",
+      "dialogue": [
+        {"speaker": "Vera", "text": "Eight mouths to feed now. If a trader comes tonight, we must buy food.", "emotion": "worried"}
+      ]
+    },
+    "day5_night": {
+      "title": "Night 5: Rations & Rust",
+      "dialogue": [
+        {"speaker": "Silas", "text": "Sentimentality does not burn in a diesel engine! We make hard choices now or freeze together!", "emotion": "angry"},
+        {"speaker": "Nia", "text": "If we leave this booth, every refugee on Route 9 dies in the dark! We stay!", "emotion": "stern"}
+      ]
+    },
+    "day5_day": {
+      "title": "Day 5 Morning",
+      "dialogue": [
+        {"speaker": "Silas", "text": "We burn out of fuel in 48 hours. Decide what we stop feeding.", "emotion": "stern"}
+      ]
+    },
+    "day6_night": {
+      "title": "Night 6: Ghosts at the Gate",
+      "dialogue": [
+        {"speaker": "Vera", "text": "That girl you turned away is standing near the fence... but she is not human anymore.", "emotion": "afraid"},
+        {"speaker": "Viktor", "text": "Do not look at her face, Gatekeeper. You did what you had to do.", "emotion": "stern"}
+      ]
+    },
+    "day6_day": {
+      "title": "Day 6 Morning",
+      "dialogue": [
+        {"speaker": "Log Entry", "text": "Frozen bodies outside the wire. Some wear faces I recognize.", "emotion": "tense"}
+      ]
+    },
+    "day7_night": {
+      "title": "Night 7: The Last Dusk",
+      "dialogue": [
+        {"speaker": "Nia", "text": "Six hours until the choppers arrive! Hold the booth until dawn and we all get out!", "emotion": "hopeful"},
+        {"speaker": "Dr. Thorne", "text": "If Subject Zero arrives tonight, admit them immediately. It is our only chance.", "emotion": "stern"}
+      ]
+    },
+    "day7_day": {
+      "title": "Day 7 Morning",
+      "dialogue": [
+        {"speaker": "Nia", "text": "Transport inbound at 06:00. This is the final night. Hold the line.", "emotion": "hopeful"}
+      ]
+    }
+  },
+  "nights": [
+    {
+      "night_number": 1,
+      "title": "Night 1: The Threshold",
+      "subtitle": "Tutorial & Initiation",
+      "briefing": "The fog rolls in thick from the lowlands. The radio is dead except for static. You are stationed at Checkpoint 9, Sector 4—the last fortified outpost before the wilderness. Your orders are absolute: verify every soul at the door. One mistake destroys everyone inside.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard"
+      ],
+      "environmental_hazard": "Thick ground fog reducing visual distance through inspection window.",
+      "day_phase_events": {
+        "summary": "Morning briefing with Guard Viktor and Cook Vera. Supplies are stable.",
+        "shelter_event": "Introduction to shelter routine. Viktor checks the outer lock while Vera inventories canned goods.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Viktor",
+            "text": "Keep your weapon loaded and your eyes sharp. They look like us until they rip your throat out."
+          },
+          {
+            "speaker": "Vera",
+            "text": "If someone is truly human, don't let Viktor convince you to shoot them. We need living hands to rebuild."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "tutorial_visitor_arrival",
+          "description": "Marcus Vane arrives at the door. He is clearly human, scared, and cold. Teaches basic inspection controls.",
+          "mandatory_visitor": "v001"
+        }
+      ],
+      "available_visitor_pool": [
+        "v001"
+      ]
+    },
+    {
+      "night_number": 2,
+      "title": "Night 2: Shadows in the Fog",
+      "subtitle": "First Ambiguity",
+      "briefing": "Dusk falls early under heavy grey rain. Temperature drops below freezing. Reports from nearby outposts indicate Stage 2 infected are roaming the highway. Some show subtle physical symptoms that mimic common illnesses. Trust nothing on sight alone.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner"
+      ],
+      "environmental_hazard": "Freezing rain causing thermal scanner calibration drift.",
+      "day_phase_events": {
+        "summary": "Dr. Stern joins you in the booth to explain thermal scanning diagnostics.",
+        "shelter_event": "Dr. Stern demonstrates how fever spikes indicate viral incubation, but warns that fear and cold can distort body temperature.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Dr. Stern",
+            "text": "A fever over 38.5°C usually means viral replication. But remember—pneumonia, flu, or simple panic can raise body temperature too."
+          },
+          {
+            "speaker": "Silas",
+            "text": "Generator is consuming fuel twice as fast in this cold. If we let in sick people who die in their sleep, we burn fuel for corpses."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "first_ambiguous_visitor",
+          "description": "Elena arrives with her child Leo who has a severe rash, followed by Arthur Pendelton (calm infected) or Martha (Parkinson's).",
+          "mandatory_visitor": "v002"
+        }
+      ],
+      "available_visitor_pool": [
+        "v002",
+        "v003",
+        "v005",
+        "v010"
+      ]
+    },
+    {
+      "night_number": 3,
+      "title": "Night 3: Enemy Within",
+      "subtitle": "Internal Discovery Event",
+      "briefing": "The wind howls like a dying animal. Internal tension inside the shelter reaches boiling point. During morning inspection, a dark secret is uncovered among your own staff.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner",
+        "blood_test_strips"
+      ],
+      "environmental_hazard": "Frequent power flickering; generator brownouts disable thermal scan intermittently.",
+      "day_phase_events": {
+        "summary": "DISCOVERY EVENT: Cpl. Mason Reed (or internal guard) is found hiding a bite mark under his sleeve!",
+        "shelter_event": "During morning roll call, Cpl. Mason Reed drops a bloodied bandage in the mess hall. Inspection reveals a hidden bite mark on his forearm received during yesterday's perimeter sweep!",
+        "dilemma_choice": {
+          "title": "The Hidden Bite Inside",
+          "options": [
+            {
+              "action": "quarantine_mason",
+              "effect": "Isolate Mason in the holding cell. Dr. Stern attempts treatment. Trust drops slightly, morale maintained."
+            },
+            {
+              "action": "execute_mason",
+              "effect": "Viktor executes Mason immediately. Corruption increases significantly (+20), trust drops among compassionate survivors."
+            },
+            {
+              "action": "cover_up_mason",
+              "effect": "Hide Mason's bite and give him experimental antivirals. Extreme infection risk inside the bunker!"
+            }
+          ]
+        },
+        "dialogue_highlights": [
+          {
+            "speaker": "Mason",
+            "text": "It was just a scratch from the barbed wire! I swear it! Don't let Viktor kill me!"
+          },
+          {
+            "speaker": "Viktor",
+            "text": "A bite is a bite, Mason! You know the protocol! Put him down before he turns while we sleep!"
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "doctor_and_teen_arrival",
+          "description": "Dr. Evelyn Thorne arrives with medical supplies, or Toby Renner arrives with a suppressed bite.",
+          "mandatory_visitor": "v009"
+        }
+      ],
+      "available_visitor_pool": [
+        "v004",
+        "v006",
+        "v009",
+        "v012",
+        "v013",
+        "v016"
+      ]
+    },
+    {
+      "night_number": 4,
+      "title": "Night 4: Safety in Numbers",
+      "subtitle": "Group Arrival & Complex Dilemmas",
+      "briefing": "Reports from radio tech Nia Chen confirm that main city sectors have completely fallen. Survivors are fleeing in groups. Inspecting multiple individuals together creates deception opportunities—one infected person can hide behind clean companions.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner",
+        "blood_test_strips",
+        "rapid_pcr_diagnostic"
+      ],
+      "environmental_hazard": "Radio interference jamming external communications.",
+      "day_phase_events": {
+        "summary": "Group shelter review. Food rations are tightening.",
+        "shelter_event": "Vera warns that with new arrivals, food rations will run out in three days unless extra provisions are found or trade visitors are admitted.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Vera",
+            "text": "We have eight mouths to feed now. If a trading scavenger comes tonight, we must buy food regardless of their attitude."
+          },
+          {
+            "speaker": "Nia",
+            "text": "I picked up a broadcast from a military convoy 20 miles north. They're evacuating survivors who have verified medical passes."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "group_arrival_event",
+          "description": "A group of 3 arrives (Conrad, Mira, Sam). Sam is hiding a lethal bite while Conrad aggressively demands entry.",
+          "mandatory_visitor": "v007"
+        }
+      ],
+      "available_visitor_pool": [
+        "v007",
+        "v014",
+        "v015",
+        "v006",
+        "v013"
+      ]
+    },
+    {
+      "night_number": 5,
+      "title": "Night 5: Rations & Rust",
+      "subtitle": "Resource Crisis & Desperation",
+      "briefing": "The power grid fails completely at 18:00. The emergency generator sputters on reserve fuel. Rations are critical. Internal conflicts erupt as Engineer Silas proposes abandoning the checkpoint or kicking out weak survivors to save fuel.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner",
+        "blood_test_strips",
+        "rapid_pcr_diagnostic",
+        "uv_blacklight"
+      ],
+      "environmental_hazard": "Complete blackout outside booth; searchlight running on battery backup.",
+      "day_phase_events": {
+        "summary": "RESOURCE CRISIS EVENT: Food and fuel at critical low.",
+        "shelter_event": "Silas presents a stark ultimatum: 'We burn out of fuel in 48 hours. We either abandon this checkpoint and march south, or we stop feeding non-essential survivors.'",
+        "dilemma_choice": {
+          "title": "Silas's Abandonment Proposal",
+          "options": [
+            {
+              "action": "hold_the_line",
+              "effect": "Refuse to abandon post. Ration food strictly. Trust rises with Vera/Nia, Silas becomes hostile."
+            },
+            {
+              "action": "cut_rations",
+              "effect": "Halve food rations for non-combatants. Saves food (+5 Food), but morale drops severely (-20 Morale)."
+            },
+            {
+              "action": "plan_evacuation",
+              "effect": "Begin preparing for emergency retreat. Requires fixing generator and radio array."
+            }
+          ]
+        },
+        "dialogue_highlights": [
+          {
+            "speaker": "Silas",
+            "text": "Sentimentality doesn't burn in a diesel engine! We make hard choices now or freeze together!"
+          },
+          {
+            "speaker": "Nia",
+            "text": "If we leave this booth, every refugee coming down Route 9 dies in the dark! We stay!"
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "anomalous_visitor_arrival",
+          "description": "Clara Doppelganger arrives (biological mimic anomaly) or Gideon Vance (insomniac engineer who can fix generator).",
+          "mandatory_visitor": "v011"
+        }
+      ],
+      "available_visitor_pool": [
+        "v011",
+        "v016",
+        "v018",
+        "v019",
+        "v014"
+      ]
+    },
+    {
+      "night_number": 6,
+      "title": "Night 6: Ghosts at the Gate",
+      "subtitle": "Consequences Return",
+      "briefing": "A blizzard howl drowns out the forest. A figure approaches through the snow storm. It is someone who knocked on your door nights ago when clean, turned away by your hand, and has now returned infected.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner",
+        "blood_test_strips",
+        "rapid_pcr_diagnostic",
+        "uv_blacklight",
+        "neural_response_probe"
+      ],
+      "environmental_hazard": "Blizzard conditions reduce thermal reading accuracy by 25%.",
+      "day_phase_events": {
+        "summary": "Guilt and psychological strain grip the shelter.",
+        "shelter_event": "Survivors discover frozen bodies outside the wire, recognizing people turned away earlier. Internal morale drops.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Vera",
+            "text": "I saw her jacket through the window... that girl you turned away on Night 2. She's standing near the fence... but she isn't human anymore."
+          },
+          {
+            "speaker": "Viktor",
+            "text": "Don't look at her face, Gatekeeper. You did what you had to do to keep us alive."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "returned_rejected_visitor",
+          "description": "Veronica Reyes (turned away on Night 2) returns as a heavily infected Stage 3 host, scratching at the door.",
+          "mandatory_visitor": "v008"
+        }
+      ],
+      "available_visitor_pool": [
+        "v008",
+        "v017",
+        "v018",
+        "v019",
+        "v011"
+      ]
+    },
+    {
+      "night_number": 7,
+      "title": "Night 7: The Last Dusk",
+      "subtitle": "Climax & Final Reckoning",
+      "briefing": "The horde is converging on Sector 4. Sirens echo across the distant horizon. Emergency broadcast systems confirm military extraction helicopters are approaching in 6 hours. This is the final night. Multiple critical visitors arrive in rapid succession. Every choice determines the ultimate fate of the shelter.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard",
+        "thermal_scanner",
+        "blood_test_strips",
+        "rapid_pcr_diagnostic",
+        "uv_blacklight",
+        "neural_response_probe",
+        "master_bio_scanner"
+      ],
+      "environmental_hazard": "Constant gunfire and siren noise outside; extreme tension.",
+      "day_phase_events": {
+        "summary": "FINAL PREPARATION: The shelter prepares for morning extraction or final collapse.",
+        "shelter_event": "Nia Chen confirms military transport inbound at 06:00 AM. Dr. Thorne prepares medical samples. Viktor fortifies the airlock.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Nia",
+            "text": "Six hours until the choppers arrive! Hold the booth until dawn and we all get out!"
+          },
+          {
+            "speaker": "Dr. Thorne",
+            "text": "If Subject Zero or the antibody carrier arrives tonight, we must admit them immediately. It's our only chance to save humanity."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "climax_subject_zero_arrival",
+          "description": "Nadia Volkova (Subject Zero) arrives holding the attenuated viral antibody strain. Final judgment call!",
+          "mandatory_visitor": "v020"
+        }
+      ],
+      "available_visitor_pool": [
+        "v020",
+        "v019",
+        "v017",
+        "v018"
+      ]
+    }
+  ],
+  "endings": {
+    "ending_01_gatekeeper": {
+      "id": "ending_gatekeeper",
+      "title": "The Gatekeeper",
+      "subtitle": "Savior of Sector 4",
+      "conditions": {
+        "infected_admitted": 0,
+        "corruption_max": 20,
+        "min_trust": 70,
+        "min_survivors_alive": 5
+      },
+      "summary": "You held the line with unflinching moral clarity and clinical precision. Not a single monster crossed your threshold, nor was an innocent life needlessly taken.",
+      "epilogue": "At 06:12 AM, as the sun breaks over the mountain ridge, three heavy military transport helicopters touch down on the highway. Guard Viktor, Dr. Thorne, Cook Vera, and the survivors file out into the sunlight. Not a single case of infection broke inside Checkpoint 9. You step into the transport cabin knowing you saved humanity without sacrificing your soul. You are remembered as the Gatekeeper who kept the light alive."
+    },
+    "ending_02_pariah": {
+      "id": "ending_pariah",
+      "title": "The Pariah",
+      "subtitle": "Fall of the Settlement",
+      "conditions": {
+        "min_infected_admitted": 2
+      },
+      "summary": "Sympathy and hesitation were your undoing. You let the infected past the steel doors, believing their tears and excuses.",
+      "epilogue": "At 03:40 AM on the seventh night, screams erupt from the living quarters. The infected hosts you admitted succumbed to the fever simultaneously. In the narrow corridors, claws tore through canvas bunks and teeth found throats. By dawn, Checkpoint 9 is silent. The inspection booth glass is smeared with dark crimson. You sit slouched in the swivel chair, listening to the wet chewing sounds in the hallway outside."
+    },
+    "ending_03_executioner": {
+      "id": "ending_executioner",
+      "title": "The Executioner",
+      "subtitle": "Tyrant of the Threshold",
+      "conditions": {
+        "min_humans_killed": 3,
+        "min_corruption": 80
+      },
+      "summary": "Paranoia became your religion. Anyone with a twitch, a cough, or an unusual story was put down without second thought.",
+      "epilogue": "When military extraction forces breach the checkpoint doors at dawn, they do not find a haven of survivors. They find a slaughterhouse. Dozens of clean human corpses lie stacked near the perimeter fence, killed by your hand in fitful bouts of paranoia. The surviving staff look at you with hollow, terrified eyes—not as their commander, but as a butcher who murdered mothers, soldiers, and children. You are disarmed and placed in heavy irons."
+    },
+    "ending_04_hermit": {
+      "id": "ending_hermit",
+      "title": "The Hermit",
+      "subtitle": "Solitary Solitude",
+      "conditions": {
+        "min_visitors_turned_away": 8,
+        "max_humans_killed": 1,
+        "infected_admitted": 0
+      },
+      "summary": "You closed the inspection slot and refused to choose. Night after night, you turned away every single voice begging for shelter.",
+      "epilogue": "You survived. The steel doors remained locked, and no pathogen crossed the airlock. But in choosing isolation over humanity, you lost everything else. One by one, your internal survivors abandoned the checkpoint in disgust or succumbed to despair. When sunrise comes on Day 8, you sit alone in an empty bunker surrounded by uneaten canned food. The silence inside is broken only by the memory of fingernails scratching endlessly on the outer steel door."
+    },
+    "ending_05_cure": {
+      "id": "ending_cure",
+      "title": "The Cure",
+      "subtitle": "Dawn of Salvation",
+      "conditions": {
+        "admitted_dr_thorne": true,
+        "admitted_cure_subject": true
+      },
+      "summary": "By admitting Dr. Evelyn Thorne and securing the genetic antibodies from Toby Renner or Subject Zero Nadia, your medical bay synthesized the world's first stable antiviral vaccine!",
+      "epilogue": "Inside Checkpoint 9's improvised medical bay, centrifuges spin through the night. Dr. Thorne holds up a vial of glowing clear serum synthesized from the living antibodies you secured at the gate. The vaccine not only halts early incubation but grants permanent immunity. When the military transport arrives, Checkpoint 9 is not just evacuated—it becomes the central production center for humanity's salvation."
+    },
+    "ending_06_infected": {
+      "id": "ending_infected",
+      "title": "The Infected",
+      "subtitle": "The Monster at the Glass",
+      "conditions": {
+        "player_infected": true
+      },
+      "summary": "A microscopic tear in your glove... a warm drop of blood during an inspection... you hid it from the others just as so many visitors hid it from you.",
+      "epilogue": "The fever begins at 04:00 AM. First comes the ringing in your ears, then the darkening of your vision as capillaries burst behind your eyes. You stare down at your hands as black veins creep across your wrists. You try to call for Guard Viktor, but your vocal cords produce only a wet, raspy gurgle. When the next knock sounds at the inspection door, you don't pick up the flashlight. You press your face against the glass and stare."
+    },
+    "ending_07_exile": {
+      "id": "ending_exile",
+      "title": "The Exile",
+      "subtitle": "Cast into the Dark",
+      "conditions": {
+        "max_trust": 15
+      },
+      "summary": "Your erratic, cruel, and contradictory decisions shattered all faith in your leadership. The group revolted and cast you out.",
+      "epilogue": "On the morning of Night 6, Guard Viktor and Engineer Silas enter the inspection booth with drawn weapons. 'You're unfit to lead,' Viktor says quietly. They strip you of your sidearm, open the outer airlock door, and shove you out into the freezing fog. As the heavy steel doors lock behind you with a dead clunk, you hear footsteps in the trees nearby. You reach out and knock on the steel door... realizing you are now the Visitor."
+    }
+  }
+}

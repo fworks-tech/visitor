@@ -1,0 +1,52 @@
+[gd_resource type="AudioBusLayout" load_steps=8 format=3]
+
+[sub_resource type="AudioEffectLowPassFilter" id="VoiceLP"]
+cutoff_hz = 800.0
+resonance = 0.5
+
+[sub_resource type="AudioEffectReverb" id="VoiceReverb"]
+room_size = 0.2
+damping = 0.6
+wet = 0.3
+dry = 0.7
+
+[sub_resource type="AudioEffectDistortion" id="VoiceDist"]
+drive = 0.2
+
+[resource]
+bus/1/name = &"Music"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = -8.0
+bus/1/send = &"Master"
+bus/2/name = &"Ambient"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = -12.0
+bus/2/send = &"Master"
+bus/3/name = &"Voice"
+bus/3/solo = false
+bus/3/mute = false
+bus/3/bypass_fx = false
+bus/3/volume_db = -3.0
+bus/3/send = &"Master"
+bus/3/effects/0/effect = SubResource("VoiceLP")
+bus/3/effects/0/enabled = true
+bus/3/effects/1/effect = SubResource("VoiceReverb")
+bus/3/effects/1/enabled = true
+bus/3/effects/2/effect = SubResource("VoiceDist")
+bus/3/effects/2/enabled = true
+bus/4/name = &"SFX"
+bus/4/solo = false
+bus/4/mute = false
+bus/4/bypass_fx = false
+bus/4/volume_db = 0.0
+bus/4/send = &"Master"
+bus/5/name = &"CRT"
+bus/5/solo = false
+bus/5/mute = false
+bus/5/bypass_fx = false
+bus/5/volume_db = -18.0
+bus/5/send = &"Master"

@@ -1,0 +1,17 @@
+# Godot
+.godot/
+build/
+export*/
+
+# Python tooling
+__pycache__/
+*.pyc
+
+# Signing secrets
+*.keystore
+*.jks
+*.mobileprovision
+
+# OS junk
+.DS_Store
+Thumbs.db

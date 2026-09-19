@@ -1,0 +1,9 @@
+ATOMIC REALM — HOSPITAL ASSETS (FREE PACK)
+Source: https://atomicrealm.itch.io/hospital-assets
+License: free for commercial and non-commercial projects, editing allowed.
+NOT allowed: repackage, resell or redistribute the raw assets.
+=> Keep this repository private; ship assets only inside compiled builds.
+Models used here (.glb, true scale, feet-on-floor, +Z front):
+bed_1/bed_2/bed_4, cupboard_bottom/cupboard_top, machine_1/machine_2,
+tray_1, overhead_light (+ wall/floor kit pieces, currently unused).
+Each model expects its "<name>_hospital_gradient_uv.png" beside it.

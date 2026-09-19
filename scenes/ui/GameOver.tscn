@@ -1,0 +1,66 @@
+[gd_scene load_steps=3 format=3 uid="uid://visitor_gameover_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/GameOver.gd" id="1"]
+[ext_resource type="Theme" path="res://theme/visitor_theme.tres" id="2"]
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.06, 0.02, 1)
+
+[node name="EndingVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 48
+alignment = 1
+
+[node name="EndingTitle" type="Label" parent="EndingVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "THE NIGHT ENDS"
+horizontal_alignment = 1
+
+[node name="EndingText" type="RichTextLabel" parent="EndingVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = ""
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="EndingVBox"]
+layout_mode = 2
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="RestartButton" type="Button" parent="EndingVBox/ButtonsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 72)
+text = "PLAY AGAIN"
+
+[node name="MenuButton" type="Button" parent="EndingVBox/ButtonsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 72)
+text = "MAIN MENU"

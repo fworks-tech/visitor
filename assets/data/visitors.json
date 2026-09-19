@@ -1,0 +1,518 @@
+{
+  "visitors": [
+    {
+      "id": "v001",
+      "name": "Marcus Vane",
+      "portrait": "res://assets/images/portraits/visitor_01_marcus_vane.png",
+      "reveal_portrait": "",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "Knock. A single fist, steady.",
+        "Name: Marcus Vane. Claims he lives downstairs."
+      ],
+      "reveal_on_inspection": "His neck has two fresh puncture marks, already darkening.",
+      "nights_available": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s004",
+        "s028"
+      ],
+      "trust": -10,
+      "corruption": 5,
+      "resources": 0
+    },
+    {
+      "id": "v002",
+      "name": "Elena and Leo",
+      "portrait": "res://assets/images/portraits/visitor_02_elena_and_leo.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A woman with a boy, both shivering.",
+        "Name: Elena. Her son Leo is asthmatic; she begs for shelter."
+      ],
+      "reveal_on_inspection": "Leo's inhaler is genuine. Elena keeps checking the street.",
+      "nights_available": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s008",
+        "s012"
+      ],
+      "trust": 10,
+      "corruption": 0,
+      "resources": -5
+    },
+    {
+      "id": "v003",
+      "name": "Arthur Pendelton",
+      "portrait": "res://assets/images/portraits/visitor_03_arthur_pendelton.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "An old man, immaculate suit, cane.",
+        "Name: Arthur Pendelton. Asks to use your phone."
+      ],
+      "reveal_on_inspection": "Pocket watch shows a family photo; hands tremor with age, not infection.",
+      "nights_available": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s011",
+        "s015"
+      ],
+      "trust": 5,
+      "corruption": 0,
+      "resources": 0
+    },
+    {
+      "id": "v004",
+      "name": "Sgt. Sergei Volkov",
+      "portrait": "res://assets/images/portraits/visitor_04_sgt_sergei_volkov.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_04_sgt_sergei_volkov_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "Boots on the landing. Heavy breathing.",
+        "Name: Sergeant Volkov. Municipal enforcement."
+      ],
+      "reveal_on_inspection": "Under the cap, his temple is veined black. He avoids mirrors.",
+      "nights_available": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s002",
+        "s026"
+      ],
+      "trust": -5,
+      "corruption": 10,
+      "resources": 0
+    },
+    {
+      "id": "v005",
+      "name": "Martha Gillespie",
+      "portrait": "res://assets/images/portraits/visitor_05_martha_gillespie.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A neighbor with a casserole dish.",
+        "Name: Martha. Wants to check on you."
+      ],
+      "reveal_on_inspection": "The casserole smells normal. Her pupils are fine.",
+      "nights_available": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s007",
+        "s018"
+      ],
+      "trust": 5,
+      "corruption": 0,
+      "resources": 5
+    },
+    {
+      "id": "v006",
+      "name": "Toby Renner",
+      "portrait": "res://assets/images/portraits/visitor_06_toby_renner.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_06_toby_renner_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "A teenager, restless, hood up.",
+        "Name: Toby Renner. Says his sister is missing."
+      ],
+      "reveal_on_inspection": "When he turns, the hood slips: his jaw is split wrong, healing too fast.",
+      "nights_available": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s005",
+        "s022"
+      ],
+      "trust": -5,
+      "corruption": 5,
+      "resources": 0
+    },
+    {
+      "id": "v007",
+      "name": "Trio: Conrad, Mira, Sam",
+      "portrait": "res://assets/images/portraits/visitor_07_trio_conrad_mira_sam.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_07_trio_conrad_mira_sam_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "Three people, too close, speaking in turns.",
+        "Names: Conrad, Mira, Sam. They say the block is being evacuated."
+      ],
+      "reveal_on_inspection": "They blink in unison. Sam's reflection lags behind his head.",
+      "nights_available": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s006",
+        "s030"
+      ],
+      "trust": -15,
+      "corruption": 10,
+      "resources": 0
+    },
+    {
+      "id": "v008",
+      "name": "Veronica Reyes",
+      "portrait": "res://assets/images/portraits/visitor_08_veronica_reyes.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_08_veronica_reyes_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "A nurse in stained scrubs.",
+        "Name: Veronica Reyes. Offers vaccine samples."
+      ],
+      "reveal_on_inspection": "The vials are empty. Her gloves hide nails grown into points.",
+      "nights_available": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s001",
+        "s024"
+      ],
+      "trust": -10,
+      "corruption": 10,
+      "resources": 5
+    },
+    {
+      "id": "v009",
+      "name": "Dr. Evelyn Thorne",
+      "portrait": "res://assets/images/portraits/visitor_09_dr_evelyn_thorne.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A doctor with a flashlight and a satchel.",
+        "Name: Dr. Thorne. Needs to document survivors."
+      ],
+      "reveal_on_inspection": "Credentials check out. She carries antibiotics, not a weapon.",
+      "nights_available": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s009",
+        "s014"
+      ],
+      "trust": 10,
+      "corruption": 0,
+      "resources": 10
+    },
+    {
+      "id": "v010",
+      "name": "Julian Vance",
+      "portrait": "res://assets/images/portraits/visitor_10_julian_vance.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A man who looks like Marcus, but older.",
+        "Name: Julian Vance. Looking for his brother."
+      ],
+      "reveal_on_inspection": "Family resemblance is real. He's clean, but desperate.",
+      "nights_available": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s010",
+        "s016"
+      ],
+      "trust": 5,
+      "corruption": 0,
+      "resources": 0
+    },
+    {
+      "id": "v011",
+      "name": "Clara Doppelganger",
+      "portrait": "res://assets/images/portraits/visitor_11_clara_doppelganger.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_11_clara_doppelganger_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "A woman wearing your face.",
+        "Name: Clara. Says she lives in apartment 4B."
+      ],
+      "reveal_on_inspection": "Her teeth are too many. She copied your voice from the hallway.",
+      "nights_available": [
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s003",
+        "s027"
+      ],
+      "trust": -20,
+      "corruption": 15,
+      "resources": 0
+    },
+    {
+      "id": "v012",
+      "name": "Father Thomas",
+      "portrait": "res://assets/images/portraits/visitor_12_father_thomas.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A priest with soot on his collar.",
+        "Name: Father Thomas. Offers last rites and a candle."
+      ],
+      "reveal_on_inspection": "No infection markers. His rosary is warm from prayer.",
+      "nights_available": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s013",
+        "s019"
+      ],
+      "trust": 5,
+      "corruption": -5,
+      "resources": 0
+    },
+    {
+      "id": "v013",
+      "name": "Cadet Mia",
+      "portrait": "res://assets/images/portraits/visitor_13_cadet_mia.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A young cadet, uniform torn.",
+        "Name: Mia. Requests backup radio access."
+      ],
+      "reveal_on_inspection": "Radio works; she calls in a real unit number. Clean.",
+      "nights_available": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s017",
+        "s020"
+      ],
+      "trust": 5,
+      "corruption": 0,
+      "resources": 5
+    },
+    {
+      "id": "v014",
+      "name": "Jax Corvin",
+      "portrait": "res://assets/images/portraits/visitor_14_jax_corvin.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A courier with a sealed envelope.",
+        "Name: Jax Corvin. Delivering evacuation orders."
+      ],
+      "reveal_on_inspection": "Envelope is real, wax seal intact. No signs of infection.",
+      "nights_available": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s021",
+        "s025"
+      ],
+      "trust": 0,
+      "corruption": 0,
+      "resources": 10
+    },
+    {
+      "id": "v015",
+      "name": "Hannah Cross",
+      "portrait": "res://assets/images/portraits/visitor_15_hannah_cross.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A woman in a hazmat suit, visor up.",
+        "Name: Hannah Cross. Needs to test your blood."
+      ],
+      "reveal_on_inspection": "Equipment is genuine. She shows you her own clean result first.",
+      "nights_available": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s023",
+        "s029"
+      ],
+      "trust": 10,
+      "corruption": 0,
+      "resources": -10
+    },
+    {
+      "id": "v016",
+      "name": "Gideon Vance",
+      "portrait": "res://assets/images/portraits/visitor_16_gideon_vance.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A gaunt man claiming to be the Vance patriarch.",
+        "Name: Gideon Vance. Warns you against opening the door."
+      ],
+      "reveal_on_inspection": "Old, lucid, unarmed. His advice matches the radio bulletin.",
+      "nights_available": [
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s032",
+        "s034"
+      ],
+      "trust": 0,
+      "corruption": -5,
+      "resources": 0
+    },
+    {
+      "id": "v017",
+      "name": "Lily Cooper",
+      "portrait": "res://assets/images/portraits/visitor_17_lily_cooper.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_17_lily_cooper_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "A child's silhouette behind frosted glass.",
+        "Name: Lily Cooper. Asks if her mommy is home."
+      ],
+      "reveal_on_inspection": "The silhouette is too tall. The voice is recorded, looping.",
+      "nights_available": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s020",
+        "s031"
+      ],
+      "trust": -10,
+      "corruption": 10,
+      "resources": 0
+    },
+    {
+      "id": "v018",
+      "name": "Richard Vance (Hazmat)",
+      "portrait": "res://assets/images/portraits/visitor_18_richard_vance_hazmat.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A hazmat officer with no unit patch.",
+        "Name: Richard Vance. Demands entry for decontamination."
+      ],
+      "reveal_on_inspection": "No patch, no badge. But his scanner beeps negative on himself.",
+      "nights_available": [
+        6,
+        7
+      ],
+      "signs": [
+        "s033",
+        "s035"
+      ],
+      "trust": -5,
+      "corruption": 0,
+      "resources": 0
+    },
+    {
+      "id": "v019",
+      "name": "Kane Blackwood",
+      "portrait": "res://assets/images/portraits/visitor_19_kane_blackwood.png",
+      "reveal_portrait": "",
+      "is_actually_infected": false,
+      "dialogue_chain": [
+        "A drifter with a transistor radio.",
+        "Name: Kane Blackwood. Tunes between stations."
+      ],
+      "reveal_on_inspection": "Radio picks up a real emergency broadcast. He's just tired.",
+      "nights_available": [
+        5,
+        6,
+        7
+      ],
+      "signs": [
+        "s036",
+        "s038"
+      ],
+      "trust": 0,
+      "corruption": 0,
+      "resources": 5
+    },
+    {
+      "id": "v020",
+      "name": "Nadia Volkova",
+      "portrait": "res://assets/images/portraits/visitor_20_nadia_volkova.png",
+      "reveal_portrait": "res://assets/images/portraits/visitor_20_nadia_volkova_reveal.png",
+      "is_actually_infected": true,
+      "dialogue_chain": [
+        "A woman in uniform, similar to Sergei.",
+        "Name: Nadia Volkova. Claims Sergei was her brother."
+      ],
+      "reveal_on_inspection": "She weeps black. The veins on her neck match his exactly.",
+      "nights_available": [
+        6,
+        7
+      ],
+      "signs": [
+        "s002",
+        "s037"
+      ],
+      "trust": -15,
+      "corruption": 15,
+      "resources": 0
+    }
+  ]
+}

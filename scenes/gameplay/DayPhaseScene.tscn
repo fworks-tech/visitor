@@ -1,0 +1,175 @@
+[gd_scene load_steps=4 format=3 uid="uid://visitor_dayphase_001"]
+
+[ext_resource type="Script" path="res://scripts/gameplay/DayPhaseScene.gd" id="1"]
+[ext_resource type="Theme" path="res://theme/visitor_theme.tres" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/backgrounds/apartment_interior.png" id="3"]
+
+[node name="DayPhaseScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch_mode = 5
+modulate = Color(0.35, 0.4, 0.35, 0.5)
+texture = ExtResource("3")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="DayLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "DAY 1 / 7"
+
+[node name="TrustLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "TRUST 60"
+
+[node name="Spacer" type="Control" parent="TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ResourcesBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="FoodLabel" type="Label" parent="TopBar/HBox/ResourcesBox"]
+layout_mode = 2
+text = "FOOD 0"
+
+[node name="WaterLabel" type="Label" parent="TopBar/HBox/ResourcesBox"]
+layout_mode = 2
+text = "WATER 0"
+
+[node name="AmmoLabel" type="Label" parent="TopBar/HBox/ResourcesBox"]
+layout_mode = 2
+text = "AMMO 0"
+
+[node name="MedicineLabel" type="Label" parent="TopBar/HBox/ResourcesBox"]
+layout_mode = 2
+text = "MEDS 0"
+
+[node name="FuelLabel" type="Label" parent="TopBar/HBox/ResourcesBox"]
+layout_mode = 2
+text = "FUEL 0"
+
+[node name="Content" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+offset_bottom = -148.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="LeftPanel" type="PanelContainer" parent="Content/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="VBox" type="VBoxContainer" parent="Content/HBox/LeftPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderLabel" type="Label" parent="Content/HBox/LeftPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SURVIVORS INSIDE"
+
+[node name="SurvivorsList" type="ItemList" parent="Content/HBox/LeftPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RightPanel" type="PanelContainer" parent="Content/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.7
+
+[node name="VBox" type="VBoxContainer" parent="Content/HBox/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderLabel" type="Label" parent="Content/HBox/RightPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "DAY LOG"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content/HBox/RightPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogText" type="RichTextLabel" parent="Content/HBox/RightPanel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_active = false
+
+[node name="ActionBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -132.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="ActionBar"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ScavengeButton" type="Button" parent="ActionBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SCAVENGE"
+
+[node name="FortifyButton" type="Button" parent="ActionBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "FORTIFY"
+
+[node name="TalkButton" type="Button" parent="ActionBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "TALK"
+
+[node name="RestButton" type="Button" parent="ActionBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "REST"
+
+[node name="NextNightButton" type="Button" parent="ActionBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NEXT NIGHT ▶"

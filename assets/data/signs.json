@@ -1,0 +1,284 @@
+{
+  "signs": [
+    {
+      "id": "s001",
+      "name": "Rash Pattern",
+      "category": "physical",
+      "description": "Visible rash or discoloration on skin",
+      "ambiguity": 2
+    },
+    {
+      "id": "s002",
+      "name": "Dark Veins",
+      "category": "physical",
+      "description": "Veins darkened or visible beneath skin",
+      "ambiguity": 1
+    },
+    {
+      "id": "s003",
+      "name": "Too Many Teeth",
+      "category": "physical",
+      "description": "Dental structure seems wrong, too numerous",
+      "ambiguity": 1
+    },
+    {
+      "id": "s004",
+      "name": "Puncture Marks",
+      "category": "physical",
+      "description": "Two small fresh puncture wounds",
+      "ambiguity": 1
+    },
+    {
+      "id": "s005",
+      "name": "Wrong Jaw",
+      "category": "physical",
+      "description": "Jawline asymmetrical or healing incorrectly",
+      "ambiguity": 2
+    },
+    {
+      "id": "s006",
+      "name": "Sync Blink",
+      "category": "physical",
+      "description": "Blinks in unison with another person",
+      "ambiguity": 1
+    },
+    {
+      "id": "s007",
+      "name": "Normal Pupils",
+      "category": "physical",
+      "description": "Pupils react normally to light",
+      "ambiguity": 4
+    },
+    {
+      "id": "s008",
+      "name": "Child Present",
+      "category": "physical",
+      "description": "Visitor has a child with them",
+      "ambiguity": 5
+    },
+    {
+      "id": "s009",
+      "name": "Medical Kit",
+      "category": "physical",
+      "description": "Carries legitimate medical supplies",
+      "ambiguity": 4
+    },
+    {
+      "id": "s010",
+      "name": "Family Photo",
+      "category": "physical",
+      "description": "Shows a genuine personal photograph",
+      "ambiguity": 4
+    },
+    {
+      "id": "s011",
+      "name": "Age Tremor",
+      "category": "physical",
+      "description": "Hands shake from age, not sickness",
+      "ambiguity": 3
+    },
+    {
+      "id": "s012",
+      "name": "Inhaler",
+      "category": "physical",
+      "description": "Carries asthma medication",
+      "ambiguity": 4
+    },
+    {
+      "id": "s013",
+      "name": "Religious Item",
+      "category": "physical",
+      "description": "Wears or carries a religious symbol",
+      "ambiguity": 3
+    },
+    {
+      "id": "s014",
+      "name": "Credentials",
+      "category": "physical",
+      "description": "Presents verifiable ID or credentials",
+      "ambiguity": 4
+    },
+    {
+      "id": "s015",
+      "name": "Pocket Watch",
+      "category": "physical",
+      "description": "Personal heirloom visible",
+      "ambiguity": 3
+    },
+    {
+      "id": "s016",
+      "name": "Resemblance",
+      "category": "physical",
+      "description": "Matches description of another visitor",
+      "ambiguity": 3
+    },
+    {
+      "id": "s017",
+      "name": "Radio",
+      "category": "physical",
+      "description": "Carries a working two-way radio",
+      "ambiguity": 4
+    },
+    {
+      "id": "s018",
+      "name": "Casserole",
+      "category": "physical",
+      "description": "Brings food offering",
+      "ambiguity": 4
+    },
+    {
+      "id": "s019",
+      "name": "Candle",
+      "category": "physical",
+      "description": "Carries a lit or unlit candle",
+      "ambiguity": 3
+    },
+    {
+      "id": "s020",
+      "name": "Child's Voice",
+      "category": "physical",
+      "description": "Voice is high or childlike",
+      "ambiguity": 3
+    },
+    {
+      "id": "s021",
+      "name": "Sealed Envelope",
+      "category": "physical",
+      "description": "Carries an official-looking document",
+      "ambiguity": 3
+    },
+    {
+      "id": "s022",
+      "name": "Hood Up",
+      "category": "physical",
+      "description": "Wears hood or covering hiding face",
+      "ambiguity": 2
+    },
+    {
+      "id": "s023",
+      "name": "Hazmat Suit",
+      "category": "physical",
+      "description": "Wears protective suit",
+      "ambiguity": 3
+    },
+    {
+      "id": "s024",
+      "name": "Empty Vials",
+      "category": "physical",
+      "description": "Carries medical containers that appear empty",
+      "ambiguity": 1
+    },
+    {
+      "id": "s025",
+      "name": "Courier Bag",
+      "category": "physical",
+      "description": "Has a delivery bag or pouch",
+      "ambiguity": 3
+    },
+    {
+      "id": "s026",
+      "name": "Heavy Breathing",
+      "category": "physical",
+      "description": "Breathes loudly or with effort",
+      "ambiguity": 2
+    },
+    {
+      "id": "s027",
+      "name": "Copied Face",
+      "category": "physical",
+      "description": "Resembles the player or another resident",
+      "ambiguity": 1
+    },
+    {
+      "id": "s028",
+      "name": "Avoids Mirror",
+      "category": "behavioral",
+      "description": "Turns away from reflective surfaces",
+      "ambiguity": 1
+    },
+    {
+      "id": "s029",
+      "name": "Tests First",
+      "category": "behavioral",
+      "description": "Offers to be tested before entry",
+      "ambiguity": 4
+    },
+    {
+      "id": "s030",
+      "name": "Group Speaks",
+      "category": "behavioral",
+      "description": "Multiple visitors finish each other's sentences",
+      "ambiguity": 1
+    },
+    {
+      "id": "s031",
+      "name": "Recorded Loop",
+      "category": "behavioral",
+      "description": "Speech repeats exactly on cue",
+      "ambiguity": 1
+    },
+    {
+      "id": "s032",
+      "name": "Warns Against Entry",
+      "category": "behavioral",
+      "description": "Tells player not to open the door",
+      "ambiguity": 4
+    },
+    {
+      "id": "s033",
+      "name": "Demands Entry",
+      "category": "behavioral",
+      "description": "Insists on being let in loudly",
+      "ambiguity": 2
+    },
+    {
+      "id": "s034",
+      "name": "Advisory Tone",
+      "category": "behavioral",
+      "description": "Speaks like a trusted authority",
+      "ambiguity": 3
+    },
+    {
+      "id": "s035",
+      "name": "Scanner Negative",
+      "category": "behavioral",
+      "description": "Shows a clean scanner readout",
+      "ambiguity": 4
+    },
+    {
+      "id": "s036",
+      "name": "Broadcast Match",
+      "category": "behavioral",
+      "description": "References real emergency broadcast",
+      "ambiguity": 4
+    },
+    {
+      "id": "s037",
+      "name": "Weeps Black",
+      "category": "behavioral",
+      "description": "Tears appear dark or unnatural",
+      "ambiguity": 1
+    },
+    {
+      "id": "s038",
+      "name": "Tired Honesty",
+      "category": "behavioral",
+      "description": "Admits uncertainty or fear",
+      "ambiguity": 4
+    },
+    {
+      "id": "s039",
+      "name": "Evasive Answer",
+      "category": "behavioral",
+      "description": "Avoids direct questions",
+      "ambiguity": 2
+    },
+    {
+      "id": "s040",
+      "name": "Offers Gift",
+      "category": "behavioral",
+      "description": "Tries to hand player something through door",
+      "ambiguity": 3
+    }
+  ]
+}

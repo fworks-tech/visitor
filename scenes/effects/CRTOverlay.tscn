@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CRTController.gd" id="1_controller"]
+[ext_resource type="Shader" path="res://shaders/crt.gdshader" id="2_crt_shader"]
+[ext_resource type="Shader" path="res://shaders/vhs.gdshader" id="3_vhs_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("2_crt_shader")
+shader_parameter/scanline_count = 450.0
+shader_parameter/scanline_opacity = 0.18
+shader_parameter/vignette_intensity = 0.35
+shader_parameter/curvature = 0.03
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vhs"]
+shader = ExtResource("3_vhs_shader")
+shader_parameter/chromatic_aberration = 0.0015
+shader_parameter/tape_noise = 0.06
+shader_parameter/glitch_intensity = 0.15
+
+[node name="CRTOverlay" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_controller")
+
+[node name="CRTRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VHSLayer" type="CanvasLayer" parent="."]
+layer = 101
+
+[node name="VHSRect" type="ColorRect" parent="VHSLayer"]
+material = SubResource("ShaderMaterial_vhs")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

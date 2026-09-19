@@ -1,0 +1,3 @@
+Structural models in this folder: Kenney Building Kit
+(https://kenney.nl/assets/building-kit) — CC0 1.0 Universal.
+Unmodified copies, shipped with the game. No attribution required.

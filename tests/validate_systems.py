@@ -45,7 +45,6 @@ def test_gdscript_files():
         "visitor/scripts/systems/SignsSystem.gd",
         "visitor/scripts/systems/InfectionSystem.gd",
         "visitor/scripts/systems/ConsequencesSystem.gd",
-        "visitor/scripts/systems/GameLoop.gd",
         "visitor/scripts/systems/ResourceManager.gd"
     ]
     

@@ -33,7 +33,7 @@ visitor/
 ├── scripts/
 │   ├── core/                  # SplashScreen.gd, MainMenu.gd
 │   ├── gameplay/              # InspectionScene.gd (core loop), DayPhaseScene.gd
-│   ├── systems/               # Node-based logic (SignsSystem, InfectionSystem, ConsequencesSystem, GameLoop, ResourceManager)
+│   ├── systems/               # Node-based logic (SignsSystem, InfectionSystem, ConsequencesSystem, ResourceManager)
 │   └── ui/                    # GameOver.gd, Settings.gd, PauseMenu.gd, CRTController.gd
 ├── scenes/
 │   ├── core/                  # SplashScreen.tscn (main scene), MainMenu.tscn

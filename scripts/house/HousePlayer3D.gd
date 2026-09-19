@@ -133,10 +133,10 @@ func _physics_process(delta: float) -> void:
 			ix += 1.0
 		if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
 			ix -= 1.0
-	var len := Vector2(ix, iz).length()
-	if len > 1.0:
-		ix /= len
-		iz /= len
+	var mag := Vector2(ix, iz).length()
+	if mag > 1.0:
+		ix /= mag
+		iz /= mag
 	var dir := (global_transform.basis * Vector3(ix, 0, iz))
 	dir.y = 0.0
 	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO

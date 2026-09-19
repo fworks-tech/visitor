@@ -112,6 +112,8 @@ func _ready() -> void:
 
 
 func _on_node_added(node: Node) -> void:
+	# TouchScreenButton deliberately not covered: it extends Node2D, not
+	# BaseButton — virtual joysticks and movement buttons must stay silent.
 	if node is BaseButton:
 		(node as BaseButton).pressed.connect(play_ui_cue.bind("ui_click"))
 

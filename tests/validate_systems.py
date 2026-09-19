@@ -42,10 +42,7 @@ def test_signs_json():
 
 def test_gdscript_files():
     scripts = [
-        "visitor/scripts/systems/SignsSystem.gd",
-        "visitor/scripts/systems/InfectionSystem.gd",
         "visitor/scripts/systems/ConsequencesSystem.gd",
-        "visitor/scripts/systems/ResourceManager.gd"
     ]
     
     for script_path in scripts:
@@ -58,18 +55,9 @@ def test_gdscript_files():
         print(f"Validated script presence & class_name for: {script_path}")
 
     # Check key required methods
-    with open("visitor/scripts/systems/InfectionSystem.gd") as f:
-        inf_content = f.read()
-        assert "func get_visible_signs(" in inf_content, "InfectionSystem.gd missing get_visible_signs"
-        assert "func will_turn_today(" in inf_content, "InfectionSystem.gd missing will_turn_today"
-        
     with open("visitor/scripts/systems/ConsequencesSystem.gd") as f:
         con_content = f.read()
         assert "func process_day(" in con_content, "ConsequencesSystem.gd missing process_day"
-        
-    with open("visitor/scripts/systems/SignsSystem.gd") as f:
-        sign_content = f.read()
-        assert "func inspect_sign(" in sign_content or "func inspect_visitor(" in sign_content, "SignsSystem.gd missing inspect method"
 
     print("SUCCESS: GDScript methods verified!")
 

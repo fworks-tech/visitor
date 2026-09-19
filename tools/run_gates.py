@@ -7,12 +7,14 @@ Set GODOT_BIN to override the Godot executable. Exit code 1 on any gate
 failure; output of a failing gate is printed for triage.
 """
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GODOT = os.environ.get("GODOT_BIN", r"C:\Godot\Godot_v4.7.1-stable_win64_console.exe")
+GODOT = os.environ.get("GODOT_BIN") or shutil.which("godot") \
+    or shutil.which("godot4") or r"C:\Godot\Godot_v4.7.1-stable_win64_console.exe"
 
 GATES = [
     ("door-flow", [GODOT, "--headless", "--path", str(ROOT), "--", "--door-test"],

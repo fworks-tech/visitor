@@ -53,6 +53,8 @@ func _run() -> void:
 				"minz": b.position.z - 0.15, "maxz": b.position.z + b.size.z + 0.15})
 	for entry in boxed:
 		_check(entry[0], entry[1], supporters)
+	printerr("PLACEMENT: %d PASS, %d FAIL" % [passes, fails])
+	quit(1 if fails > 0 else 0)
 
 func _box_of(n: Node) -> Array:
 	var acc := [AABB(), false]
@@ -83,8 +85,6 @@ func _wall_dist(center: Vector3) -> float:
 		best = minf(best, minf(dx, dz))
 	return best
 
-	printerr("PLACEMENT: %d PASS, %d FAIL" % [passes, fails])
-	quit(1 if fails > 0 else 0)
 
 func _check(item: Node, box: AABB, supporters: Array) -> void:
 	var c := box.get_center()

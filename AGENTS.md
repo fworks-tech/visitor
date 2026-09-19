@@ -55,7 +55,7 @@ visitor/
 ├── scripts/
 │   ├── house/                 # HouseScene.gd, House3D.gd, HousePlayer3D.gd — first-person walkable shelter
 │   └── door/                  # VisitorBody3D.gd (shared NPC body), VisitorDiorama3D.gd (door stage)
-├── tools/                     # measure_models.gd, sight_audit.gd, placement_audit.gd (plain --script tools)
+├── tools/                     # run_gates.py (all gates), measure_models.gd, sight_audit.gd, placement_audit.gd
 ├── tests/                     # DoorFlowTest.gd (--door-test), HouseWalkTest.gd (--house-test), validate_systems.py
 ├── locale/                    # en.json + pt_BR.json (119 keys, loaded at runtime by SettingsManager)
 ├── shaders/                   # crt.gdshader, vhs.gdshader, glitch, green tint
@@ -94,7 +94,7 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 7. **Portraits stay uncanny.** Generation prompts in `docs/PORTRAIT_PROMPTS.md` — hand-drawn → rasterizer → almost-photographic.
 8. **CC0-only third-party 3D, with two paid-tier exceptions already in repo** (Atomic Hospital, BlackMire PSX) — their raw files must never leave a private repo; ship only inside compiled builds. Notices in `assets/models/*/NOTICE.txt`.
 9. **Every prop rests on something.** Run `godot --headless --path . --script res://tools/placement_audit.gd` after touching House3D; 0 FAIL is the gate.
-10. **Headless gates before done:** `-- --door-test` (21 checks), `-- --house-test` (19 checks), `python3 tests/validate_systems.py`.
+10. **Headless gates before done:** run all four with `python3 tools/run_gates.py` (door-test 21 checks, house-test 19 checks, placement audit, validate_systems.py) — exit code 1 on any failure.
 
 ## Adding a New Visitor
 
@@ -109,5 +109,6 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 - ✅ Architecture, autoloads, core systems, shaders, theme, data (20 visitors, 40 signs, 7 endings), base scenes, portraits/backgrounds
 - ✅ Walkable 3D shelter (HouseScene + House3D + HousePlayer3D), door conversation (tiers + typewriter + jump scare + PNG portrait), 3D NPC body shared house/door, flashlight battery loop, locale EN/PT-BR, story events
 - ✅ Controls: [input] action table, gamepad (left stick move, right stick look, A/X/Y), touch (virtual joystick + drag-look + on-screen buttons, auto-on for touchscreens), keyboard unchanged
-- ⏳ Audio assets (to be sourced — see AUDIO_DIRECTION.md), playtesting, balancing infection thresholds
+- ✅ Audio: synthesized silence-first cue set (assets/audio, tools/audio_synth.py), 5-bus AudioManager, knocks/decisions/sign-reveals/glitches/UI clicks wired (see AUDIO_DIRECTION.md)
+- ⏳ Playtesting, balancing infection thresholds (blocked on device QA + playtest data)
 - ✅ Mobile export presets: Android Debug/Release (landscape 1280×720, min SDK 24, target 34); see docs/EXPORT_GUIDE.md + docs/SIGNING_GUIDE.md

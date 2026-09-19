@@ -403,6 +403,7 @@ func _on_inspect_physical_pressed() -> void:
 	if revealed_signs < signs.size():
 		var s: Dictionary = signs[revealed_signs]
 		revealed_signs += 1
+		AudioManager.play_ui_cue("reveal_sign")
 		_populate_physical_signs()
 		var finding := "%s — %s" % [s.get("name", ""), s.get("description", "")]
 		_say(finding)

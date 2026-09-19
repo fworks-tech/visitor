@@ -63,6 +63,7 @@ var _sfx_player: AudioStreamPlayer
 var _knock_player: AudioStreamPlayer
 var _glitch_player: AudioStreamPlayer
 var _door_voice_player: AudioStreamPlayer
+var _ui_player: AudioStreamPlayer
 
 var audio_volumes: Dictionary = {
 	"master": 0.8,
@@ -85,9 +86,10 @@ func _ready() -> void:
 	_knock_player = AudioStreamPlayer.new()
 	_glitch_player = AudioStreamPlayer.new()
 	_door_voice_player = AudioStreamPlayer.new()
+	_ui_player = AudioStreamPlayer.new()
 
 	for p in [_crt_player, _ambient_player, _music_player, _sfx_player,
-			_knock_player, _glitch_player, _door_voice_player]:
+			_knock_player, _glitch_player, _door_voice_player, _ui_player]:
 		add_child(p)
 
 	_crt_player.bus = &"CRT"
@@ -97,11 +99,21 @@ func _ready() -> void:
 	_knock_player.bus = &"SFX"
 	_glitch_player.bus = &"SFX"
 	_door_voice_player.bus = &"Voice"
+	_ui_player.bus = &"SFX"
+
+	# Every Button in the game clicks on press, current and future — no
+	# per-script wiring. Disabled buttons never emit, so this is inert until used.
+	get_tree().node_added.connect(_on_node_added)
 
 	# The CRT hum never stops — it's the sound of the system watching.
 	_play_on(_crt_player, "ambient_crt_hum", true, db_to_linear(CRT_BASE_DB))
 	start_night_ambience()
 	print("[AudioManager] Silence-first horror audio system initialized.")
+
+
+func _on_node_added(node: Node) -> void:
+	if node is BaseButton:
+		(node as BaseButton).pressed.connect(play_ui_cue.bind("ui_click"))
 
 
 # ---------------------------------------------------------------- streams
@@ -181,9 +193,17 @@ func play_sfx(sfx_name: String) -> void:
 	_play_on(_sfx_player, cue, false, audio_volumes["sfx"])
 
 
+func play_ui_cue(cue_name: String) -> void:
+	# Foreground cues (clicks, sign reveals, decisions) ride a dedicated
+	# player: typewriter blips on the shared SFX player would otherwise cut
+	# them off a few frames in (last-wins on a single AudioStreamPlayer).
+	var cue: String = SFX_CUES.get(cue_name, cue_name)
+	_play_on(_ui_player, cue, false, audio_volumes["sfx"])
+
+
 func play_decision(decision: String) -> void:
 	# A decision lands: its sound plays, then two seconds of total silence.
-	play_sfx(decision)
+	play_ui_cue(decision)
 	suspend_ambience(2.0)
 
 

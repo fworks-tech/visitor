@@ -42,6 +42,7 @@ var _guest_bodies := {}
 var _fan: Node3D
 const WOOD_COL := Color(0.25, 0.18, 0.12)
 var _lights: Dictionary = {}
+var _lamp_lights: Array = []
 var _tv_mat: StandardMaterial3D
 var _window_mat: StandardMaterial3D
 var _tv_on: bool = false
@@ -295,7 +296,7 @@ func _build_furniture_solids() -> void:
 	var o: Vector3 = ROOM_POSITIONS["office"]
 	var t: Vector3 = ROOM_POSITIONS["bathroom"]
 	_solid(b + Vector3(-1.72, 0.35, -0.8), Vector3(1.1, 0.7, 2.0))
-	_solid(b + Vector3(1.95, 0.3, -1.4), Vector3(1.6, 0.6, 0.5))
+	_solid(b + Vector3(2.0, 0.31, -1.2), Vector3(0.5, 0.62, 1.6))
 	_solid(b + Vector3(-0.85, 0.25, -1.6), Vector3(0.7, 0.5, 0.5))
 	_solid(k + Vector3(1.55, 0.45, 0), Vector3(1.0, 0.9, 3.6))
 	_solid(k + Vector3(1.6, 0.6, 1.65), Vector3(0.9, 1.2, 0.7))
@@ -313,7 +314,7 @@ func _build_interactables() -> void:
 	var t: Vector3 = ROOM_POSITIONS["bathroom"]
 	_interactables = [
 		{"id": "bed", "pos": b + Vector3(-1.72, 0.7, -0.8), "label": "SLEEP"},
-		{"id": "tv", "pos": b + Vector3(1.95, 1.0, -1.12), "label": "WATCH TV"},
+		{"id": "tv", "pos": b + Vector3(1.95, 1.0, -1.2), "label": "WATCH TV"},
 		{"id": "radio", "pos": b + Vector3(-0.85, 0.6, -1.6), "label": "TURN ON RADIO"},
 		{"id": "front_door", "pos": h + Vector3(-1.8, 1.5, 2.9), "label": "FRONT DOOR"},
 		{"id": "window", "pos": h + Vector3(1.8, 1.8, -2.9), "label": "LOOK OUT THE WINDOW"},
@@ -329,6 +330,8 @@ func set_mood(day: bool) -> void:
 	for l in _lights.values():
 		l.light_energy = energy
 		l.light_color = tint
+	for l in _lamp_lights:
+		l.light_energy = 0.9 if day else 0.5
 	_refresh_window()
 
 func set_tv_on(on: bool) -> void:
@@ -381,10 +384,30 @@ func show_guest_sign(guest_id: String, sign_data: Dictionary) -> void:
 func _box(parent: Node3D, pos: Vector3, size: Vector3, col: Color) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
 	mesh.size = size
-	var mi := _mesh(parent, mesh, _mat(col))
+	var mi := _mesh(parent, mesh, _wall_material() if col == WALL_COL else _mat(col))
 	mi.name = "box_%.2f_%.2f_%.2f" % [size.x, size.y, size.z]
 	mi.position = pos
 	return mi
+
+## Shared wall material: faint noise grain so flat walls don't read as
+## untextured slabs. Noise averages mid-grey, so the tint doubles to keep
+## the mean at WALL_COL.
+var _wall_mat: StandardMaterial3D
+
+func _wall_material() -> StandardMaterial3D:
+	if _wall_mat != null:
+		return _wall_mat
+	_wall_mat = _mat(WALL_COL)
+	var noise := FastNoiseLite.new()
+	noise.seed = 7
+	noise.frequency = 0.6
+	var tex := NoiseTexture2D.new()
+	tex.noise = noise
+	tex.seamless = true
+	_wall_mat.albedo_texture = tex
+	_wall_mat.albedo_color = Color(WALL_COL.r * 2.0, WALL_COL.g * 2.0, WALL_COL.b * 2.0)
+	_wall_mat.uv1_scale = Vector3(2.0, 2.0, 2.0)
+	return _wall_mat
 
 func _mesh(parent: Node3D, mesh: Mesh, mat: StandardMaterial3D) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
@@ -480,13 +503,14 @@ func _build_bedroom() -> void:
 	_prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
 	_prop("pillow.glb", base + Vector3(-1.72, 0.62, -1.5), 0.0, 1.7)
 	_prop("sideTable.glb", base + Vector3(-0.85, 0, -1.6), 0.0, 1.2)
-	_prop("cabinetTelevision.glb", base + Vector3(1.95, 0, -1.4), 0.0, 2.0)
-	# Screen floats on the room-side face of the cabinet, static when the TV is on.
-	var tv_pair: Array = _emissive(base + Vector3(1.95, 0.95, -1.12), Vector3(1.4, 0.8, 0.08), Color(0.1, 0.12, 0.15))
+	# Cabinet flush on the east wall (depth 0.5 scaled), front into the room.
+	_prop("cabinetTelevision.glb", base + Vector3(2.0, 0, -1.2), -PI / 2.0, 2.0)
+	# Screen stands on the cabinet top (0.62), mid-stand, panel facing west.
+	var tv_pair: Array = _emissive(base + Vector3(1.95, 1.02, -1.2), Vector3(0.08, 0.8, 1.4), Color(0.1, 0.12, 0.15))
 	_tv_mat = tv_pair[1]
 	_prop("radio.glb", base + Vector3(-0.85, 0.46, -1.6), 0.0, 1.5)
-	# Salvaged radiator against the north wall — shelter heating.
-	_pack_prop("radiator small", base + Vector3(1.2, 0, -1.7), -PI / 2.0)
+	# Salvaged radiator hugging the north wall — shelter heating.
+	_pack_prop("radiator small", base + Vector3(0.9, 0, -1.88), -PI / 2.0)
 
 func _build_hall() -> void:
 	var base: Vector3 = ROOM_POSITIONS["hall"]
@@ -574,10 +598,11 @@ func _build_structure() -> void:
 		_box(self, Vector3(base.x - (hz.x - 0.015), 0.06, base.z), Vector3(0.03, 0.12, hz.y * 2.0), bb)
 		_box(self, Vector3(base.x + hz.x - 0.015, 0.06, base.z), Vector3(0.03, 0.12, hz.y * 2.0), bb)
 	# Pipes and patch plates: checkpoint-industrial, not apartment.
+	# Patch plates flush on solid wall stretches (inner face + plate half-thick).
 	_bprop("detail-pipe.glb", h + Vector3(2.7, 0, -2.7), 0.0, 1.5)
-	_bprop("detail-pipe.glb", o + Vector3(2.7, 0, 1.5), 0.0, 1.5)
-	_bprop("plating.glb", h + Vector3(-2.0, 1.1, -2.96), 0.0, 1.5)
-	_bprop("plating.glb", b + Vector3(2.96, 1.3, 0.5), PI / 2.0, 1.5)
+	_bprop("detail-pipe.glb", o + Vector3(2.1, 0, 1.5), 0.0, 1.5)
+	_bprop("plating.glb", h + Vector3(-2.0, 1.1, -2.92), PI / 2.0, 1.5)
+	_bprop("plating.glb", b + Vector3(2.18, 0.9, 1.55), 0.0, 1.2)
 
 # --- decor: rugs, plants, lamps, fan, wainscot ---------------------------------
 # No new collision except floor plants; decor never takes focus.
@@ -601,7 +626,6 @@ func _build_decor() -> void:
 	_solid(b + Vector3(1.8, 0.4, 1.5), Vector3(0.35, 0.8, 0.35))
 	# Tabletop clutter (auto-seated on furniture tops).
 	_prop("books.glb", o + Vector3(-1.5, 0.76, -1.61), 0.3, 2.5)
-	_prop("books.glb", b + Vector3(1.3, 0.62, -1.4), -0.2, 2.5)
 	_prop("plantSmall1.glb", k + Vector3(1.55, 0.9, -1.2), 0.0, 2.0)
 	# Wall lamps: mesh + warm shade glow (the mesh itself is unlit plastic).
 	_wall_lamp(b + Vector3(-1.5, 1.85, -1.89), 0.0)
@@ -618,12 +642,27 @@ func _build_decor() -> void:
 	_wainscot_wall(b, _half("bedroom"), "x", -1.0, Color(0.35, 0.28, 0.3))
 	_wainscot_wall(o, _half("office"), "z", -1.0, Color(0.3, 0.32, 0.28))
 
-## Sconce on a wall: lamp mesh (back at the face) + warm shade quad.
+## Sconce on a wall: lamp mesh + warm shade quad seated just proud of the
+## mesh's real front face (the old fixed 0.1m offset landed the glow INSIDE
+## the mesh — lamps read as unlit plastic), plus a small omni so the wall
+## around it actually receives light.
 func _wall_lamp(pos: Vector3, rot_y: float) -> void:
-	_prop("lampWall.glb", pos, rot_y, 1.5)
+	var lamp := _prop("lampWall.glb", pos, rot_y, 1.5)
 	var fwd := Basis(Vector3.UP, rot_y) * Vector3(0, 0, 1)
-	_emissive(pos + fwd * 0.1 + Vector3(0, 0.02, 0), Vector3(0.28, 0.16, 0.03),
+	var reach := 0.14
+	if lamp != null:
+		var lb := _local_box_scaled(lamp, Basis.from_scale(Vector3.ONE * 1.5))
+		reach = maxf(lb.size.z * 0.5, 0.06) + 0.02
+	_emissive(pos + fwd * reach + Vector3(0, 0.02, 0), Vector3(0.28, 0.16, 0.03),
 		Color(1.0, 0.72, 0.42))
+	var light := OmniLight3D.new()
+	light.position = pos + fwd * (reach + 0.3) + Vector3(0, 0.05, 0)
+	light.omni_range = 2.2
+	light.light_energy = 0.9
+	light.light_color = Color(1.0, 0.78, 0.5)
+	light.shadow_enabled = false
+	add_child(light)
+	_lamp_lights.append(light)
 
 ## Wood wainscot (0-1m) + muted wallpaper band above, on one wall.
 func _wainscot_wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, paper: Color) -> void:

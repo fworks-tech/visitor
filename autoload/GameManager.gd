@@ -127,7 +127,7 @@ func start_day_phase() -> void:
 		"trust": float(trust_value),
 		"corruption": float(corruption_value)
 	}
-	var _logs := ConsequenceSystem.process_day(current_day, _shelter)
+	ConsequenceSystem.process_day(current_day, _shelter)
 	trust_value = int(_shelter.get("trust", trust_value))
 	corruption_value = int(_shelter.get("corruption", corruption_value))
 	StoryManager.trigger_phase_event(current_day, "day")

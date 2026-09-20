@@ -2,8 +2,6 @@
 # Manages boolean/numeric/string persistent narrative and consequence flags.
 extends Node
 
-signal flag_changed(flag_name: String, value: Variant)
-
 var _flags: Dictionary = {}
 var _default_flags: Dictionary = {
 	# Progression flags
@@ -49,46 +47,12 @@ func get_flag(flag_name: String, default_value: Variant = null) -> Variant:
 
 func set_flag(flag_name: String, value: Variant) -> void:
 	_flags[flag_name] = value
-	flag_changed.emit(flag_name, value)
 
 func increment_flag(flag_name: String, amount: int = 1) -> int:
 	var current: int = int(get_flag(flag_name, 0))
 	var new_val := current + amount
 	set_flag(flag_name, new_val)
 	return new_val
-
-func has_flag(flag_name: String) -> bool:
-	return _flags.has(flag_name)
-
-func evaluate_requirements(requires_dict: Dictionary) -> bool:
-	if requires_dict.is_empty():
-		return true
-		
-	for key in requires_dict:
-		var target_val = requires_dict[key]
-		var current_val = get_flag(key)
-		
-		if target_val is Dictionary:
-			for op in target_val:
-				var compare_val = target_val[op]
-				match op:
-					">=":
-						if not (current_val >= compare_val): return false
-					">":
-						if not (current_val > compare_val): return false
-					"<=":
-						if not (current_val <= compare_val): return false
-					"<":
-						if not (current_val < compare_val): return false
-					"==":
-						if not (current_val == compare_val): return false
-					"!=":
-						if not (current_val != compare_val): return false
-		else:
-			if current_val != target_val:
-				return false
-				
-	return true
 
 func apply_effects(effects_list: Array) -> void:
 	for effect in effects_list:

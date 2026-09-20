@@ -20,7 +20,6 @@ func _ready() -> void:
 func load_story_data() -> void:
 	if not FileAccess.file_exists(STORY_FILE_PATH):
 		push_error("[StoryManager] story.json not found at %s" % STORY_FILE_PATH)
-		_create_fallback_story_data()
 		return
 		
 	var file := FileAccess.open(STORY_FILE_PATH, FileAccess.READ)
@@ -34,28 +33,6 @@ func load_story_data() -> void:
 		print("[StoryManager] story.json loaded successfully (%d events)." % story_data.get("events", {}).size())
 	else:
 		push_error("[StoryManager] Failed to parse story.json: %s" % json.get_error_message())
-		_create_fallback_story_data()
-
-func _create_fallback_story_data() -> void:
-	story_data = {
-		"title": "Visitor Narrative Data",
-		"version": "1.0",
-		"events": {
-			"day1_night": {
-				"title": "Night 1: First Knocks",
-				"dialogue": [
-					{"speaker": "Radio Broadcast", "text": "Warning: Airborne strain mutates rapidly upon physical contact. Do not trust appearances."},
-					{"speaker": "Protagonist", "text": "They are knocking outside. I need to look through the peep-hole before opening."}
-				]
-			},
-			"day1_morning": {
-				"title": "Day 1 Morning",
-				"dialogue": [
-					{"speaker": "Log Entry", "text": "Night 1 has passed. The security door held up against the wind."}
-				]
-			}
-		}
-	}
 
 func trigger_phase_event(day: int, phase: String) -> void:
 	var event_key := "day%d_%s" % [day, phase]
@@ -93,21 +70,6 @@ func advance_dialogue() -> void:
 		var choices: Array = current_event_data.get("choices", [])
 		if choices.size() > 0:
 			choices_presented.emit(choices)
-		else:
-			end_current_event()
-
-func select_choice(choice_index: int) -> void:
-	var choices: Array = current_event_data.get("choices", [])
-	if choice_index >= 0 and choice_index < choices.size():
-		var choice: Dictionary = choices[choice_index]
-		print("[StoryManager] Selected choice: %s" % choice.get("text", ""))
-		
-		# Apply flag effects
-		if choice.has("effects"):
-			FlagsManager.apply_effects(choice["effects"])
-			
-		if choice.has("next_event"):
-			start_event(choice["next_event"])
 		else:
 			end_current_event()
 

@@ -27,13 +27,15 @@ const ROOM_CAPS := {"hall": 2, "kitchen": 2, "office": 2, "bathroom": 1}
 
 const VISITORS_FILE_PATH: String = "res://assets/data/visitors.json"
 
+# Indexed by the Decision enum: keys used by ConsequencesSystem.record_decision.
+const DECISION_NAMES := ["LET_IN", "TURN_AWAY", "ELIMINATE"]
+
 func _ready() -> void:
 	load_visitor_database()
 
 func load_visitor_database() -> void:
 	if not FileAccess.file_exists(VISITORS_FILE_PATH):
 		push_error("[VisitorManager] visitors.json not found at %s" % VISITORS_FILE_PATH)
-		_create_fallback_visitors()
 		return
 		
 	var file := FileAccess.open(VISITORS_FILE_PATH, FileAccess.READ)
@@ -45,39 +47,7 @@ func load_visitor_database() -> void:
 		visitor_database = json.data.get("visitors", [])
 		print("[VisitorManager] Loaded %d visitors from database." % visitor_database.size())
 	else:
-		_create_fallback_visitors()
-
-func _create_fallback_visitors() -> void:
-	visitor_database = [
-		{
-			"id": "v001",
-			"name": "Elena Rostova",
-			"age": 32,
-			"occupation": "Paramedic",
-			"is_infected": false,
-			"knock_pattern": 0,
-			"portrait": "res://assets/images/portraits/visitor_02_elena_and_leo.png",
-			"dialogue": [
-				"Please! Open up! I have medical supplies!",
-				"I was fleeing the highway... my hands are shaking, but I'm uninfected!"
-			],
-			"sign_ids": ["fever_mild", "tremor_hand"]
-		},
-		{
-			"id": "v002",
-			"name": "Unknown Drifter",
-			"age": 28,
-			"occupation": "Unemployed",
-			"is_infected": true,
-			"knock_pattern": 1,
-			"portrait": "res://assets/images/portraits/visitor_young_man.png",
-			"dialogue": [
-				"Let... me in... cold outside...",
-				"Just... need... a place... to lie down..."
-			],
-			"sign_ids": ["jaundice_eyes", "vein_discoloration", "delayed_response"]
-		}
-	]
+		push_error("[VisitorManager] Failed to parse visitors.json")
 
 func prepare_night_queue(day_number: int) -> void:
 	night_completed = false
@@ -89,15 +59,24 @@ func prepare_night_queue(day_number: int) -> void:
 	# Serve exactly the authored pool for this night: story.json scripts some
 	# nights deliberately thin (night 1 is the Marcus-only tutorial), so we
 	# never pad with visitors from other nights.
+	var authored: Array = []
+	for n in StoryManager.story_data.get("nights", []):
+		if int(n.get("night_number", 0)) == day_number:
+			authored = n.get("available_visitor_pool", [])
+			break
 	var pool: Array = []
 	for v in visitor_database:
+		if not authored.is_empty():
+			# story.json owns the night: only its listed visitors appear.
+			if str(v.get("id", "")) in authored:
+				pool.append(v.duplicate(true))
+			continue
 		var nights: Array = v.get("nights_available", [])
 		# JSON numbers parse as float; int day never matches float nights
 		# with strict `in`, so compare as float (empty pool = silent no-show).
 		if nights.is_empty() or float(day_number) in nights:
 			pool.append(v.duplicate(true))
 	pool.shuffle()
-	count = mini(count, pool.size())
 	
 	for i in range(mini(count, pool.size())):
 		var v_data: Dictionary = pool[i].duplicate(true)
@@ -186,6 +165,17 @@ func process_decision(decision: Decision) -> Dictionary:
 	decision_history.append(log_entry)
 	visitor_processed.emit(current_visitor, decision, is_correct)
 	
+	# Feed the delayed-consequence engine: it queues the "turns days later"
+	# payoffs that start_day_phase fires via ConsequenceSystem.process_day.
+	# Immediate stats are already applied above, so the engine gets a scratch
+	# shelter state and only its queued consequences reach GameManager.
+	var shelter := {
+		"trust": float(GameManager.trust_value),
+		"corruption": float(GameManager.corruption_value)
+	}
+	ConsequenceSystem.record_decision(
+		current_visitor, DECISION_NAMES[decision], GameManager.current_day, shelter)
+	
 	return log_entry
 
 func reset_history() -> void:
@@ -227,7 +217,7 @@ func _first_free_room() -> String:
 	for r in ROOM_FILL_ORDER:
 		if int(used.get(r, 0)) < int(ROOM_CAPS.get(r, 2)):
 			return r
-	return "hall"
+	return ""  # full — _admit kicks the oldest guest until a bed frees up
 
 ## Removes an admitted guest back outside; trust takes the hit.
 func kick_guest(guest_id: String) -> Dictionary:

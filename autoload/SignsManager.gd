@@ -45,5 +45,3 @@ func get_signs_for_visitor(visitor: Dictionary) -> Array:
 			result.append(s_data)
 			
 	return result
-
-

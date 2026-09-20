@@ -111,12 +111,14 @@ var _tap_mat: StandardMaterial3D
 ## Multi-floor state: which floors are accessible (drives collision + interactables).
 var _unlocked_floors: Array = ["ground"]
 var _current_floor: String = "ground"
+var _obstacle_props: Array = []
 
 func _ready() -> void:
 	_build_environment()
 	_compute_unlocked_floors()
 	_build_house()
 	_build_collisions()
+	_build_obstacles()
 	_build_interactables()
 	_spawn_player()
 	_figures_root = Node3D.new()
@@ -139,12 +141,12 @@ func _compute_unlocked_floors() -> void:
 func set_unlocked_floors(floors: Array) -> void:
 	_unlocked_floors = floors.duplicate()
 	_current_floor = "ground"
-	# Clear existing collisions and rebuild for unlocked floors.
+	# Clear existing collisions and obstacles, rebuild for new floor set.
 	for child in get_children():
 		if child is StaticBody3D:
 			child.queue_free()
 	_build_collisions()
-	# Rebuild interactables for unlocked floors.
+	_build_obstacles()
 	_build_interactables()
 	if player != null:
 		player.position = ROOM_POSITIONS["bedroom"] + Vector3(0.2, FLOOR_Y["ground"] + 0.05, 1.2)
@@ -532,6 +534,38 @@ func _build_interactables() -> void:
 		_interactables.append(_it("generator", Vector3(-6.25, by + 0.9, 0.0), "CHECK GENERATOR"))
 		_interactables.append(_it("cellar_search", Vector3(6.0, by + 0.9, 0.0), "SEARCH CELLAR"))
 
+## Adds visual + collision obstacles on locked paths. The geometry (marker
+## boxes, barricade props) is always visible, but collision blocks the player
+## until the floor unlocks. Ground floor: stairs_up (day 3), basement door (day 7).
+## Second floor: attic hatch (day 5).
+func _build_obstacles() -> void:
+	# Clear previous obstacle props.
+	for p in _obstacle_props:
+		if is_instance_valid(p):
+			p.queue_free()
+	_obstacle_props = []
+	# Stairs to second floor: blocked until day 3.
+	if not _unlocked_floors.has("second"):
+		var h: Vector3 = ROOM_POSITIONS["hall"]
+		var barricade_1: Node3D = _bprop("barricade-window-a.glb", h + Vector3(2.5, 0.9, 0.0), PI / 2.0, 1.4)
+		if barricade_1 != null:
+			_obstacle_props.append(barricade_1)
+		_solid(Vector3(2.5, 1.0, 0.0), Vector3(0.3, 2.0, 1.6))
+	# Basement door: locked until day 7.
+	if not _unlocked_floors.has("basement"):
+		var h: Vector3 = ROOM_POSITIONS["hall"]
+		var barricade_2: Node3D = _bprop("barricade-window-a.glb", h + Vector3(2.5, 0.9, 1.8), PI / 2.0, 1.4)
+		if barricade_2 != null:
+			_obstacle_props.append(barricade_2)
+		_solid(Vector3(2.5, 1.0, 1.5), Vector3(0.3, 2.0, 1.2))
+	# Attic hatch: on second floor, blocked until day 5.
+	if _unlocked_floors.has("second") and not _unlocked_floors.has("attic"):
+		var sy := FLOOR_Y["second"]
+		var barricade_3: Node3D = _bprop("barricade-window-a.glb", Vector3(2.5, sy + 0.9, 1.5), PI / 2.0, 1.0)
+		if barricade_3 != null:
+			_obstacle_props.append(barricade_3)
+		_solid(Vector3(2.5, sy + 1.0, 1.5), Vector3(0.3, 0.6, 1.0))
+
 func set_mood(day: bool) -> void:
 	_is_night = not day
 	var energy := 2.2 if day else 1.1
@@ -703,6 +737,10 @@ func _build_house() -> void:
 	_build_bathroom()
 	_build_decor()
 	_build_structure()
+	# Stairs to second floor: always visible, blocked by obstacle until day 3.
+	_box(self, Vector3(2.5, FLOOR_Y["ground"] + 0.05, 0.0), Vector3(1.5, 0.1, 1.5), DOOR_COL)
+	# Basement door: always visible, locked until day 7.
+	_box(self, Vector3(2.5, FLOOR_Y["ground"] + 0.05, 1.5), Vector3(1.5, 0.1, 1.0), DOOR_COL)
 	if _unlocked_floors.has("second"):
 		_build_floor_at("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
 		_build_second_floor()
@@ -935,6 +973,8 @@ func _build_second_floor() -> void:
 	_prop("sideTable.glb", Vector3(6.8, sy + 0.0, -1.6), 0.0, 1.2)
 	# Hall_up: stairs down marker.
 	_box(self, Vector3(2.5, sy + 0.05, 0.0), Vector3(1.5, 0.1, 1.5), DOOR_COL)
+	# Attic hatch: always visible, blocked by obstacle until day 5.
+	_box(self, Vector3(2.5, sy + 0.05, 1.5), Vector3(1.0, 0.1, 1.0), DOOR_COL)
 	_focus_boxes["scavenge_storage"] = AABB(Vector3(-6.25, sy - 0.3, -0.73), Vector3(2.0, 1.5, 2.0))
 	_focus_boxes["guest_room_bed"] = AABB(Vector3(6.0, sy + 0.3, -0.8), Vector3(1.5, 0.8, 2.0))
 

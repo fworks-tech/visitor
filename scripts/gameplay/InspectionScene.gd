@@ -512,7 +512,7 @@ func _record_decision(decision: VisitorManager.Decision, is_infected: bool) -> v
 func _on_let_in_pressed() -> void:
 	_set_decisions_enabled(false)
 	AudioManager.play_decision("let_in")
-	var is_infected: bool = current_visitor.get("is_actually_infected", false)
+	var is_infected: bool = current_visitor.get("is_actually_infected", current_visitor.get("is_infected", false))
 	var cons: Dictionary = (current_visitor.get("consequences", {}) as Dictionary).get("let_in", {})
 
 	_record_decision(VisitorManager.Decision.LET_IN, is_infected)
@@ -542,7 +542,7 @@ func _on_turn_away_pressed() -> void:
 	_set_decisions_enabled(false)
 	AudioManager.play_decision("turn_away")
 	var cons: Dictionary = (current_visitor.get("consequences", {}) as Dictionary).get("turned_away", {})
-	_record_decision(VisitorManager.Decision.TURN_AWAY, current_visitor.get("is_actually_infected", false))
+	_record_decision(VisitorManager.Decision.TURN_AWAY, current_visitor.get("is_actually_infected", current_visitor.get("is_infected", false)))
 	_apply_consequences(cons)
 
 	_say("\"No room. Keep walking.\" — the dark takes them back.")
@@ -560,7 +560,7 @@ func _on_eliminate_pressed() -> void:
 	_set_decisions_enabled(false)
 	AudioManager.play_decision("eliminate")
 	var cons: Dictionary = (current_visitor.get("consequences", {}) as Dictionary).get("eliminated", {})
-	_record_decision(VisitorManager.Decision.ELIMINATE, current_visitor.get("is_actually_infected", false))
+	_record_decision(VisitorManager.Decision.ELIMINATE, current_visitor.get("is_actually_infected", current_visitor.get("is_infected", false)))
 	_apply_consequences(cons)
 
 	# The round is spent inside VisitorManager.process_decision; refresh only.

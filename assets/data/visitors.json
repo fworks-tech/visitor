@@ -26,7 +26,8 @@
       ],
       "trust": -10,
       "corruption": 5,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.9
     },
     {
       "id": "v002",
@@ -54,7 +55,8 @@
       ],
       "trust": 10,
       "corruption": 0,
-      "resources": -5
+      "resources": -5,
+      "infection_progress": 0.0
     },
     {
       "id": "v003",
@@ -81,7 +83,8 @@
       ],
       "trust": 5,
       "corruption": 0,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.0
     },
     {
       "id": "v004",
@@ -108,7 +111,8 @@
       ],
       "trust": -5,
       "corruption": 10,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.7
     },
     {
       "id": "v005",
@@ -136,7 +140,8 @@
       ],
       "trust": 5,
       "corruption": 0,
-      "resources": 5
+      "resources": 5,
+      "infection_progress": 0.0
     },
     {
       "id": "v006",
@@ -162,7 +167,8 @@
       ],
       "trust": -5,
       "corruption": 5,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.85
     },
     {
       "id": "v007",
@@ -187,7 +193,8 @@
       ],
       "trust": -15,
       "corruption": 10,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.6
     },
     {
       "id": "v008",
@@ -213,7 +220,8 @@
       ],
       "trust": -10,
       "corruption": 10,
-      "resources": 5
+      "resources": 5,
+      "infection_progress": 0.8
     },
     {
       "id": "v009",
@@ -240,7 +248,8 @@
       ],
       "trust": 10,
       "corruption": 0,
-      "resources": 10
+      "resources": 10,
+      "infection_progress": 0.0
     },
     {
       "id": "v010",
@@ -266,7 +275,8 @@
       ],
       "trust": 5,
       "corruption": 0,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.0
     },
     {
       "id": "v011",
@@ -290,7 +300,8 @@
       ],
       "trust": -20,
       "corruption": 15,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.95
     },
     {
       "id": "v012",
@@ -317,7 +328,8 @@
       ],
       "trust": 5,
       "corruption": -5,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.0
     },
     {
       "id": "v013",
@@ -342,7 +354,8 @@
       ],
       "trust": 5,
       "corruption": 0,
-      "resources": 5
+      "resources": 5,
+      "infection_progress": 0.0
     },
     {
       "id": "v014",
@@ -368,7 +381,8 @@
       ],
       "trust": 0,
       "corruption": 0,
-      "resources": 10
+      "resources": 10,
+      "infection_progress": 0.0
     },
     {
       "id": "v015",
@@ -393,7 +407,8 @@
       ],
       "trust": 10,
       "corruption": 0,
-      "resources": -10
+      "resources": -10,
+      "infection_progress": 0.0
     },
     {
       "id": "v016",
@@ -417,7 +432,8 @@
       ],
       "trust": 0,
       "corruption": -5,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.0
     },
     {
       "id": "v017",
@@ -442,7 +458,8 @@
       ],
       "trust": -10,
       "corruption": 10,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.5
     },
     {
       "id": "v018",
@@ -465,7 +482,8 @@
       ],
       "trust": -5,
       "corruption": 0,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.0
     },
     {
       "id": "v019",
@@ -489,7 +507,8 @@
       ],
       "trust": 0,
       "corruption": 0,
-      "resources": 5
+      "resources": 5,
+      "infection_progress": 0.0
     },
     {
       "id": "v020",
@@ -512,7 +531,8 @@
       ],
       "trust": -15,
       "corruption": 15,
-      "resources": 0
+      "resources": 0,
+      "infection_progress": 0.75
     }
   ]
 }

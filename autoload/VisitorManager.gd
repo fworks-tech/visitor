@@ -105,8 +105,8 @@ func start_next_inspection() -> bool:
 func process_decision(decision: Decision) -> Dictionary:
 	if current_visitor.is_empty():
 		return {}
-		
-	var is_infected: bool = current_visitor.get("is_infected", false)
+
+	var is_infected: bool = current_visitor.get("is_actually_infected", current_visitor.get("is_infected", false))
 	var is_correct: bool = false
 	
 	match decision:

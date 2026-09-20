@@ -32,7 +32,7 @@ SettingsManager="*res://autoload/SettingsManager.gd"
 VisitorManager="*res://autoload/VisitorManager.gd"
 SignsManager="*res://autoload/SignsManager.gd"
 ResourceSystem="*res://autoload/ResourceSystem.gd"
-ConsequenceSystem="*res://autoload/ConsequenceSystem.gd"
+ConsequenceSystem="*res://scripts/systems/ConsequencesSystem.gd"
 
 [display]
 

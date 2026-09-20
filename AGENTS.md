@@ -94,7 +94,7 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 7. **Portraits stay uncanny.** Generation prompts in `docs/PORTRAIT_PROMPTS.md` — hand-drawn → rasterizer → almost-photographic.
 8. **CC0-only third-party 3D, with two paid-tier exceptions already in repo** (Atomic Hospital, BlackMire PSX) — their raw files must never leave a private repo; ship only inside compiled builds. Notices in `assets/models/*/NOTICE.txt`.
 9. **Every prop rests on something.** Run `godot --headless --path . --script res://tools/placement_audit.gd` after touching House3D; 0 FAIL is the gate.
-10. **Headless gates before done:** run all five with `python3 tools/run_gates.py` (door-test 21 checks, house-test 23 checks, placement audit, focus audit, validate_systems.py) — exit code 1 on any failure.
+10. **Headless gates before done:** run all five with `python3 tools/run_gates.py` (door-test 23 checks, house-test 31 checks, placement audit, focus audit, validate_systems.py) — exit code 1 on any failure.
 
 ## Adding a New Visitor
 
@@ -108,6 +108,7 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 
 - ✅ Architecture, autoloads, core systems, shaders, theme, data (20 visitors, 40 signs, 7 endings), base scenes, portraits/backgrounds
 - ✅ Walkable 3D shelter (HouseScene + House3D + HousePlayer3D), door conversation (tiers + typewriter + jump scare + PNG portrait), 3D NPC body shared house/door, flashlight battery loop, locale EN/PT-BR, story events
+- ✅ Multi-floor shelter: 2nd floor (night 3), attic (night 5), basement (night 7) — paths always visible, obstacle-gated until unlock; generator fuel loop, floor-specific loot, guest-room rest
 - ✅ Controls: [input] action table, gamepad (left stick move, right stick look, A/X/Y), touch (virtual joystick + drag-look + on-screen buttons, auto-on for touchscreens), keyboard unchanged
 - ✅ Audio: synthesized silence-first cue set (assets/audio, tools/audio_synth.py), 5-bus AudioManager, knocks/decisions/sign-reveals/glitches/UI clicks wired (see AUDIO_DIRECTION.md)
 - ✅ Day-phase dilemmas wired (Mason bite night 3, Silas proposal night 5)

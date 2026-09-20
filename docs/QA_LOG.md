@@ -26,6 +26,8 @@ Per-game record, filled during QA passes. Procedures: `DEVICE_QA.md`
 | Endings seen | 7 | 7 | All endings verified reachable by condition analysis |
 | Visitors encountered (fate) | 20 | 20 | All 20 visitors have portraits, signs, and appear in pools |
 | Signs observed (fate) | 40 | 40 | All signs referenced in visitors.json exist in signs.json |
+| Floors reachable (headless) | 4 | 4 | Ground + 2F (night 3) + attic (night 5) + basement (night 7), via house-walk gate |
+| Obstacle-gated paths | 3 | 3 | Stairs/basement/attic barricades present when locked, cleared on unlock (house-walk gate) |
 
 ## Art pipeline
 

@@ -37,6 +37,12 @@ Endings seen: ___ / ___
       runs ___ · false positives ___ · false negatives ___ · nights survived avg ___
 - [ ] `validate` fate cross-checks pass (nights/signs/visitors consistent)
 - [ ] Save/restore across a night boundary — schedule state resumes exactly
+- [ ] Multi-floor unlock flow (desktop or device):
+      night 1-2: stairs to 2F + basement door visible but blocked by barricades (walk into them, cannot pass) ·
+      night 3: barricade gone, `stairs_up` works, storage loot = food+water+battery ·
+      night 5: attic hatch opens, search_attic = medicine+ammo ·
+      night 7: basement door opens, generator + cellar_search = fuel ·
+      generator burns 2 fuel/day (+1 more if not checked) · guest-room bed (2F) restores 1 energy, day only
 
 ## 3. Sign-off
 

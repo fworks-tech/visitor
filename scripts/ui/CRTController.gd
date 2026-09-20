@@ -13,7 +13,6 @@ var _crt_material: ShaderMaterial
 var _vhs_material: ShaderMaterial
 
 var _base_glitch_intensity: float = 0.15
-var _base_tint_strength: float = 0.65
 var _base_scanline: float = 0.18
 var _base_vignette: float = 0.35
 var _is_powered_on: bool = true
@@ -67,12 +66,6 @@ func trigger_glitch(duration: float = 0.5) -> void:
 		_base_glitch_intensity,
 		duration
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-## Adjusts the green monochrome tint strength (0.0 = full color, 1.0 = heavy green phosphor).
-func set_green_tint(strength: float) -> void:
-	_base_tint_strength = clamp(strength, 0.0, 1.0)
-	if _crt_material:
-		_crt_material.set_shader_parameter("tint_strength", _base_tint_strength)
 
 ## CRT Power-On animation (expands vertically from a bright thin line).
 func power_on(duration: float = 0.6) -> void:

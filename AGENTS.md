@@ -32,12 +32,12 @@ visitor/
 │   └── ConsequenceSystem.gd   # Delayed consequence queue (infected_let_in turns days later, etc.)
 ├── scripts/
 │   ├── core/                  # SplashScreen.gd, MainMenu.gd
-│   ├── gameplay/              # InspectionScene.gd (core loop), DayPhaseScene.gd
+│   ├── gameplay/              # InspectionScene.gd (core loop)
 │   ├── systems/               # Node-based logic (SignsSystem, InfectionSystem, ConsequencesSystem, ResourceManager)
 │   └── ui/                    # GameOver.gd, Settings.gd, PauseMenu.gd, CRTController.gd
 ├── scenes/
 │   ├── core/                  # SplashScreen.tscn (main scene), MainMenu.tscn
-│   ├── gameplay/              # InspectionScene.tscn, DayPhaseScene.tscn
+│   ├── gameplay/              # InspectionScene.tscn
 │   ├── ui/                    # GameOver.tscn, Settings.tscn, PauseMenu.tscn
 │   └── effects/               # CRTOverlay.tscn
 ├── assets/

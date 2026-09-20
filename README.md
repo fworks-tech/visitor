@@ -39,7 +39,7 @@ Quick orientation:
 | Path | What |
 |------|------|
 | `autoload/` | GameManager (state machine, trust/corruption), VisitorManager (queue + decisions), SignsManager, ResourceSystem, ConsequenceSystem, SaveManager, AudioManager, SceneManager, SettingsManager, StoryManager, FlagsManager |
-| `scenes/gameplay/` | `InspectionScene` (the core loop), `DayPhaseScene` (mornings) |
+| `scenes/gameplay/` | `InspectionScene` (the core loop) |
 | `assets/data/visitors.json` | All 20 visitors — backstories, dialogue, signs, outcomes |
 | `assets/data/story.json` | 7-night arc, key events, 7 endings |
 | `shaders/` | CRT scanlines, VHS tracking, glitch, green tint |

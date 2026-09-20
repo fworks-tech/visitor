@@ -110,5 +110,10 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 - ✅ Walkable 3D shelter (HouseScene + House3D + HousePlayer3D), door conversation (tiers + typewriter + jump scare + PNG portrait), 3D NPC body shared house/door, flashlight battery loop, locale EN/PT-BR, story events
 - ✅ Controls: [input] action table, gamepad (left stick move, right stick look, A/X/Y), touch (virtual joystick + drag-look + on-screen buttons, auto-on for touchscreens), keyboard unchanged
 - ✅ Audio: synthesized silence-first cue set (assets/audio, tools/audio_synth.py), 5-bus AudioManager, knocks/decisions/sign-reveals/glitches/UI clicks wired (see AUDIO_DIRECTION.md)
-- ⏳ Playtesting, balancing infection thresholds (blocked on device QA + playtest data)
+- ✅ Day-phase dilemmas wired (Mason bite night 3, Silas proposal night 5)
+- ✅ morale/security stats with round-trip through ConsequenceSystem
+- ✅ All 7 endings verified reachable by condition analysis
+- ✅ All 20 portraits + 7 reveal variants present
+- ⏳ Playtesting on device (blocked on device QA + playtest data)
+- ⏳ Store screenshots + feature graphic
 - ✅ Mobile export presets: Android Debug/Release (landscape 1280×720, min SDK 24, target 34); see docs/EXPORT_GUIDE.md + docs/SIGNING_GUIDE.md

@@ -19,32 +19,9 @@ func consume_food(amount: int = 1) -> bool:
 	resources_changed.emit(get_resources())
 	return false
 
-func consume_water(amount: int = 1) -> bool:
-	if water >= amount:
-		water -= amount
-		resources_changed.emit(get_resources())
-		return true
-	water = 0
-	resources_changed.emit(get_resources())
-	return false
-
 func consume_ammo(amount: int = 1) -> bool:
 	if ammo >= amount:
 		ammo -= amount
-		resources_changed.emit(get_resources())
-		return true
-	return false
-
-func consume_medicine(amount: int = 1) -> bool:
-	if medicine >= amount:
-		medicine -= amount
-		resources_changed.emit(get_resources())
-		return true
-	return false
-
-func consume_fuel(amount: int = 1) -> bool:
-	if fuel >= amount:
-		fuel -= amount
 		resources_changed.emit(get_resources())
 		return true
 	return false

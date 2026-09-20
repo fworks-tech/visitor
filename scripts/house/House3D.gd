@@ -39,6 +39,7 @@ var player: HousePlayer3D
 var _interactables: Array = []
 var _guest_interactables: Array = []
 var _guest_bodies := {}
+var _focus_boxes: Dictionary = {}
 var _fan: Node3D
 const WOOD_COL := Color(0.25, 0.18, 0.12)
 var _lights: Dictionary = {}
@@ -69,11 +70,34 @@ func get_room_at(pos: Vector3) -> String:
 			best = room
 	return best
 
-## Nearest interactable the player faces: within reach, roughly ahead.
+## The focus the crosshair actually points at. Statics: the camera ray must
+## pierce the interactable's captured surface box AND not be blocked by a
+## wall/solid before it (a plain AABB test would happily select the TV
+## through the hall wall). Guests stay on the proximity+cone model: moving
+## point targets with no registered surface.
 func get_focus(cam_pos: Vector3, cam_fwd: Vector3) -> Dictionary:
-	var best: Dictionary = {}
-	var best_d := 2.4
-	for it in _interactables + _guest_interactables:
+	var ray_to := cam_pos + cam_fwd * 2.4
+	var hits: Array = []
+	for it in _interactables:
+		var box: AABB = it.get("box",
+			AABB(it["pos"] - Vector3(0.2, 0.2, 0.2), Vector3(0.4, 0.4, 0.4)))
+		var t := _ray_box_t(cam_pos, ray_to, box)
+		if t >= 0.0 and 2.4 * t >= 0.2:
+			hits.append([t, it])
+	hits.sort_custom(func(a, b): return a[0] < b[0])
+	for h in hits:
+		var t: float = h[0]
+		var hit_pos: Vector3 = cam_pos + cam_fwd * (2.4 * t)
+		if _occluded(cam_pos, hit_pos):
+			continue
+		return _focus_with_guests(cam_pos, cam_fwd, h[1], 2.4 * t)
+	return _focus_with_guests(cam_pos, cam_fwd, {}, 2.4)
+
+## Nearest static focus at static_d competes with the guest cone.
+func _focus_with_guests(cam_pos: Vector3, cam_fwd: Vector3, static_it: Dictionary, static_d: float) -> Dictionary:
+	var best: Dictionary = static_it
+	var best_d := static_d
+	for it in _guest_interactables:
 		var to: Vector3 = it["pos"] - cam_pos
 		var dist := to.length()
 		if dist > 2.4 or dist < 0.2:
@@ -84,6 +108,45 @@ func get_focus(cam_pos: Vector3, cam_fwd: Vector3) -> Dictionary:
 			best_d = dist
 			best = it
 	return best
+
+## True when a static body (walls, furniture solids, floor) sits between the
+## camera and the surface point. Endpoint is pulled 15cm short so boxes that
+## grow flush into their own wall don't self-occlude.
+func _occluded(from: Vector3, to: Vector3) -> bool:
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return false
+	var to_pulled := to + (from - to).normalized() * 0.15
+	var query := PhysicsRayQueryParameters3D.create(from, to_pulled)
+	if player != null:
+		query.exclude = [player.get_rid()]
+	return not space.intersect_ray(query).is_empty()
+
+## Slab-method ray vs AABB: entry fraction along [from, to], -1 on miss.
+func _ray_box_t(from: Vector3, to: Vector3, box: AABB) -> float:
+	var dir := to - from
+	var tmin := 0.0
+	var tmax := 1.0
+	for axis in 3:
+		var o := from[axis]
+		var d := dir[axis]
+		var mn := box.position[axis]
+		var mx := box.position[axis] + box.size[axis]
+		if absf(d) < 0.0001:
+			if o < mn or o > mx:
+				return -1.0
+		else:
+			var t1 := (mn - o) / d
+			var t2 := (mx - o) / d
+			if t1 > t2:
+				var tmp := t1
+				t1 = t2
+				t2 = tmp
+			tmin = maxf(tmin, t1)
+			tmax = minf(tmax, t2)
+			if tmin > tmax:
+				return -1.0
+	return tmin if tmax >= 0.0 else -1.0
 
 func _spawn_player() -> void:
 	player = HousePlayer3D.new()
@@ -210,6 +273,23 @@ func _accum_box(node: Node, xf: Transform3D, acc: Array) -> void:
 	for child in node.get_children():
 		_accum_box(child, here, acc)
 
+## World-space merged AABB of an instanced prop's own meshes.
+func _world_box(n: Node3D) -> AABB:
+	var acc := [AABB(), false]
+	if n is MeshInstance3D:
+		acc = [n.global_transform * (n as MeshInstance3D).get_aabb(), true]
+	for child in n.get_children():
+		_accum_box(child, n.global_transform, acc)
+	return acc[0]
+
+## Interactable entry; attaches the captured visual surface box when the
+## room builder registered one (get_focus ray-tests it instead of cone).
+func _it(id: String, pos: Vector3, label: String) -> Dictionary:
+	var entry := {"id": id, "pos": pos, "label": label}
+	if _focus_boxes.has(id):
+		entry["box"] = _focus_boxes[id]
+	return entry
+
 func _solid(pos: Vector3, size: Vector3) -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
@@ -313,14 +393,14 @@ func _build_interactables() -> void:
 	var o: Vector3 = ROOM_POSITIONS["office"]
 	var t: Vector3 = ROOM_POSITIONS["bathroom"]
 	_interactables = [
-		{"id": "bed", "pos": b + Vector3(-1.72, 0.7, -0.8), "label": "SLEEP"},
-		{"id": "tv", "pos": b + Vector3(1.95, 1.0, -1.2), "label": "WATCH TV"},
-		{"id": "radio", "pos": b + Vector3(-0.85, 0.6, -1.6), "label": "TURN ON RADIO"},
-		{"id": "front_door", "pos": h + Vector3(-1.8, 1.5, 2.9), "label": "FRONT DOOR"},
-		{"id": "window", "pos": h + Vector3(1.8, 1.8, -2.9), "label": "LOOK OUT THE WINDOW"},
-		{"id": "scavenge", "pos": k + Vector3(1.55, 0.9, -0.1), "label": "SCAVENGE PANTRY"},
-		{"id": "fortify", "pos": o + Vector3(-1.0, 0.9, -1.61), "label": "FORTIFY WINDOWS"},
-		{"id": "mirror", "pos": t + Vector3(1.0, 1.4, -1.2), "label": "MIRROR — CHECK YOURSELF"},
+		_it("bed", b + Vector3(-1.72, 0.7, -0.8), "SLEEP"),
+		_it("tv", b + Vector3(1.95, 1.0, -1.2), "WATCH TV"),
+		_it("radio", b + Vector3(-0.85, 0.6, -1.6), "TURN ON RADIO"),
+		_it("front_door", h + Vector3(-1.8, 1.5, 2.9), "FRONT DOOR"),
+		_it("window", h + Vector3(1.8, 1.8, -2.9), "LOOK OUT THE WINDOW"),
+		_it("scavenge", k + Vector3(1.55, 0.9, -0.1), "SCAVENGE PANTRY"),
+		_it("fortify", o + Vector3(-0.9, 1.2, -1.9), "FORTIFY WINDOWS"),
+		_it("mirror", t + Vector3(1.0, 1.7, -1.43), "MIRROR — CHECK YOURSELF"),
 	]
 
 func set_mood(day: bool) -> void:
@@ -500,7 +580,7 @@ func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: b
 
 func _build_bedroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bedroom"]
-	_prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
+	var bed := _prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
 	_prop("pillow.glb", base + Vector3(-1.72, 0.62, -1.5), 0.0, 1.7)
 	_prop("sideTable.glb", base + Vector3(-0.85, 0, -1.6), 0.0, 1.2)
 	# Cabinet flush on the east wall (depth 0.5 scaled), front into the room.
@@ -508,16 +588,20 @@ func _build_bedroom() -> void:
 	# Screen stands on the cabinet top (0.62), mid-stand, panel facing west.
 	var tv_pair: Array = _emissive(base + Vector3(1.95, 1.02, -1.2), Vector3(0.08, 0.8, 1.4), Color(0.1, 0.12, 0.15))
 	_tv_mat = tv_pair[1]
-	_prop("radio.glb", base + Vector3(-0.85, 0.46, -1.6), 0.0, 1.5)
+	var radio := _prop("radio.glb", base + Vector3(-0.85, 0.46, -1.6), 0.0, 1.5)
 	# Salvaged radiator hugging the north wall — shelter heating.
 	_pack_prop("radiator small", base + Vector3(0.9, 0, -1.88), -PI / 2.0)
+	_focus_boxes["bed"] = _world_box(bed).grow(0.15)
+	_focus_boxes["tv"] = _world_box(tv_pair[0] as Node3D).grow(0.06)
+	_focus_boxes["radio"] = _world_box(radio).grow(0.12)
 
 func _build_hall() -> void:
 	var base: Vector3 = ROOM_POSITIONS["hall"]
 	_build_window(base + Vector3(1.8, 1.8, -2.94))
 	# Real door leaf in the frame — the slab read as a hole in the wall.
 	_bprop("door-rotate-square-a.glb", base + Vector3(-1.8, 0, 2.96), PI / 2.0, 1.0)
-	_prop("doorwayFront.glb", base + Vector3(-1.8, 0, 2.9), 0.0, 2.1)
+	var doorframe := _prop("doorwayFront.glb", base + Vector3(-1.8, 0, 2.9), 0.0, 2.1)
+	_focus_boxes["front_door"] = _world_box(doorframe).grow(0.1)
 	_prop("rugDoormat.glb", base + Vector3(-1.8, 0.02, 2.0), 0.0, 2.5)
 	_prop("coatRackStanding.glb", base + Vector3(-2.5, 0, 1.0), 0.0, 2.2)
 	# Reading corner + salvaged medical gear on the north wall.
@@ -533,6 +617,7 @@ func _build_hall() -> void:
 func _build_window(center: Vector3) -> void:
 	var win: Array = _emissive(center, Vector3(1.2, 1.0, 0.06), Color(0.5, 0.4, 0.25))
 	_window_mat = win[1]
+	_focus_boxes["window"] = _world_box(win[0] as Node3D).grow(0.08)
 	var frame := WOOD_COL
 	_box(self, center + Vector3(0, 0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
 	_box(self, center + Vector3(0, -0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
@@ -550,7 +635,8 @@ func _build_window(center: Vector3) -> void:
 func _build_kitchen() -> void:
 	var base: Vector3 = ROOM_POSITIONS["kitchen"]
 	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.2), -PI / 2.0, 2.0)
-	_prop("kitchenSink.glb", base + Vector3(1.55, 0, -0.1), -PI / 2.0, 2.0)
+	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, -0.1), -PI / 2.0, 2.0)
+	_focus_boxes["scavenge"] = _world_box(sink).grow(0.2)
 	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, 1.0), -PI / 2.0, 2.0)
 	_prop("kitchenFridgeSmall.glb", base + Vector3(-1.6, 0, -1.5), PI / 2.0, 2.0)
 	# Hospital storage on the west wall, wall unit stacked on its base.
@@ -573,7 +659,8 @@ func _build_bathroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bathroom"]
 	# Sink origin hangs below the model — the auto-centering seats it.
 	_prop("bathroomSink.glb", base + Vector3(1.0, 0, -1.27), 0.0, 1.6)
-	_emissive(base + Vector3(1.0, 1.7, -1.43), Vector3(0.8, 1.0, 0.05), Color(0.4, 0.5, 0.55))
+	var mirror_pair: Array = _emissive(base + Vector3(1.0, 1.7, -1.43), Vector3(0.8, 1.0, 0.05), Color(0.4, 0.5, 0.55))
+	_focus_boxes["mirror"] = _world_box(mirror_pair[0] as Node3D).grow(0.06)
 	_prop("toilet.glb", base + Vector3(-1.1, 0, 0.5), 0.0, 1.6)
 	# Instrument tray beside the sink — triage kit.
 	_atomic("tray_1.glb", base + Vector3(0.0, 0, -1.25), 0.0)
@@ -587,7 +674,8 @@ func _build_structure() -> void:
 	var o: Vector3 = ROOM_POSITIONS["office"]
 	var b: Vector3 = ROOM_POSITIONS["bedroom"]
 	# Boarded office opening over the plank fortify.
-	_bprop("barricade-window-a.glb", o + Vector3(-0.9, 1.1, -1.9), 0.0, 1.6)
+	var barricade := _bprop("barricade-window-a.glb", o + Vector3(-0.9, 1.1, -1.9), 0.0, 1.6)
+	_focus_boxes["fortify"] = _world_box(barricade).grow(0.1)
 	# Baseboards kill the floating-wall read (crossings read as thresholds).
 	var bb := Color(0.1, 0.09, 0.1)
 	for room in ROOM_POSITIONS:

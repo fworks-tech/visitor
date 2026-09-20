@@ -23,6 +23,8 @@ GATES = [
      "RESULT 0 failures"),
     ("placement", [GODOT, "--headless", "--path", str(ROOT), "--script",
                    "res://tools/placement_audit.gd"], "0 FAIL"),
+    ("focus", [GODOT, "--headless", "--path", str(ROOT), "--script",
+               "res://tools/focus_audit.gd"], "0 FAIL"),
     ("data", [sys.executable, str(ROOT / "tests" / "validate_systems.py")], "SUCCESS"),
 ]
 

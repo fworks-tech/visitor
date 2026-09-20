@@ -94,7 +94,7 @@ Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only mani
 7. **Portraits stay uncanny.** Generation prompts in `docs/PORTRAIT_PROMPTS.md` — hand-drawn → rasterizer → almost-photographic.
 8. **CC0-only third-party 3D, with two paid-tier exceptions already in repo** (Atomic Hospital, BlackMire PSX) — their raw files must never leave a private repo; ship only inside compiled builds. Notices in `assets/models/*/NOTICE.txt`.
 9. **Every prop rests on something.** Run `godot --headless --path . --script res://tools/placement_audit.gd` after touching House3D; 0 FAIL is the gate.
-10. **Headless gates before done:** run all four with `python3 tools/run_gates.py` (door-test 21 checks, house-test 19 checks, placement audit, validate_systems.py) — exit code 1 on any failure.
+10. **Headless gates before done:** run all five with `python3 tools/run_gates.py` (door-test 21 checks, house-test 19 checks, placement audit, focus audit, validate_systems.py) — exit code 1 on any failure.
 
 ## Adding a New Visitor
 

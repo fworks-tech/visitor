@@ -67,6 +67,7 @@ func _ready() -> void:
 	if _is_day():
 		if not GameManager.tv_watched_today:
 			_open_popup("MORNING", "", "You wake in your bunk. The TV in the corner flickers with the morning broadcast. Watch it before examining anyone." + CONTROLS_HINT)
+		_try_trigger_day_dilemma()
 	else:
 		var briefing := _night_briefing()
 		if briefing != "":
@@ -569,3 +570,74 @@ func _day_events() -> Dictionary:
 		if int(n.get("night_number", 0)) == GameManager.current_day:
 			return n.get("day_phase_events", {})
 	return {}
+
+# --- day-phase dilemmas (Mason bite, Silas proposal) --------------------------
+
+## Presents the day's dilemma choice if one exists and hasn't been resolved yet.
+func _try_trigger_day_dilemma() -> void:
+	if not _is_day():
+		return
+	var ev: Dictionary = _day_events()
+	var dilemma: Dictionary = ev.get("dilemma_choice", {})
+	if dilemma.is_empty():
+		return
+	var flag_key := "dilemma_resolved_day%d" % GameManager.current_day
+	if bool(FlagsManager.get_flag(flag_key, false)):
+		return
+	_open_dilemma_popup(dilemma, flag_key)
+
+func _open_dilemma_popup(dilemma: Dictionary, flag_key: String) -> void:
+	popup_title.text = str(dilemma.get("title", "DECISION")).to_upper()
+	var ev: Dictionary = _day_events()
+	popup_text.text = str(ev.get("shelter_event", dilemma.get("description", "")))
+	popup_image.visible = false
+	for child in popup_actions.get_children():
+		child.queue_free()
+	var options: Array = dilemma.get("options", [])
+	for i in options.size():
+		var opt: Dictionary = options[i]
+		var btn := Button.new()
+		btn.text = str(opt.get("label", opt.get("action", "CHOICE %d" % i)).replace("_", " ")).to_upper()
+		btn.custom_minimum_size = Vector2(0, 48)
+		btn.focus_mode = Control.FOCUS_ALL
+		btn.pressed.connect(_on_dilemma_choice.bind(opt, flag_key))
+		popup_actions.add_child(btn)
+		if i == 0:
+			btn.call_deferred("grab_focus")
+	popup.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+## Applies the mechanical effect of a dilemma choice and marks it resolved.
+func _on_dilemma_choice(opt: Dictionary, flag_key: String) -> void:
+	var action: String = str(opt.get("action", ""))
+	match action:
+		"quarantine_mason":
+			FlagsManager.increment_flag("morale", 5)
+			FlagsManager.increment_flag("trust", -5)
+			_open_popup("QUARANTINE", "", "Mason is locked in the holding cell. Dr. Stern says the antivirals may slow the infection. You'll know by morning if he turns.")
+		"execute_mason":
+			FlagsManager.increment_flag("corruption", 20)
+			FlagsManager.increment_flag("trust", -15)
+			_open_popup("EXECUTED", "", "Viktor doesn't hesitate. One shot, and the only witness to the protocol is the smell of gunpowder. The shelter is silent tonight.")
+		"cover_up_mason":
+			FlagsManager.set_flag("mason_bite_hidden", true)
+			FlagsManager.increment_flag("corruption", 10)
+			_open_popup("COVER-UP", "", "You pocket the bandage and lie to Viktor. Mason sweats through the night in the dark. You pray the antivirals work.")
+		"hold_the_line":
+			FlagsManager.increment_flag("trust", 10)
+			FlagsManager.increment_flag("morale", -5)
+			FlagsManager.set_flag("silas_hostile", true)
+			_open_popup("HOLD THE LINE", "", "You refuse to abandon the gate. Silas curses and storms off, but Vera nods. The checkpoint holds — for now.")
+		"cut_rations":
+			FlagsManager.increment_flag("morale", -20)
+			FlagsManager.increment_flag("food", 5)
+			FlagsManager.set_flag("silas_hostile", false)
+			_open_popup("HALF RATIONS", "", "Vera waters down the stew. The shelter eats half portions. Nobody speaks, but the generator burns a little longer.")
+		"plan_evacuation":
+			FlagsManager.increment_flag("security", 5)
+			FlagsManager.set_flag("radio_fixed", true)
+			_open_popup("EVACUATION PLAN", "", "Silas cracks his knuckles and starts on the generator. Nia recalibrates the radio array. If the choppers come, you'll hear them.")
+		_:
+			_open_popup("DECISION", "", str(opt.get("effect", "You make your choice.")))
+	FlagsManager.set_flag(flag_key, true)
+	_refresh_hud()

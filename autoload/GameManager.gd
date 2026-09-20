@@ -38,6 +38,14 @@ var corruption_value: int = 10:
 		corruption_changed.emit(corruption_value)
 		_check_game_over_conditions()
 
+var morale_value: int = 50:
+	set(val):
+		morale_value = clampi(val, 0, 100)
+
+var security_value: int = 50:
+	set(val):
+		security_value = clampi(val, 0, 100)
+
 # Night inspection stats
 var visitors_inspected_today: int = 0
 var correct_decisions_today: int = 0
@@ -95,14 +103,16 @@ func start_new_game() -> void:
 	current_day = 1
 	trust_value = 60
 	corruption_value = 10
+	morale_value = 50
+	security_value = 50
 	visitors_inspected_today = 0
 	correct_decisions_today = 0
 	flashlight_battery = 100.0
 	batteries = 1
-	
+
 	FlagsManager.reset_flags()
 	VisitorManager.reset_history()
-	
+
 	# Start Night 1 inspection phase
 	start_night_phase()
 
@@ -120,16 +130,20 @@ func start_night_phase() -> void:
 
 func start_day_phase() -> void:
 	change_state(GameState.DAY)
-	
+
 	# Evaluate overnight consequences from admitted visitors. The autoload
 	# now points at the engine directly (bridge collapsed — see ADR-001).
-	var _shelter := {
+	var shelter := {
 		"trust": float(trust_value),
-		"corruption": float(corruption_value)
+		"corruption": float(corruption_value),
+		"morale": float(morale_value),
+		"security": float(security_value)
 	}
-	ConsequenceSystem.process_day(current_day, _shelter)
-	trust_value = int(_shelter.get("trust", trust_value))
-	corruption_value = int(_shelter.get("corruption", corruption_value))
+	ConsequenceSystem.process_day(current_day, shelter)
+	trust_value = int(shelter.get("trust", trust_value))
+	corruption_value = int(shelter.get("corruption", corruption_value))
+	morale_value = int(shelter.get("morale", morale_value))
+	security_value = int(shelter.get("security", security_value))
 	StoryManager.trigger_phase_event(current_day, "day")
 	
 	# Daily energy budget grows 2 -> 4 over the week; TV gates the exam tools

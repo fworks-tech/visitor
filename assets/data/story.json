@@ -205,14 +205,17 @@
           "options": [
             {
               "action": "quarantine_mason",
+              "label": "Quarantine Mason",
               "effect": "Isolate Mason in the holding cell. Dr. Stern attempts treatment. Trust drops slightly, morale maintained."
             },
             {
               "action": "execute_mason",
+              "label": "Execute Mason",
               "effect": "Viktor executes Mason immediately. Corruption increases significantly (+20), trust drops among compassionate survivors."
             },
             {
               "action": "cover_up_mason",
+              "label": "Cover Up the Bite",
               "effect": "Hide Mason's bite and give him experimental antivirals. Extreme infection risk inside the bunker!"
             }
           ]
@@ -308,14 +311,17 @@
           "options": [
             {
               "action": "hold_the_line",
+              "label": "Hold the Line",
               "effect": "Refuse to abandon post. Ration food strictly. Trust rises with Vera/Nia, Silas becomes hostile."
             },
             {
               "action": "cut_rations",
+              "label": "Cut Rations",
               "effect": "Halve food rations for non-combatants. Saves food (+5 Food), but morale drops severely (-20 Morale)."
             },
             {
               "action": "plan_evacuation",
+              "label": "Plan Evacuation",
               "effect": "Begin preparing for emergency retreat. Requires fixing generator and radio array."
             }
           ]

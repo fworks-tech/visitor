@@ -187,22 +187,24 @@ func reset_history() -> void:
 	rejected_visitors.clear()
 	night_completed = false
 
-## Humans admitted minus infected admitted (each turned inside = one survivor lost).
+## Admitted humans who have not turned (confirmed infected = they'll turn).
 func get_survivors_inside() -> Array:
-	var humans: int = int(FlagsManager.get_flag("humans_let_in", 0))
-	var infected: int = int(FlagsManager.get_flag("infected_let_in", 0))
-	var count: int = maxi(0, humans - infected)
 	var out: Array = []
-	for i in range(count):
-		out.append({"name": "Survivor %d" % (i + 1)})
+	for g in admitted_visitors:
+		if not bool(g.get("confirmed_infected", false)):
+			out.append(g.duplicate(true))
 	return out
 
 ## Admitted guests sit in rooms for the day phase (2 per room max).
 func _admit(visitor: Dictionary) -> void:
+	# If the shelter is full, kick the oldest guest until a room frees up.
 	while _first_free_room() == "" and not admitted_visitors.is_empty():
 		kick_guest(str(admitted_visitors[0].get("id")))
+	var room := _first_free_room()
+	if room == "":
+		return  # no room and no one to kick — visitor waits outside
 	var v := visitor.duplicate(true)
-	v["room"] = _first_free_room()
+	v["room"] = room
 	v["admitted_day"] = GameManager.current_day
 	v["revealed_signs_count"] = 0
 	v["talk_step"] = 0

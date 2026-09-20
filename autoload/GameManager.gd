@@ -145,13 +145,21 @@ func start_day_phase() -> void:
 	morale_value = int(shelter.get("morale", morale_value))
 	security_value = int(shelter.get("security", security_value))
 	StoryManager.trigger_phase_event(current_day, "day")
-	
+
+	# Generator fuel: consumes 2 per day. If unchecked yesterday, +1 extra.
+	var fuel_cost := 2
+	if not bool(FlagsManager.get_flag("generator_checked", false)):
+		fuel_cost += 1
+		security_value = maxi(0, security_value - 5)
+	ResourceSystem.consume_fuel(fuel_cost)
+	FlagsManager.set_flag("generator_checked", false)
+
 	# Daily energy budget grows 2 -> 4 over the week; TV gates the exam tools
 	energy_max = clampi(2 + int((current_day - 1) / 2.0), 2, 4)
 	energy_left = energy_max
 	tv_watched_today = false
 	unlocked_tools_today = []
-	
+
 	SaveManager.save_game()  # checkpoint: sleep is the only save point
 	SceneManager.change_scene(HOUSE_SCENE_PATH)
 

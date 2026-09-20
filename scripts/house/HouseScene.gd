@@ -73,6 +73,8 @@ func _ready() -> void:
 		var briefing := _night_briefing()
 		if briefing != "":
 			_open_popup("NIGHT %d — CHECKPOINT 9" % GameManager.current_day, "", briefing + CONTROLS_HINT)
+	if ResourceSystem.get_resources().get("fuel", 0) <= 0:
+		house3d.set_mood(false)  # dark house when out of fuel
 
 ## Unlocks house floors based on the current day. New areas open as the
 ## siege progresses — more hands to scavenge, more places to search.
@@ -383,35 +385,60 @@ func _action_scavenge_storage() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
 		_open_popup("STORAGE", "", _energy_blocked_text())
 		return
-	ResourceSystem.add_resources({"food": randi_range(1, 2), "ammo": 1 if randf() < 0.3 else 0})
+	ResourceSystem.add_resources({"food": randi_range(1, 2), "water": 1})
+	if randf() < 0.4:
+		GameManager.batteries += 1
+		_open_popup("STORAGE ROOM", "", "Crates of old rations and a spare battery. It keeps someone alive a little longer.")
+	else:
+		_open_popup("STORAGE ROOM", "", "Old supplies. Not much left, but enough to matter.")
 	_refresh_hud()
-	_open_popup("STORAGE ROOM", "", "Old supplies. Not much left, but enough to matter.")
 
 func _action_guest_room_bed() -> void:
-	_open_popup("GUEST ROOM", "", "A narrow bed. Someone slept here once. The sheets smell like dust and decisions.")
+	if not _is_day():
+		_open_popup("GUEST ROOM", "", "A narrow bed. Someone slept here once. The sheets smell like dust and decisions.")
+		return
+	if GameManager.energy_left >= GameManager.energy_max:
+		_open_popup("GUEST ROOM", "", "You are not tired enough to rest. The bed waits.")
+		return
+	GameManager.energy_left = mini(GameManager.energy_left + 1, GameManager.energy_max)
+	_refresh_hud()
+	_open_popup("GUEST ROOM", "", "You collapse on the narrow mattress. The springs groan. +1 ENERGY — just enough to keep going.")
 
 func _action_search_attic() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
 		_open_popup("ATTIC", "", _energy_blocked_text())
 		return
-	ResourceSystem.add_resources({"medicine": 1, "ammo": 1 if randf() < 0.4 else 0})
+	ResourceSystem.add_resources({"medicine": 1})
+	if randf() < 0.35:
+		ResourceSystem.add_resources({"ammo": 1})
+		_open_popup("ATTIC STORAGE", "", "Cobwebs and old furniture. Behind a loose board: medical supplies and a loaded magazine.")
+	else:
+		_open_popup("ATTIC STORAGE", "", "Cobwebs and old furniture. Behind a loose board: medical supplies.")
 	_refresh_hud()
-	_open_popup("ATTIC STORAGE", "", "Cobwebs and old furniture. Behind a loose board: medical supplies.")
 
 func _action_generator() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
 		_open_popup("GENERATOR", "", _energy_blocked_text())
 		return
 	FlagsManager.set_flag("generator_checked", true)
-	_open_popup("GENERATOR", "", "The generator hums. Fuel for a few more nights. Check it daily to keep the lights on.")
+	var fuel: int = int(ResourceSystem.get_resources().get("fuel", 0))
+	if fuel <= 0:
+		_open_popup("GENERATOR — EMPTY", "", "The generator sputters and dies. The lights go out. Find fuel in the cellar before nightfall.")
+		_refresh_hud()
+		return
+	var refuel := mini(fuel, 3)
+	ResourceSystem.consume_fuel(refuel)
+	GameManager.security_value += 2
+	_refresh_hud()
+	_open_popup("GENERATOR", "", "You top off the tank. +2 SECURITY. The hum steadies. Fuel remaining: %d." % ResourceSystem.get_resources().get("fuel", 0))
 
 func _action_cellar_search() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
 		_open_popup("CELLAR", "", _energy_blocked_text())
 		return
-	ResourceSystem.add_resources({"food": randi_range(1, 3), "water": randi_range(1, 2), "fuel": 1})
+	ResourceSystem.add_resources({"fuel": randi_range(2, 4), "food": 1})
 	_refresh_hud()
-	_open_popup("CELLAR", "", "Barrels in the dark. Some still hold something useful.")
+	_open_popup("CELLAR", "", "Barrels in the dark. Diesel sloshes in the old drums. +%d FUEL — the generator lives another day." % randi_range(2, 4))
 
 func _energy_blocked_text() -> String:
 	if not _is_day():

@@ -26,6 +26,15 @@ func consume_ammo(amount: int = 1) -> bool:
 		return true
 	return false
 
+func consume_fuel(amount: int = 1) -> bool:
+	if fuel >= amount:
+		fuel -= amount
+		resources_changed.emit(get_resources())
+		return true
+	fuel = 0
+	resources_changed.emit(get_resources())
+	return false
+
 func add_resources(res_dict: Dictionary) -> void:
 	food += res_dict.get("food", 0)
 	water += res_dict.get("water", 0)

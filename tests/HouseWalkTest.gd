@@ -89,6 +89,47 @@ func _run() -> void:
 	scene._do_interact({"id": "bed"})
 	check(GameManager.current_day == 2, "sleep advances to day 2")
 
+	# Multi-floor: day 2 should NOT have stairs (unlocks day 3).
+	var has_stairs := false
+	for it in scene.house3d._interactables:
+		if str(it.get("id", "")).begins_with("stairs"):
+			has_stairs = true
+	check(not has_stairs, "no stairs on day 2 (unlock day 3)")
+
+	# Unlock second floor and verify stairs appear.
+	GameManager.current_day = 3
+	scene.house3d.set_unlocked_floors(["ground", "second"])
+	has_stairs = false
+	var has_guest_bed := false
+	for it in scene.house3d._interactables:
+		var aid: String = str(it.get("id", ""))
+		if aid == "stairs_up":
+			has_stairs = true
+		if aid == "guest_room_bed":
+			has_guest_bed = true
+	check(has_stairs, "stairs_up appears on day 3")
+	check(has_guest_bed, "guest_room_bed appears on day 3")
+
+	# Guest room bed restores energy (day only).
+	GameManager.change_state(GameManager.GameState.DAY)
+	GameManager.energy_left = 1
+	scene._do_interact({"id": "guest_room_bed"})
+	check(GameManager.energy_left == 2, "guest bed restores 1 energy")
+
+	# Unlock basement on day 7.
+	GameManager.current_day = 7
+	scene.house3d.set_unlocked_floors(["ground", "second", "attic", "basement"])
+	var has_gen := false
+	var has_cellar := false
+	for it in scene.house3d._interactables:
+		var aid: String = str(it.get("id", ""))
+		if aid == "generator":
+			has_gen = true
+		if aid == "cellar_search":
+			has_cellar = true
+	check(has_gen, "generator appears on day 7")
+	check(has_cellar, "cellar_search appears on day 7")
+
 	VisitorManager.admitted_visitors.clear()
 	print("RESULT %d failures" % failures.size())
 	for x in failures:

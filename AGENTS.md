@@ -58,7 +58,7 @@ visitor/
 ├── tools/                     # run_gates.py (all gates), measure_models.gd, placement_audit.gd, focus_audit.gd
 ├── tests/                     # DoorFlowTest.gd (--door-test), HouseWalkTest.gd (--house-test), validate_systems.py
 ├── locale/                    # en.json + pt_BR.json (119 keys, loaded at runtime by SettingsManager)
-├── shaders/                   # crt.gdshader, vhs.gdshader, glitch, green tint
+├── shaders/                   # crt.gdshader, vhs.gdshader
 ├── theme/visitor_theme.tres   # Green monochrome Theme (Courier New / terminal aesthetic)
 ├── tests/validate_systems.py  # System integration test runner
 └── docs/                      # AUDIO_DIRECTION.md, PORTRAIT_PROMPTS.md

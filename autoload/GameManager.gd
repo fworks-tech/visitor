@@ -81,9 +81,14 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	print("[GameManager] Initialized.")
 	# Headless test harnesses: `godot --headless --path . -- --door-test`
-	for flag in ["--door-test", "--house-test"]:
+	const HARNESS := {
+		"--door-test": "res://tests/DoorFlowTest.gd",
+		"--house-test": "res://tests/HouseWalkTest.gd",
+		"--screenshot": "res://tools/screenshot_mode.gd",
+	}
+	for flag in HARNESS.keys():
 		if flag in OS.get_cmdline_args() or flag in OS.get_cmdline_user_args():
-			var t: Node = load("res://tests/DoorFlowTest.gd" if flag == "--door-test" else "res://tests/HouseWalkTest.gd").new()
+			var t: Node = load(HARNESS[flag]).new()
 			get_tree().root.add_child.call_deferred(t)
 
 func change_state(new_state: GameState) -> void:

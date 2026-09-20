@@ -62,7 +62,6 @@ var _music_player: AudioStreamPlayer
 var _sfx_player: AudioStreamPlayer
 var _knock_player: AudioStreamPlayer
 var _glitch_player: AudioStreamPlayer
-var _door_voice_player: AudioStreamPlayer
 var _ui_player: AudioStreamPlayer
 var _tap_player: AudioStreamPlayer
 
@@ -86,13 +85,11 @@ func _ready() -> void:
 	_sfx_player = AudioStreamPlayer.new()
 	_knock_player = AudioStreamPlayer.new()
 	_glitch_player = AudioStreamPlayer.new()
-	_door_voice_player = AudioStreamPlayer.new()
 	_ui_player = AudioStreamPlayer.new()
 	_tap_player = AudioStreamPlayer.new()
 
 	for p in [_crt_player, _ambient_player, _music_player, _sfx_player,
-			_knock_player, _glitch_player, _door_voice_player, _ui_player,
-			_tap_player]:
+			_knock_player, _glitch_player, _ui_player, _tap_player]:
 		add_child(p)
 
 	_crt_player.bus = &"CRT"
@@ -101,7 +98,6 @@ func _ready() -> void:
 	_sfx_player.bus = &"SFX"
 	_knock_player.bus = &"SFX"
 	_glitch_player.bus = &"SFX"
-	_door_voice_player.bus = &"Voice"
 	_ui_player.bus = &"SFX"
 	_tap_player.bus = &"SFX"
 
@@ -159,21 +155,6 @@ func start_night_ambience() -> void:
 
 func _ambient_level() -> float:
 	return db_to_linear(AMBIENT_BASE_DB) * float(audio_volumes.get("ambient", 0.7))
-
-
-func play_ambient(stream_path: String) -> void:
-	# legacy API — direct stream path
-	if ResourceLoader.exists(stream_path):
-		var stream: AudioStream = load(stream_path)
-		if stream is AudioStreamOggVorbis:
-			stream.loop = true
-		_ambient_player.stream = stream
-		_ambient_player.volume_db = linear_to_db(audio_volumes["ambient"])
-		_ambient_player.play()
-
-
-func stop_ambient() -> void:
-	_ambient_player.stop()
 
 
 func visitor_encountered() -> void:
@@ -258,12 +239,6 @@ func play_visitor_knock(visitor: Dictionary) -> void:
 
 
 # ---------------------------------------------------------------- voice + music
-
-func play_door_voice(voice_type: String) -> void:
-	# Muffled through-the-door voice — the Voice bus filter chain does the work.
-	_door_voice_player.pitch_scale = randf_range(0.85, 1.15)
-	_door_voice_player.volume_db = linear_to_db(maxf(0.0001, float(audio_volumes.get("voice", 0.9)) * 0.6))
-	print("[AudioManager Voice] Muffled voice through door: %s" % voice_type)
 
 
 func play_music(which: String) -> void:

@@ -114,12 +114,26 @@ var _current_floor: String = "ground"
 
 func _ready() -> void:
 	_build_environment()
+	_compute_unlocked_floors()
 	_build_house()
 	_build_collisions()
 	_build_interactables()
 	_spawn_player()
 	_figures_root = Node3D.new()
 	add_child(_figures_root)
+
+## Computes which floors are accessible based on the current day.
+func _compute_unlocked_floors() -> void:
+	var floors := ["ground"]
+	var day: int = GameManager.current_day
+	if day >= 3:
+		floors.append("second")
+	if day >= 5:
+		floors.append("attic")
+	if day >= 7:
+		floors.append("basement")
+	_unlocked_floors = floors
+	_current_floor = "ground"
 
 ## Sets which floors are accessible. Rebuilds collisions + interactables to match.
 func set_unlocked_floors(floors: Array) -> void:
@@ -380,18 +394,18 @@ func _solid(pos: Vector3, size: Vector3) -> void:
 func _build_collisions() -> void:
 	# Ground floor.
 	_solid(Vector3(0, -0.15, 0), Vector3(24, 0.3, 24))
-	_floor_collisions_for("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
+	_floor_collisions_for(FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
 	if _unlocked_floors.has("second"):
-		_floor_collisions_for("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+		_floor_collisions_for(FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
 	if _unlocked_floors.has("attic"):
-		_floor_collisions_for("attic", FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+		_floor_collisions_for(FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
 	if _unlocked_floors.has("basement"):
 		_solid(Vector3(0, FLOOR_Y["basement"] - 0.15, 0), Vector3(24, 0.3, 24))
-		_floor_collisions_for("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
+		_floor_collisions_for(FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
 	_build_bridges()
 	_build_furniture_solids()
 
-func _floor_collisions_for(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+func _floor_collisions_for(y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
 	for room in rooms:
 		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))

@@ -64,7 +64,6 @@ func _ready() -> void:
 	_refresh_hud()
 	_build_touch_controls()
 	_capture_mouse()
-	_unlock_floors_for_day()
 	if _is_day():
 		if not GameManager.tv_watched_today:
 			_open_popup("MORNING", "", "You wake in your bunk. The TV in the corner flickers with the morning broadcast. Watch it before examining anyone." + CONTROLS_HINT)
@@ -75,21 +74,6 @@ func _ready() -> void:
 			_open_popup("NIGHT %d — CHECKPOINT 9" % GameManager.current_day, "", briefing + CONTROLS_HINT)
 	if ResourceSystem.get_resources().get("fuel", 0) <= 0:
 		house3d.set_mood(false)  # dark house when out of fuel
-
-## Unlocks house floors based on the current day. New areas open as the
-## siege progresses — more hands to scavenge, more places to search.
-func _unlock_floors_for_day() -> void:
-	if house3d == null:
-		return
-	var floors := ["ground"]
-	var day: int = GameManager.current_day
-	if day >= 3:
-		floors.append("second")
-	if day >= 5:
-		floors.append("attic")
-	if day >= 7:
-		floors.append("basement")
-	house3d.set_unlocked_floors(floors)
 
 func _is_day() -> bool:
 	return GameManager.current_state == GameManager.GameState.DAY
@@ -372,6 +356,9 @@ func _action_stairs(action: String) -> void:
 	var target_floor: String = STAIRS_TARGET[action]
 	if house3d == null:
 		return
+	if not house3d._unlocked_floors.has(target_floor):
+		_open_popup("BLOCKED", "", "The way is barricaded. It will open when the time comes.")
+		return
 	var y_off: float = house3d.FLOOR_Y[target_floor]
 	house3d.player.position = Vector3(2.5, y_off + 0.05, 0.0)
 	house3d._current_floor = target_floor
@@ -433,9 +420,10 @@ func _action_cellar_search() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
 		_open_popup("CELLAR", "", _energy_blocked_text())
 		return
-	ResourceSystem.add_resources({"fuel": randi_range(2, 4), "food": 1})
+	var fuel_found: int = randi_range(2, 4)
+	ResourceSystem.add_resources({"fuel": fuel_found, "food": 1})
 	_refresh_hud()
-	_open_popup("CELLAR", "", "Barrels in the dark. Diesel sloshes in the old drums. +%d FUEL — the generator lives another day." % randi_range(2, 4))
+	_open_popup("CELLAR", "", "Barrels in the dark. Diesel sloshes in the old drums. +%d FUEL — the generator lives another day." % fuel_found)
 
 func _energy_blocked_text() -> String:
 	if not _is_day():
@@ -725,29 +713,29 @@ func _on_dilemma_choice(opt: Dictionary, flag_key: String) -> void:
 	var action: String = str(opt.get("action", ""))
 	match action:
 		"quarantine_mason":
-			FlagsManager.increment_flag("morale", 5)
-			FlagsManager.increment_flag("trust", -5)
+			GameManager.morale_value += 5
+			GameManager.trust_value -= 5
 			_open_popup("QUARANTINE", "", "Mason is locked in the holding cell. Dr. Stern says the antivirals may slow the infection. You'll know by morning if he turns.")
 		"execute_mason":
-			FlagsManager.increment_flag("corruption", 20)
-			FlagsManager.increment_flag("trust", -15)
+			GameManager.corruption_value += 20
+			GameManager.trust_value -= 15
 			_open_popup("EXECUTED", "", "Viktor doesn't hesitate. One shot, and the only witness to the protocol is the smell of gunpowder. The shelter is silent tonight.")
 		"cover_up_mason":
 			FlagsManager.set_flag("mason_bite_hidden", true)
-			FlagsManager.increment_flag("corruption", 10)
+			GameManager.corruption_value += 10
 			_open_popup("COVER-UP", "", "You pocket the bandage and lie to Viktor. Mason sweats through the night in the dark. You pray the antivirals work.")
 		"hold_the_line":
-			FlagsManager.increment_flag("trust", 10)
-			FlagsManager.increment_flag("morale", -5)
+			GameManager.trust_value += 10
+			GameManager.morale_value -= 5
 			FlagsManager.set_flag("silas_hostile", true)
 			_open_popup("HOLD THE LINE", "", "You refuse to abandon the gate. Silas curses and storms off, but Vera nods. The checkpoint holds — for now.")
 		"cut_rations":
-			FlagsManager.increment_flag("morale", -20)
-			FlagsManager.increment_flag("food", 5)
+			GameManager.morale_value -= 20
+			ResourceSystem.add_resources({"food": 5})
 			FlagsManager.set_flag("silas_hostile", false)
 			_open_popup("HALF RATIONS", "", "Vera waters down the stew. The shelter eats half portions. Nobody speaks, but the generator burns a little longer.")
 		"plan_evacuation":
-			FlagsManager.increment_flag("security", 5)
+			GameManager.security_value += 5
 			FlagsManager.set_flag("radio_fixed", true)
 			_open_popup("EVACUATION PLAN", "", "Silas cracks his knuckles and starts on the generator. Nia recalibrates the radio array. If the choppers come, you'll hear them.")
 		_:

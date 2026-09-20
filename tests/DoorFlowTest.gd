@@ -80,6 +80,8 @@ func _run() -> void:
 		check(false, "second visitor present (queue had >= 2)")
 	else:
 		print("INFO second visitor: ", scene.current_visitor.get("name", "?"))
+	# Drain whatever the night queue still holds (night 2 serves 3).
+	while not scene.current_visitor.is_empty():
 		scene._on_turn_away_pressed()
 		await get_tree().create_timer(2.5).timeout
 	# Drain whatever the night queue still holds (night 2 serves 3).

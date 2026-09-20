@@ -27,4 +27,4 @@ Requirements: Godot 4.x (`GODOT_BIN`), Android platform-tools (`adb` on
 |---|---|---|---|---|---|---|
 
 Playtest coverage (M4-5): use the flags/save cheat to reach every ending —
-`tools/author_cli.py diagram` shows which nodes remain unvisited.
+trace `assets/data/story.json` events by hand to see which remain unvisited.

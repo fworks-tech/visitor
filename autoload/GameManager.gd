@@ -121,8 +121,15 @@ func start_night_phase() -> void:
 func start_day_phase() -> void:
 	change_state(GameState.DAY)
 	
-	# Evaluate overnight consequences from admitted visitors
-	ConsequenceSystem.process_overnight_outcomes()
+	# Evaluate overnight consequences from admitted visitors. The autoload
+	# now points at the engine directly (bridge collapsed — see ADR-001).
+	var _shelter := {
+		"trust": float(trust_value),
+		"corruption": float(corruption_value)
+	}
+	ConsequenceSystem.process_day(current_day, _shelter)
+	trust_value = int(_shelter.get("trust", trust_value))
+	corruption_value = int(_shelter.get("corruption", corruption_value))
 	StoryManager.trigger_phase_event(current_day, "day")
 	
 	# Daily energy budget grows 2 -> 4 over the week; TV gates the exam tools
@@ -131,6 +138,7 @@ func start_day_phase() -> void:
 	tv_watched_today = false
 	unlocked_tools_today = []
 	
+	SaveManager.save_game()  # checkpoint: sleep is the only save point
 	SceneManager.change_scene(HOUSE_SCENE_PATH)
 
 ## Sleep is the only night/day transition, triggered from the bedroom bed.

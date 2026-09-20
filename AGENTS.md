@@ -29,11 +29,11 @@ visitor/
 │   ├── VisitorManager.gd      # Visitor queue per night. Decision enum: LET_IN/TURN_AWAY/ELIMINATE. prepare_night_queue(day), start_next_inspection(), process_decision(decision)
 │   ├── SignsManager.gd        # Bridge to SignsSystem — AP-based sign inspection
 │   ├── ResourceSystem.gd     # food/water/ammo/medicine/fuel; add_resources, get_resources, consume_*
-│   └── ConsequenceSystem.gd   # Delayed consequence queue (infected_let_in turns days later, etc.)
+│   └── ConsequenceSystem→scripts/systems/ConsequencesSystem.gd  # Delayed consequence queue (infected_let_in turns days later, etc.)
 ├── scripts/
 │   ├── core/                  # SplashScreen.gd, MainMenu.gd
 │   ├── gameplay/              # InspectionScene.gd (core loop)
-│   ├── systems/               # Node-based logic (SignsSystem, InfectionSystem, ConsequencesSystem, ResourceManager)
+│   ├── systems/               # Node-based logic (ConsequencesSystem)
 │   └── ui/                    # GameOver.gd, Settings.gd, PauseMenu.gd, CRTController.gd
 ├── scenes/
 │   ├── core/                  # SplashScreen.tscn (main scene), MainMenu.tscn
@@ -61,7 +61,7 @@ visitor/
 ├── shaders/                   # crt.gdshader, vhs.gdshader
 ├── theme/visitor_theme.tres   # Green monochrome Theme (Courier New / terminal aesthetic)
 ├── tests/validate_systems.py  # System integration test runner
-└── docs/                      # AUDIO_DIRECTION.md, PORTRAIT_PROMPTS.md
+└── docs/                      # AUDIO_DIRECTION.md, PORTRAIT_PROMPTS.md, adr/
 ```
 
 ---

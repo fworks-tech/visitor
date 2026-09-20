@@ -378,13 +378,13 @@ func _build_furniture_solids() -> void:
 	_solid(b + Vector3(-1.72, 0.35, -0.8), Vector3(1.1, 0.7, 2.0))
 	_solid(b + Vector3(-1.3, 0.31, 1.75), Vector3(1.6, 0.62, 0.5))
 	_solid(b + Vector3(-0.85, 0.25, -1.6), Vector3(0.7, 0.5, 0.5))
-	_solid(k + Vector3(1.55, 0.45, 0), Vector3(1.0, 0.9, 3.6))
-	_solid(k + Vector3(1.6, 0.6, 1.65), Vector3(0.9, 1.2, 0.7))
+	_solid(k + Vector3(1.55, 0.45, 0), Vector3(1.0, 0.9, 2.9))
+	_solid(k + Vector3(-1.71, 0.6, -1.5), Vector3(0.6, 1.2, 0.9))
 	_solid(o + Vector3(-1.0, 0.4, -1.61), Vector3(1.6, 0.8, 0.9))
 	_solid(o + Vector3(-1.0, 0.3, -0.9), Vector3(0.5, 0.6, 0.5))
 	_solid(o + Vector3(1.5, 0.9, 1.72), Vector3(1.0, 1.8, 0.5))
-	_solid(t + Vector3(1.0, 0.4, -1.27), Vector3(0.7, 0.8, 0.6))
-	_solid(t + Vector3(-1.1, 0.35, 0.5), Vector3(0.6, 0.7, 0.8))
+	_solid(t + Vector3(1.27, 0.4, -0.2), Vector3(0.5, 0.8, 0.55))
+	_solid(t + Vector3(-1.1, 0.36, 1.11), Vector3(0.5, 0.7, 0.78))
 
 func _build_interactables() -> void:
 	var b: Vector3 = ROOM_POSITIONS["bedroom"]
@@ -398,9 +398,9 @@ func _build_interactables() -> void:
 		_it("radio", b + Vector3(-0.85, 0.6, -1.6), "TURN ON RADIO"),
 		_it("front_door", h + Vector3(-1.8, 1.5, 2.9), "FRONT DOOR"),
 		_it("window", h + Vector3(1.8, 1.8, -2.9), "LOOK OUT THE WINDOW"),
-		_it("scavenge", k + Vector3(1.55, 0.9, -0.1), "SCAVENGE PANTRY"),
+		_it("scavenge", k + Vector3(1.55, 0.9, 0.0), "SCAVENGE PANTRY"),
 		_it("fortify", o + Vector3(-0.9, 1.2, -1.9), "FORTIFY WINDOWS"),
-		_it("mirror", t + Vector3(1.0, 1.7, -1.43), "MIRROR — CHECK YOURSELF"),
+		_it("mirror", t + Vector3(1.4, 1.7, -0.2), "MIRROR — CHECK YOURSELF"),
 	]
 
 func set_mood(day: bool) -> void:
@@ -634,36 +634,39 @@ func _build_window(center: Vector3) -> void:
 
 func _build_kitchen() -> void:
 	var base: Vector3 = ROOM_POSITIONS["kitchen"]
-	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.2), -PI / 2.0, 2.0)
-	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, -0.1), -PI / 2.0, 2.0)
-	_focus_boxes["scavenge"] = _world_box(sink).grow(0.2)
+	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, 0.0), -PI / 2.0, 2.0)
+	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.0), -PI / 2.0, 2.0)
 	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, 1.0), -PI / 2.0, 2.0)
-	_prop("kitchenFridgeSmall.glb", base + Vector3(-1.6, 0, -1.5), PI / 2.0, 2.0)
-	# Hospital storage on the west wall, wall unit stacked on its base.
-	_atomic("cupboard_bottom.glb", base + Vector3(-1.7, 0, 0.6), PI / 2.0)
-	_atomic("cupboard_top.glb", base + Vector3(-1.7, 0.69, 0.6), PI / 2.0)
-	_pack_prop("caffetaria_001", base + Vector3(-0.3, 0, 1.6), PI)
+	# Fridge flush on the west wall (depth 0.58 scaled).
+	_prop("kitchenFridgeSmall.glb", base + Vector3(-1.71, 0, -1.5), PI / 2.0, 2.0)
+	# Hospital storage flush on the west wall, wall unit stacked on its base.
+	_atomic("cupboard_bottom.glb", base + Vector3(-1.8, 0, 0.6), PI / 2.0)
+	_atomic("cupboard_top.glb", base + Vector3(-1.85, 0.69, 0.6), PI / 2.0)
+	# Serving counter flush on the south wall (depth 1.38).
+	_pack_prop("caffetaria_001", base + Vector3(-0.3, 0, 1.31), PI)
+	_focus_boxes["scavenge"] = _world_box(sink).grow(0.2)
 
 func _build_office() -> void:
 	var base: Vector3 = ROOM_POSITIONS["office"]
 	_prop("desk.glb", base + Vector3(-1.0, 0, -1.61), 0.0, 2.0)
 	_prop("chairDesk.glb", base + Vector3(-1.0, 0, -0.9), PI, 1.6)
 	_prop("bookcaseOpen.glb", base + Vector3(1.5, 0, 1.72), 0.0, 2.0)
-	# Second workstation on the east side, chair pulled up to it.
-	_pack_prop("office table", base + Vector3(1.2, 0, -0.4), PI / 2.0)
-	_pack_prop("chim chair_001", base + Vector3(0.3, 0, -0.4), PI / 2.0)
+	# Second workstation flush on the east wall (length 2.38 along it).
+	_pack_prop("office table", base + Vector3(1.05, 0, -0.4), PI / 2.0)
+	_pack_prop("chim chair_001", base + Vector3(-0.45, 0, -0.4), PI / 2.0)
 	_box(self, base + Vector3(-0.6, 1.9, -1.95), Vector3(2.6, 0.2, 0.1), DOOR_COL)
 	_box(self, base + Vector3(-1.2, 1.4, -1.95), Vector3(2.6, 0.2, 0.1), DOOR_COL)
 
 func _build_bathroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bathroom"]
-	# Sink origin hangs below the model — the auto-centering seats it.
-	_prop("bathroomSink.glb", base + Vector3(1.0, 0, -1.27), 0.0, 1.6)
-	var mirror_pair: Array = _emissive(base + Vector3(1.0, 1.7, -1.43), Vector3(0.8, 1.0, 0.05), Color(0.4, 0.5, 0.55))
+	# The north wall is mostly door gap — sink and mirror live on the east
+	# wall, facing west into the room (sink depth 0.46 scaled).
+	_prop("bathroomSink.glb", base + Vector3(1.27, 0, -0.2), -PI / 2.0, 1.6)
+	var mirror_pair: Array = _emissive(base + Vector3(1.475, 1.7, -0.2), Vector3(0.05, 1.0, 0.8), Color(0.4, 0.5, 0.55))
 	_focus_boxes["mirror"] = _world_box(mirror_pair[0] as Node3D).grow(0.06)
-	_prop("toilet.glb", base + Vector3(-1.1, 0, 0.5), 0.0, 1.6)
-	# Instrument tray beside the sink — triage kit.
-	_atomic("tray_1.glb", base + Vector3(0.0, 0, -1.25), 0.0)
+	_prop("toilet.glb", base + Vector3(-1.1, 0, 1.11), PI, 1.6)
+	# Instrument tray clear of the doorway — triage kit by the west pier.
+	_atomic("tray_1.glb", base + Vector3(-1.15, 0, -1.4), 0.0)
 
 # --- structure: kit trim over the box shell ------------------------------------
 # The 2m/2.4m kit modules don't match our 6x3m cells, so boxes stay structural
@@ -673,8 +676,9 @@ func _build_structure() -> void:
 	var h: Vector3 = ROOM_POSITIONS["hall"]
 	var o: Vector3 = ROOM_POSITIONS["office"]
 	var b: Vector3 = ROOM_POSITIONS["bedroom"]
-	# Boarded office opening over the plank fortify.
-	var barricade := _bprop("barricade-window-a.glb", o + Vector3(-0.9, 1.1, -1.9), 0.0, 1.6)
+	# Boarded office opening over the plank fortify: flat panel against the
+	# wall face (rot PI/2 — rot 0 left it perpendicular, planks through the wall).
+	var barricade := _bprop("barricade-window-a.glb", o + Vector3(-0.9, 0.95, -1.94), PI / 2.0, 1.2)
 	_focus_boxes["fortify"] = _world_box(barricade).grow(0.1)
 	# Baseboards kill the floating-wall read (crossings read as thresholds).
 	var bb := Color(0.1, 0.09, 0.1)
@@ -714,12 +718,12 @@ func _build_decor() -> void:
 	_solid(b + Vector3(1.8, 0.4, 1.5), Vector3(0.35, 0.8, 0.35))
 	# Tabletop clutter (auto-seated on furniture tops).
 	_prop("books.glb", o + Vector3(-1.5, 0.76, -1.61), 0.3, 2.5)
-	_prop("plantSmall1.glb", k + Vector3(1.55, 0.9, -1.2), 0.0, 2.0)
+	_prop("plantSmall1.glb", k + Vector3(1.55, 0.9, -1.0), 0.0, 2.0)
 	# Wall lamps: mesh + warm shade glow (the mesh itself is unlit plastic).
 	_wall_lamp(b + Vector3(-1.5, 1.85, -1.89), 0.0)
 	_wall_lamp(h + Vector3(-1.8, 2.35, 2.89), PI)
 	_wall_lamp(o + Vector3(-2.14, 1.9, -0.5), PI / 2.0)
-	_wall_lamp(t + Vector3(-0.2, 1.9, -1.39), 0.0)
+	_wall_lamp(t + Vector3(1.15, 1.9, -1.39), 0.0)
 	# Kitchen ceiling dome (top kisses the implied 3.0 ceiling).
 	_prop("lampSquareCeiling.glb", k + Vector3(0, 2.54, 0), 0.0, 2.0)
 	_emissive(k + Vector3(0, 2.5, 0), Vector3(0.2, 0.03, 0.2), Color(1.0, 0.8, 0.55))

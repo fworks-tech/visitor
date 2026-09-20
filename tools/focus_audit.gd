@@ -25,10 +25,12 @@ var poses := [
 	["front door", HALL, Vector3(-0.9, 1.65, 1.2), Vector3(-1.8, 1.5, 2.9), "front_door"],
 	["hall blank wall", HALL, Vector3(-0.9, 1.65, 1.2), Vector3(-0.6, 1.5, 2.9), ""],
 	["window", HALL, Vector3(0.6, 1.65, -0.8), Vector3(1.8, 1.8, -2.9), "window"],
-	["kitchen sink", KITCHEN, Vector3(0.0, 1.65, 0.8), Vector3(1.55, 0.9, -0.1), "scavenge"],
+	["kitchen sink", KITCHEN, Vector3(0.0, 1.65, 0.8), Vector3(1.55, 0.9, 0.0), "scavenge"],
+	["kitchen blank", KITCHEN, Vector3(0.0, 1.65, 0.0), Vector3(-1.0, 1.5, -2.0), ""],
 	["office barricade", OFFICE, Vector3(0.2, 1.65, 0.0), Vector3(-0.9, 1.2, -1.9), "fortify"],
-	["mirror", BATHROOM, Vector3(-0.5, 1.65, 0.0), Vector3(1.0, 1.7, -1.43), "mirror"],
-	["bathroom blank", BATHROOM, Vector3(0.0, 1.65, 0.0), Vector3(-1.1, 0.7, 0.5), ""],
+	["office blank", OFFICE, Vector3(0.0, 1.65, 0.2), Vector3(2.25, 1.5, 0.2), ""],
+	["mirror", BATHROOM, Vector3(-0.3, 1.65, 0.3), Vector3(1.4, 1.7, -0.2), "mirror"],
+	["bathroom blank", BATHROOM, Vector3(0.0, 1.65, 0.0), Vector3(-1.1, 0.7, 1.1), ""],
 ]
 
 func _init() -> void:

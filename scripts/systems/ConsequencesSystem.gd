@@ -35,7 +35,8 @@ func _ready() -> void:
 func record_decision(visitor: Dictionary, decision: String, current_day: int, shelter_state: Dictionary) -> Dictionary:
 	var visitor_id: String = visitor.get("id", "visitor_unknown")
 	var visitor_name: String = visitor.get("name", "Unknown Visitor")
-	var is_infected: bool = visitor.get("is_infected", false)
+	# visitors.json carries is_actually_infected; is_infected is the legacy spelling.
+	var is_infected: bool = visitor.get("is_actually_infected", visitor.get("is_infected", false))
 	var infection_progress: float = visitor.get("infection_progress", 0.0)
 
 	var entry: Dictionary = {
@@ -141,7 +142,7 @@ func queue_consequence(type: String, trigger_day: int, visitor: Dictionary, payl
 	return consequence
 
 ## Process all consequences due on current_day. Updates shelter_state and returns event log entries.
-func process_day(current_day: int, shelter_state: Dictionary, survivors_list: Array = []) -> Array:
+func process_day(current_day: int, shelter_state: Dictionary) -> Array:
 	var daily_event_logs: Array = []
 	var remaining_queue: Array = []
 
@@ -155,6 +156,16 @@ func process_day(current_day: int, shelter_state: Dictionary, survivors_list: Ar
 			var c_type: String = c.get("type", "")
 			var log_msg: String = ""
 
+			# A guest who already left the house cannot hurt anyone inside —
+			# the community reads the call as justified, so penalties are halved.
+			var guest: Dictionary = {}
+			if c_type == TYPE_INFECTED_LET_IN:
+				guest = _guest_by_id(c.get("visitor_id", ""))
+				if guest.is_empty():
+					for key in payload.keys():
+						if str(key).ends_with("_change"):
+							payload[key] = int(payload[key] / 2.0)
+
 			# Apply payload stat modifications
 			var stat_changes: Dictionary = {}
 			if payload.has("trust_change"): stat_changes["trust"] = payload["trust_change"]
@@ -166,14 +177,11 @@ func process_day(current_day: int, shelter_state: Dictionary, survivors_list: Ar
 			# Construct detailed narrative log message
 			match c_type:
 				TYPE_INFECTED_LET_IN:
-					log_msg = "[CRISIS] Day %d: Infected survivor '%s' fully turned inside shelter! Bitten 1 survivor. Trust dropped by 25." % [current_day, visitor_name]
-					# Handle chain infection in survivors list if provided
-					if not survivors_list.is_empty():
-						var target_idx: int = randi() % survivors_list.size()
-						if survivors_list[target_idx].has("is_infected"):
-							survivors_list[target_idx]["is_infected"] = true
-							survivors_list[target_idx]["infection_progress"] = 0.2
-							log_msg += " Survivor '%s' was bitten and infected!" % survivors_list[target_idx].get("name", "Survivor")
+					if guest.is_empty():
+						log_msg = "[NEWS] Day %d: '%s', cast out before, turned on the road. Your call stands." % [current_day, visitor_name]
+					else:
+						guest["turned"] = true
+						log_msg = "[TURNED] Day %d: '%s' you let in has turned inside the shelter. It walks among them now." % [current_day, visitor_name]
 
 				TYPE_HUMAN_TURNED_AWAY:
 					log_msg = "[GUILT] Day %d: News arrives that turned-away human '%s' died outside. Morale dropped by 15." % [current_day, visitor_name]
@@ -204,7 +212,47 @@ func process_day(current_day: int, shelter_state: Dictionary, survivors_list: Ar
 			remaining_queue.append(c)
 
 	consequence_queue = remaining_queue
+	_run_infection(current_day, shelter_state, daily_event_logs)
 	return daily_event_logs
+
+## Advances the in-house infection clock. Bitten guests progress first
+## (+0.25/day, turn at 0.8), then each turned guest loose rolls 50% to bite a
+## healthy one at dawn. A turned/bitten guest is never a victim; fresh bites
+## grow from the NEXT dawn, so a bite turns the bearer ~3 days later.
+func _run_infection(current_day: int, shelter_state: Dictionary, logs: Array) -> void:
+	for g in VisitorManager.admitted_visitors:
+		if bool(g.get("bitten", false)) and not bool(g.get("turned", false)):
+			var p: float = clampf(float(g.get("infection_progress", 0.2)) + 0.25, 0.0, 1.0)
+			g["infection_progress"] = p
+			if p >= 0.8:
+				g["turned"] = true
+				g["bitten"] = false
+				logs.append({"day": current_day, "type": TYPE_CHAIN_INFECTION,
+					"log": "[TURNED] Day %d: '%s' succumbed to the bite. It is one of them now." % [current_day, g.get("name", "someone")]})
+	var turned: Array = []
+	var pool: Array = []
+	for g in VisitorManager.admitted_visitors:
+		if bool(g.get("turned", false)):
+			turned.append(g)
+		elif not bool(g.get("bitten", false)):
+			pool.append(g)
+	for biter in turned:
+		if pool.is_empty():
+			break
+		if randf() >= 0.5:
+			continue
+		var victim: Dictionary = pool.pop_at(randi() % pool.size())
+		victim["bitten"] = true
+		victim["infection_progress"] = 0.2
+		apply_stat_changes(shelter_state, {"trust": -10, "morale": -10})
+		logs.append({"day": current_day, "type": TYPE_CHAIN_INFECTION,
+			"log": "[BITE] Day %d: '%s' screamed in the night. Something in the house bit them." % [current_day, victim.get("name", "someone")]})
+
+func _guest_by_id(guest_id: String) -> Dictionary:
+	for g in VisitorManager.admitted_visitors:
+		if str(g.get("id", "")) == guest_id:
+			return g
+	return {}
 
 ## Helper to modify shelter state stats safely within 0 to 100 range
 func apply_stat_changes(shelter_state: Dictionary, changes: Dictionary) -> void:

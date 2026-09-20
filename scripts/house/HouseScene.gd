@@ -66,7 +66,10 @@ func _ready() -> void:
 	_capture_mouse()
 	if _is_day():
 		if not GameManager.tv_watched_today:
-			_open_popup("MORNING", "", "You wake in your bunk. The TV in the corner flickers with the morning broadcast. Watch it before examining anyone." + CONTROLS_HINT)
+			var morning := "You wake in your bunk. The TV in the corner flickers with the morning broadcast. Watch it before examining anyone."
+			for l in GameManager.overnight_logs:
+				morning += "\n\n[color=#aaffaa]%s[/color]" % str(l.get("log", ""))
+			_open_popup("MORNING", "", morning + CONTROLS_HINT)
 		_try_trigger_day_dilemma()
 	else:
 		var briefing := _night_briefing()
@@ -436,6 +439,16 @@ func _energy_blocked_text() -> String:
 
 func _open_guest_popup(guest: Dictionary) -> void:
 	_popup_guest = guest
+	if bool(guest.get("turned", false)):
+		var actions: Array = []
+		if ResourceSystem.ammo > 0:
+			actions.append({"label": "ELIMINATE (1 AMMO)", "action": "eliminate_turned"})
+		actions.append({"label": "KICK OUT", "action": "kick"})
+		actions.append({"label": "CLOSE", "action": "close"})
+		_open_popup("TURNED — %s" % str(guest.get("name", "GUEST")).to_upper(), str(guest.get("portrait", "")),
+			"It was %s. Whatever wears them now is not them. The others watch your hands." % str(guest.get("name", "the guest")))
+		_set_popup_actions(actions)
+		return
 	var intro := "Admitted on night %d. They sit where you placed them." % int(guest.get("admitted_day", 0))
 	var actions: Array = [{"label": "TALK", "action": "talk"}]
 	if _is_day():
@@ -487,8 +500,31 @@ func _popup_kick() -> void:
 	popup.visible = false
 	house3d.set_guests(VisitorManager.admitted_visitors)
 	_refresh_hud()
-	if not kicked.is_empty():
-		_open_popup("KICKED OUT", "", "%s is back outside in the cold. The house watches you do it." % str(kicked.get("name", "The guest")))
+	if kicked.is_empty():
+		return
+	if bool(kicked.get("turned", false)):
+		# The community does not blame you for casting out a monster.
+		GameManager.trust_value += 10
+		ConsequenceSystem.queue_consequence(ConsequenceSystem.TYPE_REVENGE_ATTACK,
+			GameManager.current_day + randi_range(2, 4), kicked,
+			{"security_change": -15, "trust_change": -10,
+				"description": "The thing you cast out came back with friends."})
+	_open_popup("KICKED OUT", "", "%s is back outside in the cold. The house watches you do it." % str(kicked.get("name", "The guest")))
+
+func _popup_eliminate_turned() -> void:
+	if not ResourceSystem.consume_ammo(1):
+		popup_text.text = "Click. Empty. KICK them out instead."
+		return
+	var fallen := str(_popup_guest.get("name", "The guest"))
+	VisitorManager.eliminate_guest(str(_popup_guest.get("id", "")))
+	GameManager.morale_value = clampi(GameManager.morale_value - 10, 0, 100)
+	GameManager.security_value = clampi(GameManager.security_value + 10, 0, 100)
+	_popup_guest = {}
+	popup.visible = false
+	house3d.set_guests(VisitorManager.admitted_visitors)
+	_capture_mouse()
+	_refresh_hud()
+	_open_popup("IT IS DONE", "", "The thing that wore %s collapses. The house exhales — and the others will not forget your face tonight." % fallen)
 
 func _guest_infected() -> bool:
 	return bool(_popup_guest.get("is_actually_infected", _popup_guest.get("is_infected", false)))
@@ -533,6 +569,8 @@ func _on_popup_action(action: String) -> void:
 			_popup_examine()
 		"kick":
 			_popup_kick()
+		"eliminate_turned":
+			_popup_eliminate_turned()
 
 # --- toque: joystick esquerdo + botões E/F/R + arrasto direito = look --------
 # Camada invisível no desktop; só aparece com touchscreen de verdade.

@@ -74,6 +74,8 @@ var energy_max: int = 2
 var energy_left: int = 0
 var unlocked_tools_today: Array = []
 var tv_watched_today: bool = false
+## Event-log entries from ConsequenceSystem.process_day, surfaced at dawn.
+var overnight_logs: Array = []
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
@@ -139,7 +141,7 @@ func start_day_phase() -> void:
 		"morale": float(morale_value),
 		"security": float(security_value)
 	}
-	ConsequenceSystem.process_day(current_day, shelter)
+	overnight_logs = ConsequenceSystem.process_day(current_day, shelter)
 	trust_value = int(shelter.get("trust", trust_value))
 	corruption_value = int(shelter.get("corruption", corruption_value))
 	morale_value = int(shelter.get("morale", morale_value))

@@ -645,9 +645,12 @@ func set_guests(guests: Array) -> void:
 		for j in range(mini(shown, all.size())):
 			if all[j] is Dictionary:
 				body.show_sign(all[j])
+		var turned := bool(g.get("turned", false))
+		if turned:
+			body.set_corruption(1.0)
 		_guest_bodies[str(g.get("id", ""))] = body
 		_guest_interactables.append({"id": "guest", "pos": pos + Vector3(0, 1.0, 0),
-			"label": str(g.get("name", "GUEST")).to_upper(), "guest": g})
+			"label": ("TURNED — " if turned else "") + str(g.get("name", "GUEST")).to_upper(), "guest": g})
 
 func _signs_of(g: Dictionary) -> Array:
 	return g.get("assigned_signs", [])

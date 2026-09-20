@@ -136,6 +136,99 @@ func _run() -> void:
 	# All paths clear when every floor is unlocked.
 	check(scene.house3d._obstacle_props.size() == 0, "0 obstacles on day 7 (all floors unlocked)")
 
+	# --- turned-guest confrontation ------------------------------------------------
+	# Root regression: the gate LET_IN of an infected must queue the turn consequence.
+	ConsequenceSystem.consequence_queue.clear()
+	ConsequenceSystem.record_decision({"id": "x1", "name": "Latent", "is_actually_infected": true,
+		"infection_progress": 0.9}, "LET_IN", GameManager.current_day, {})
+	var queued := false
+	for cq in ConsequenceSystem.consequence_queue:
+		if str(cq.get("type", "")) == "infected_let_in" and str(cq.get("visitor_id", "")) == "x1":
+			queued = true
+	check(queued, "gate LET_IN infected queues turn consequence")
+
+	# Consequence fires → guest still inside gets turned=true.
+	VisitorManager.admitted_visitors = [{"id": "x1", "name": "Latent", "room": "hall",
+		"is_actually_infected": true, "infection_progress": 0.9, "dialogue_chain": [], "assigned_signs": []}]
+	var tlogs: Array = ConsequenceSystem.process_day(GameManager.current_day + 3, {})
+	check(bool(VisitorManager.admitted_visitors[0].get("turned", false)), "guest inside is marked turned when consequence fires")
+	check(tlogs.size() > 0, "process_day returns overnight logs")
+
+	# Already kicked out → no turn flag applied to housemates.
+	ConsequenceSystem.consequence_queue.clear()
+	ConsequenceSystem.queue_consequence("infected_let_in", 99, {"id": "gone", "name": "Gone"},
+		{"trust_change": -25, "morale_change": -30})
+	ConsequenceSystem.process_day(99, {})
+	check(not bool(VisitorManager.admitted_visitors[0].get("turned_b", false)) and str(VisitorManager.admitted_visitors[0].get("id", "")) == "x1",
+		"kicked-out guest turning does not flag housemates")
+
+	# Turned body is labeled TURNED in the focus list.
+	scene.house3d.set_guests(VisitorManager.admitted_visitors)
+	var turned_labeled := false
+	for it in scene.house3d._guest_interactables:
+		if str(it.get("label", "")).begins_with("TURNED"):
+			turned_labeled = true
+	check(turned_labeled, "turned guest labeled TURNED")
+
+	# Dawn bite: turned loose can bite a healthy guest (50%); loop seeds until one bites.
+	var bit_once := false
+	for s in 12:
+		seed(s * 7 + 3)
+		VisitorManager.admitted_visitors = [{"id": "t9", "name": "Turned", "room": "hall", "turned": true},
+			{"id": "h9", "name": "Human", "room": "kitchen"}]
+		ConsequenceSystem.process_day(50, {})
+		if bool(VisitorManager.admitted_visitors[1].get("bitten", false)):
+			bit_once = true
+			check(float(VisitorManager.admitted_visitors[1].get("infection_progress", 0.0)) > 0.0, "bite seeds infection progress")
+			check(not bool(VisitorManager.admitted_visitors[0].get("bitten", false)), "turned never bites itself")
+			break
+	check(bit_once, "turned guest can bite at dawn")
+
+	# Bite progression: +0.25/day, crosses 0.8 → turned.
+	VisitorManager.admitted_visitors = [{"id": "b1", "name": "Bitten", "room": "hall",
+		"bitten": true, "infection_progress": 0.8}]
+	ConsequenceSystem.process_day(60, {})
+	check(bool(VisitorManager.admitted_visitors[0].get("turned", false)), "bitten guest progresses to turned at threshold")
+
+	# Turned popup: ELIMINATE offered with ammo, consumes 1, morale -10 / security +10.
+	ResourceSystem.add_resources({"ammo": 2})
+	GameManager.morale_value = 50
+	GameManager.security_value = 50
+	VisitorManager.admitted_visitors = [{"id": "x1", "name": "Latent", "room": "hall", "turned": true}]
+	scene._open_guest_popup(VisitorManager.admitted_visitors[0])
+	await get_tree().process_frame
+	var has_eliminate := false
+	for c in scene.popup_actions.get_children():
+		if "ELIMINATE" in str(c.text):
+			has_eliminate = true
+	check(has_eliminate, "turned popup offers ELIMINATE")
+	var ammo_before: int = ResourceSystem.ammo
+	scene._on_popup_action("eliminate_turned")
+	check(ResourceSystem.ammo == ammo_before - 1, "eliminate turned spends 1 ammo")
+	check(VisitorManager.admitted_visitors.is_empty(), "eliminated guest leaves the house")
+	check(GameManager.security_value == 60 and GameManager.morale_value == 40, "eliminate: morale -10, security +10")
+
+	# Dry gun: no ELIMINATE button.
+	ResourceSystem.ammo = 0
+	VisitorManager.admitted_visitors = [{"id": "x3", "name": "Latent3", "room": "hall", "turned": true}]
+	scene._open_guest_popup(VisitorManager.admitted_visitors[0])
+	await get_tree().process_frame
+	var elim_when_dry := false
+	for c in scene.popup_actions.get_children():
+		if "ELIMINATE" in str(c.text):
+			elim_when_dry = true
+	check(not elim_when_dry, "no ELIMINATE without ammo")
+
+	# Kicking a turned guest queues a revenge attack.
+	ConsequenceSystem.consequence_queue.clear()
+	scene._on_popup_action("kick")
+	var rev := false
+	for cq in ConsequenceSystem.consequence_queue:
+		if str(cq.get("type", "")) == "revenge_attack":
+			rev = true
+	check(rev, "kick of turned guest queues revenge attack")
+	ConsequenceSystem.consequence_queue.clear()
+
 	VisitorManager.admitted_visitors.clear()
 	print("RESULT %d failures" % failures.size())
 	for x in failures:

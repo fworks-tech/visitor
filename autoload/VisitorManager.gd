@@ -232,6 +232,16 @@ func kick_guest(guest_id: String) -> Dictionary:
 			return g
 	return {}
 
+## Shooting a turned guest inside the house: it leaves no corpse outside and
+## costs no trust — the community saw a Visitor fall.
+func eliminate_guest(guest_id: String) -> Dictionary:
+	for i in admitted_visitors.size():
+		if str(admitted_visitors[i].get("id", "")) == guest_id:
+			var g: Dictionary = admitted_visitors.pop_at(i)
+			FlagsManager.increment_flag("infected_eliminated")
+			return g
+	return {}
+
 func get_save_data() -> Dictionary:
 	return {
 		"decision_history": decision_history,

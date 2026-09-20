@@ -169,13 +169,12 @@ func process_decision(decision: Decision) -> Dictionary:
 	# payoffs that start_day_phase fires via ConsequenceSystem.process_day.
 	# Immediate stats are already applied above, so the engine gets a scratch
 	# shelter state and only its queued consequences reach GameManager.
-	if ConsequenceSystem.consequences_engine != null:
-		var shelter := {
-			"trust": float(GameManager.trust_value),
-			"corruption": float(GameManager.corruption_value)
-		}
-		ConsequenceSystem.consequences_engine.record_decision(
-			current_visitor, DECISION_NAMES[decision], GameManager.current_day, shelter)
+	var shelter := {
+		"trust": float(GameManager.trust_value),
+		"corruption": float(GameManager.corruption_value)
+	}
+	ConsequenceSystem.record_decision(
+		current_visitor, DECISION_NAMES[decision], GameManager.current_day, shelter)
 	
 	return log_entry
 

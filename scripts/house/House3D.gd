@@ -11,6 +11,9 @@ const DOOR_COL := Color(0.4, 0.3, 0.2)
 const FURNITURE_COL := Color(0.24, 0.23, 0.26)
 const CEIL_COL := Color(0.18, 0.17, 0.2)
 
+## Floor offsets: each floor is 3.2m above the one below.
+const FLOOR_Y := {"ground": 0.0, "second": 3.2, "attic": 6.4, "basement": -3.2}
+
 ## Rooms sized like what they are: hall is the hub, bathroom is tight.
 const ROOM_POSITIONS := {
 	"hall": Vector3(0, 0, 0),
@@ -18,6 +21,52 @@ const ROOM_POSITIONS := {
 	"kitchen": Vector3(6.0, 0, 0),
 	"office": Vector3(0, 0, -6.0),
 	"bathroom": Vector3(0, 0, 5.5),
+}
+
+## Upper/lower floors unlock as days progress.
+const SECOND_FLOOR_ROOMS := {
+	"hall_up": Vector3(0, 0, 0),
+	"storage": Vector3(-6.25, 0, 0),
+	"guest_room": Vector3(6.0, 0, 0),
+}
+const SECOND_FLOOR_SIZES := {
+	"hall_up": Vector2(6, 6),
+	"storage": Vector2(4, 4),
+	"guest_room": Vector2(4, 4),
+}
+const SECOND_FLOOR_DOORS := {
+	"hall_up": {"n": false, "s": false, "e": true, "w": true},
+	"storage": {"e": true},
+	"guest_room": {"w": true},
+}
+
+const ATTIC_ROOMS := {
+	"attic_hall": Vector3(0, 0, 0),
+	"attic_storage": Vector3(-6.25, 0, 0),
+}
+const ATTIC_SIZES := {
+	"attic_hall": Vector2(6, 6),
+	"attic_storage": Vector2(4, 4),
+}
+const ATTIC_DOORS := {
+	"attic_hall": {"n": false, "s": false, "e": true, "w": false},
+	"attic_storage": {"e": true},
+}
+
+const BASEMENT_ROOMS := {
+	"basement_hall": Vector3(0, 0, 0),
+	"generator_room": Vector3(-6.25, 0, 0),
+	"cellar": Vector3(6.0, 0, 0),
+}
+const BASEMENT_SIZES := {
+	"basement_hall": Vector2(6, 6),
+	"generator_room": Vector2(4, 4),
+	"cellar": Vector2(4, 4),
+}
+const BASEMENT_DOORS := {
+	"basement_hall": {"n": false, "s": false, "e": true, "w": true},
+	"generator_room": {"e": true},
+	"cellar": {"w": true},
 }
 const ROOM_SIZES := {
 	"hall": Vector2(6, 6),
@@ -59,6 +108,10 @@ var _tap_on: bool = false
 var _tap_streak: MeshInstance3D
 var _tap_mat: StandardMaterial3D
 
+## Multi-floor state: which floors are accessible (drives collision + interactables).
+var _unlocked_floors: Array = ["ground"]
+var _current_floor: String = "ground"
+
 func _ready() -> void:
 	_build_environment()
 	_build_house()
@@ -67,6 +120,20 @@ func _ready() -> void:
 	_spawn_player()
 	_figures_root = Node3D.new()
 	add_child(_figures_root)
+
+## Sets which floors are accessible. Rebuilds collisions + interactables to match.
+func set_unlocked_floors(floors: Array) -> void:
+	_unlocked_floors = floors.duplicate()
+	_current_floor = "ground"
+	# Clear existing collisions and rebuild for unlocked floors.
+	for child in get_children():
+		if child is StaticBody3D:
+			child.queue_free()
+	_build_collisions()
+	# Rebuild interactables for unlocked floors.
+	_build_interactables()
+	if player != null:
+		player.position = ROOM_POSITIONS["bedroom"] + Vector3(0.2, FLOOR_Y["ground"] + 0.05, 1.2)
 
 func get_room_at(pos: Vector3) -> String:
 	var best := "hall"
@@ -311,17 +378,50 @@ func _solid(pos: Vector3, size: Vector3) -> void:
 ## Collision mirrors the visual walls, but door gaps stay walkable: gap walls
 ## become two stubs + a lintel overhead instead of one full solid.
 func _build_collisions() -> void:
+	# Ground floor.
 	_solid(Vector3(0, -0.15, 0), Vector3(24, 0.3, 24))
-	for room in ROOM_POSITIONS:
-		var base: Vector3 = ROOM_POSITIONS[room]
-		var hz := _half(room)
-		var doors: Dictionary = DOORS.get(room, {})
-		_solid_wall(base, hz, "z", -1.0, bool(doors.get("n", false)))
-		_solid_wall(base, hz, "z", 1.0, bool(doors.get("s", false)))
-		_solid_wall(base, hz, "x", -1.0, bool(doors.get("w", false)))
-		_solid_wall(base, hz, "x", 1.0, bool(doors.get("e", false)))
+	_floor_collisions_for("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
+	if _unlocked_floors.has("second"):
+		_floor_collisions_for("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+	if _unlocked_floors.has("attic"):
+		_floor_collisions_for("attic", FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+	if _unlocked_floors.has("basement"):
+		_solid(Vector3(0, FLOOR_Y["basement"] - 0.15, 0), Vector3(24, 0.3, 24))
+		_floor_collisions_for("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
 	_build_bridges()
 	_build_furniture_solids()
+
+func _floor_collisions_for(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+	for room in rooms:
+		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
+		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
+		var hz := sz * 0.5
+		var drs: Dictionary = doors.get(room, {})
+		_solid_wall_y(base, hz, "z", -1.0, bool(drs.get("n", false)))
+		_solid_wall_y(base, hz, "z", 1.0, bool(drs.get("s", false)))
+		_solid_wall_y(base, hz, "x", -1.0, bool(drs.get("w", false)))
+		_solid_wall_y(base, hz, "x", 1.0, bool(drs.get("e", false)))
+
+func _solid_wall_y(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
+	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
+	var seg := (length - 1.6) / 2.0
+	var off := 1.6 / 2.0 + seg / 2.0
+	if axis == "x":
+		var pos := base + Vector3(dir_sign * (hz.x + 0.1), 1.5, 0)
+		if not has_gap:
+			_solid(pos, Vector3(0.2, 3, length + 0.4))
+			return
+		_solid(pos + Vector3(0, 0, -off), Vector3(0.2, 3, seg))
+		_solid(pos + Vector3(0, 0, off), Vector3(0.2, 3, seg))
+		_solid(pos + Vector3(0, 1.1, 0), Vector3(0.2, 0.8, 1.6))
+	else:
+		var pos2 := base + Vector3(0, 1.5, dir_sign * (hz.y + 0.1))
+		if not has_gap:
+			_solid(pos2, Vector3(length + 0.4, 3, 0.2))
+			return
+		_solid(pos2 + Vector3(-off, 0, 0), Vector3(seg, 3, 0.2))
+		_solid(pos2 + Vector3(off, 0, 0), Vector3(seg, 3, 0.2))
+		_solid(pos2 + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2))
 
 ## Floor + side rails across the 1m voids between cells: every doorway is an
 ## enclosed tunnel stub, never a pit you can strafe off.
@@ -413,6 +513,30 @@ func _build_interactables() -> void:
 		_it("fortify", o + Vector3(-0.9, 1.2, -1.9), "FORTIFY WINDOWS"),
 		_it("mirror", t + Vector3(1.4, 1.7, -0.2), "MIRROR — CHECK YOURSELF"),
 	]
+	# Stairs connect floors when unlocked.
+	if _unlocked_floors.has("second"):
+		_interactables.append(_it("stairs_up", h + Vector3(2.5, 1.0, 0.0), "STAIRS UP — SECOND FLOOR"))
+	if _unlocked_floors.has("basement"):
+		_interactables.append(_it("stairs_down", h + Vector3(2.5, 1.0, 1.5), "STAIRS DOWN — BASEMENT"))
+	# Second floor interactables.
+	if _unlocked_floors.has("second"):
+		var sy := FLOOR_Y["second"]
+		_interactables.append(_it("stairs_down_from_second", Vector3(2.5, sy + 1.0, 0.0), "STAIRS DOWN — GROUND FLOOR"))
+		_interactables.append(_it("scavenge_storage", Vector3(-6.25, sy + 0.9, 0.0), "SEARCH STORAGE ROOM"))
+		_interactables.append(_it("guest_room_bed", Vector3(6.0, sy + 0.7, -0.8), "GUEST ROOM — REST"))
+		if _unlocked_floors.has("attic"):
+			_interactables.append(_it("ladder_up", Vector3(2.5, sy + 1.0, 1.5), "LADDER UP — ATTIC"))
+	# Attic interactables.
+	if _unlocked_floors.has("attic"):
+		var ay := FLOOR_Y["attic"]
+		_interactables.append(_it("ladder_down", Vector3(2.5, ay + 1.0, 0.0), "LADDER DOWN — SECOND FLOOR"))
+		_interactables.append(_it("search_attic", Vector3(-6.25, ay + 0.9, 0.0), "SEARCH ATTIC STORAGE"))
+	# Basement interactables.
+	if _unlocked_floors.has("basement"):
+		var by := FLOOR_Y["basement"]
+		_interactables.append(_it("stairs_up_from_basement", Vector3(2.5, by + 1.0, 0.0), "STAIRS UP — GROUND FLOOR"))
+		_interactables.append(_it("generator", Vector3(-6.25, by + 0.9, 0.0), "CHECK GENERATOR"))
+		_interactables.append(_it("cellar_search", Vector3(6.0, by + 0.9, 0.0), "SEARCH CELLAR"))
 
 func set_mood(day: bool) -> void:
 	_is_night = not day
@@ -577,20 +701,7 @@ func _half(room: String) -> Vector2:
 	return ROOM_SIZES.get(room, Vector2(6, 6)) * 0.5
 
 func _build_house() -> void:
-	for room in ROOM_POSITIONS:
-		var base: Vector3 = ROOM_POSITIONS[room]
-		var hz := _half(room)
-		_box(self, base + Vector3(0, -0.1, 0), Vector3(hz.x * 2.0, 0.2, hz.y * 2.0), FLOOR_COL)
-		_wall(base, hz, "z", -1.0, DOORS.get(room, {}).get("n", false))
-		_wall(base, hz, "z", 1.0, DOORS.get(room, {}).get("s", false))
-		_wall(base, hz, "x", -1.0, DOORS.get(room, {}).get("w", false))
-		_wall(base, hz, "x", 1.0, DOORS.get(room, {}).get("e", false))
-		var light := OmniLight3D.new()
-		light.position = base + Vector3(0, 2.6, 0)
-		light.omni_range = 12.0
-		light.light_energy = 2.2
-		add_child(light)
-		_lights[room] = light
+	_build_floor_at("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
 	_build_bedroom()
 	_build_hall()
 	_build_kitchen()
@@ -598,8 +709,58 @@ func _build_house() -> void:
 	_build_bathroom()
 	_build_decor()
 	_build_structure()
-	# One lid over the whole complex: the player only ever sees interiors.
-	_box(self, Vector3(0, 3.1, 0), Vector3(22, 0.2, 22), CEIL_COL)
+	if _unlocked_floors.has("second"):
+		_build_floor_at("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+		_build_second_floor()
+	if _unlocked_floors.has("attic"):
+		_build_floor_at("attic", FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+		_build_attic()
+	if _unlocked_floors.has("basement"):
+		_build_floor_at("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
+		_build_basement()
+
+## Builds floor geometry (floor slab + walls + ceiling + lights) for a set of rooms at a Y offset.
+func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+	for room in rooms:
+		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
+		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
+		var hz := sz * 0.5
+		_box(self, base + Vector3(0, -0.1, 0), Vector3(hz.x * 2.0, 0.2, hz.y * 2.0), FLOOR_COL)
+		_wall_y(base, hz, "z", -1.0, doors.get(room, {}).get("n", false), y_off)
+		_wall_y(base, hz, "z", 1.0, doors.get(room, {}).get("s", false), y_off)
+		_wall_y(base, hz, "x", -1.0, doors.get(room, {}).get("w", false), y_off)
+		_wall_y(base, hz, "x", 1.0, doors.get(room, {}).get("e", false), y_off)
+		var light := OmniLight3D.new()
+		light.position = base + Vector3(0, 2.6, 0)
+		light.omni_range = 12.0
+		light.light_energy = 2.2
+		add_child(light)
+		_lights[room] = light
+
+## Wall builder with explicit Y offset (supports multi-floor).
+func _wall_y(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool, y_off: float) -> void:
+	var pos: Vector3
+	var size: Vector3
+	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
+	if axis == "x":
+		pos = base + Vector3(dir_sign * (hz.x + 0.1), 1.5, 0)
+		size = Vector3(0.2, 3, length + 0.4)
+	else:
+		pos = base + Vector3(0, 1.5, dir_sign * (hz.y + 0.1))
+		size = Vector3(length + 0.4, 3, 0.2)
+	if not has_gap:
+		_box(self, pos, size, WALL_COL)
+		return
+	var seg := (length - 1.6) / 2.0
+	var off := 1.6 / 2.0 + seg / 2.0
+	if axis == "x":
+		_box(self, pos + Vector3(0, 0, -off), Vector3(0.2, 3, seg), WALL_COL)
+		_box(self, pos + Vector3(0, 0, off), Vector3(0.2, 3, seg), WALL_COL)
+		_box(self, pos + Vector3(0, 1.1, 0), Vector3(0.2, 0.8, 1.6), WALL_COL)
+	else:
+		_box(self, pos + Vector3(-off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
+		_box(self, pos + Vector3(off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
+		_box(self, pos + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2), WALL_COL)
 
 func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
 	var pos: Vector3
@@ -789,6 +950,50 @@ func _build_bathroom() -> void:
 	_prop("toilet.glb", base + Vector3(-1.1, 0, 1.11), PI, 1.6)
 	# Instrument tray clear of the doorway — triage kit by the west pier.
 	_atomic("tray_1.glb", base + Vector3(-1.15, 0, -1.4), 0.0)
+
+# --- second floor -------------------------------------------------------------
+
+func _build_second_floor() -> void:
+	var sy := FLOOR_Y["second"]
+	# Storage room: crates and supplies.
+	_prop("crate.glb", Vector3(-6.25, sy + 0.4, 0.0), 0.0, 1.5)
+	_prop("crate.glb", Vector3(-6.25, sy + 0.4, 1.2), 0.0, 1.3)
+	_prop("barrel.glb", Vector3(-5.0, sy + 0.5, -1.0), 0.0, 1.2)
+	# Guest room: bed and side table.
+	_prop("bedSingle.glb", Vector3(6.0, sy + 0.0, -0.8), 0.0, 1.7)
+	_prop("sideTable.glb", Vector3(6.8, sy + 0.0, -1.6), 0.0, 1.2)
+	# Hall_up: stairs down marker.
+	_box(self, Vector3(2.5, sy + 0.05, 0.0), Vector3(1.5, 0.1, 1.5), DOOR_COL)
+	_focus_boxes["scavenge_storage"] = AABB(Vector3(-6.25, sy - 0.3, -0.73), Vector3(2.0, 1.5, 2.0))
+	_focus_boxes["guest_room_bed"] = AABB(Vector3(6.0, sy + 0.3, -0.8), Vector3(1.5, 0.8, 2.0))
+
+# --- attic --------------------------------------------------------------------
+
+func _build_attic() -> void:
+	var ay := FLOOR_Y["attic"]
+	# Cramped storage: old furniture and boxes.
+	_prop("cabinetTelevision.glb", Vector3(-6.25, ay + 0.0, 0.0), PI, 2.0)
+	_prop("crate.glb", Vector3(-5.0, ay + 0.4, 1.0), 0.0, 1.2)
+	_prop("rugRectangle.glb", Vector3(-6.25, ay + 0.02, 1.5), 0.0, 1.3)
+	# Ladder access marker.
+	_box(self, Vector3(2.5, ay + 0.05, 0.0), Vector3(1.0, 0.1, 1.0), DOOR_COL)
+	_focus_boxes["search_attic"] = AABB(Vector3(-6.25, ay - 0.3, 0.0), Vector3(2.0, 1.5, 2.0))
+
+# --- basement -----------------------------------------------------------------
+
+func _build_basement() -> void:
+	var by := FLOOR_Y["basement"]
+	# Generator room: industrial equipment.
+	_atomic("machine_1.glb", Vector3(-6.25, by + 0.0, 0.0), 0.0)
+	_bprop("detail-pipe.glb", Vector3(-5.5, by + 1.5, -1.0), 0.0, 1.5)
+	# Cellar: barrels and supplies.
+	_prop("barrel.glb", Vector3(6.0, by + 0.5, 0.0), 0.0, 1.2)
+	_prop("barrel.glb", Vector3(6.0, by + 0.5, 1.2), 0.0, 1.2)
+	_prop("crate.glb", Vector3(5.0, by + 0.4, -1.0), 0.0, 1.3)
+	# Stairs up marker.
+	_box(self, Vector3(2.5, by + 0.05, 0.0), Vector3(1.5, 0.1, 1.5), DOOR_COL)
+	_focus_boxes["generator"] = AABB(Vector3(-6.25, by - 0.3, 0.0), Vector3(2.0, 1.5, 2.0))
+	_focus_boxes["cellar_search"] = AABB(Vector3(6.0, by - 0.3, 0.0), Vector3(2.0, 1.5, 2.0))
 
 # --- structure: kit trim over the box shell ------------------------------------
 # The 2m/2.4m kit modules don't match our 6x3m cells, so boxes stay structural

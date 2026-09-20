@@ -64,6 +64,7 @@ func _ready() -> void:
 	_refresh_hud()
 	_build_touch_controls()
 	_capture_mouse()
+	_unlock_floors_for_day()
 	if _is_day():
 		if not GameManager.tv_watched_today:
 			_open_popup("MORNING", "", "You wake in your bunk. The TV in the corner flickers with the morning broadcast. Watch it before examining anyone." + CONTROLS_HINT)
@@ -72,6 +73,21 @@ func _ready() -> void:
 		var briefing := _night_briefing()
 		if briefing != "":
 			_open_popup("NIGHT %d — CHECKPOINT 9" % GameManager.current_day, "", briefing + CONTROLS_HINT)
+
+## Unlocks house floors based on the current day. New areas open as the
+## siege progresses — more hands to scavenge, more places to search.
+func _unlock_floors_for_day() -> void:
+	if house3d == null:
+		return
+	var floors := ["ground"]
+	var day: int = GameManager.current_day
+	if day >= 3:
+		floors.append("second")
+	if day >= 5:
+		floors.append("attic")
+	if day >= 7:
+		floors.append("basement")
+	house3d.set_unlocked_floors(floors)
 
 func _is_day() -> bool:
 	return GameManager.current_state == GameManager.GameState.DAY
@@ -206,6 +222,18 @@ func _on_hotspot(data: Dictionary) -> void:
 			_action_mirror()
 		"guest":
 			_open_guest_popup(data.get("guest", {}))
+		"stairs_up", "stairs_down", "stairs_down_from_second", "stairs_up_from_basement", "ladder_up", "ladder_down":
+			_action_stairs(str(data.get("action", "")))
+		"scavenge_storage":
+			_action_scavenge_storage()
+		"guest_room_bed":
+			_action_guest_room_bed()
+		"search_attic":
+			_action_search_attic()
+		"generator":
+			_action_generator()
+		"cellar_search":
+			_action_cellar_search()
 
 func _action_bed() -> void:
 	if _is_day() and GameManager.energy_left > 0:
@@ -323,6 +351,67 @@ func _action_mirror() -> void:
 		_open_popup("MIRROR", "", "Your gums bleed when you smile. You do not smile anymore.")
 	else:
 		_open_popup("MIRROR", "", "Clean teeth, tired eyes, human hands. You look human. For now.")
+
+# --- multi-floor navigation ---------------------------------------------------
+
+const FLOOR_Y := {"ground": 0.0, "second": 3.2, "attic": 6.4, "basement": -3.2}
+
+## Maps each stairs/ladder action to the target floor and the player spawn offset.
+const STAIRS_TARGET := {
+	"stairs_up": ["second", Vector3(2.5, 0.05, 0.0)],
+	"stairs_down": ["basement", Vector3(2.5, 0.05, 0.0)],
+	"stairs_down_from_second": ["ground", Vector3(2.5, 0.05, 0.0)],
+	"stairs_up_from_basement": ["ground", Vector3(2.5, 0.05, 0.0)],
+	"ladder_up": ["attic", Vector3(2.5, 0.05, 0.0)],
+	"ladder_down": ["second", Vector3(2.5, 0.05, 0.0)],
+}
+
+func _action_stairs(action: String) -> void:
+	if not STAIRS_TARGET.has(action):
+		return
+	var target_floor: String = STAIRS_TARGET[action][0]
+	var local_offset: Vector3 = STAIRS_TARGET[action][1]
+	if house3d == null:
+		return
+	# Teleport the player to the corresponding position on the target floor.
+	var target_pos := Vector3(local_offset.x, FLOOR_Y[target_floor] + local_offset.y, local_offset.z)
+	house3d.player.position = target_pos
+	house3d._current_floor = target_floor
+	_open_popup("STAIRS" if "ladder" not in action else "LADDER", "", "You climb to the %s." % target_floor)
+
+func _action_scavenge_storage() -> void:
+	if not _is_day() or not GameManager.spend_energy(1):
+		_open_popup("STORAGE", "", _energy_blocked_text())
+		return
+	ResourceSystem.add_resources({"food": randi_range(1, 2), "ammo": 1 if randf() < 0.3 else 0})
+	_refresh_hud()
+	_open_popup("STORAGE ROOM", "", "Old supplies. Not much left, but enough to matter.")
+
+func _action_guest_room_bed() -> void:
+	_open_popup("GUEST ROOM", "", "A narrow bed. Someone slept here once. The sheets smell like dust and decisions.")
+
+func _action_search_attic() -> void:
+	if not _is_day() or not GameManager.spend_energy(1):
+		_open_popup("ATTIC", "", _energy_blocked_text())
+		return
+	ResourceSystem.add_resources({"medicine": 1, "ammo": 1 if randf() < 0.4 else 0})
+	_refresh_hud()
+	_open_popup("ATTIC STORAGE", "", "Cobwebs and old furniture. Behind a loose board: medical supplies.")
+
+func _action_generator() -> void:
+	if not _is_day() or not GameManager.spend_energy(1):
+		_open_popup("GENERATOR", "", _energy_blocked_text())
+		return
+	FlagsManager.set_flag("generator_checked", true)
+	_open_popup("GENERATOR", "", "The generator hums. Fuel for a few more nights. Check it daily to keep the lights on.")
+
+func _action_cellar_search() -> void:
+	if not _is_day() or not GameManager.spend_energy(1):
+		_open_popup("CELLAR", "", _energy_blocked_text())
+		return
+	ResourceSystem.add_resources({"food": randi_range(1, 3), "water": randi_range(1, 2), "fuel": 1})
+	_refresh_hud()
+	_open_popup("CELLAR", "", "Barrels in the dark. Some still hold something useful.")
 
 func _energy_blocked_text() -> String:
 	if not _is_day():

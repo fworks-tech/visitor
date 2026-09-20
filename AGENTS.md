@@ -55,7 +55,7 @@ visitor/
 ├── scripts/
 │   ├── house/                 # HouseScene.gd, House3D.gd, HousePlayer3D.gd — first-person walkable shelter
 │   └── door/                  # VisitorBody3D.gd (shared NPC body), VisitorDiorama3D.gd (door stage)
-├── tools/                     # run_gates.py (all gates), measure_models.gd, sight_audit.gd, placement_audit.gd
+├── tools/                     # run_gates.py (all gates), measure_models.gd, placement_audit.gd, focus_audit.gd
 ├── tests/                     # DoorFlowTest.gd (--door-test), HouseWalkTest.gd (--house-test), validate_systems.py
 ├── locale/                    # en.json + pt_BR.json (119 keys, loaded at runtime by SettingsManager)
 ├── shaders/                   # crt.gdshader, vhs.gdshader, glitch, green tint

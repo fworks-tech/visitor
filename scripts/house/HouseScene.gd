@@ -356,28 +356,24 @@ func _action_mirror() -> void:
 
 # --- multi-floor navigation ---------------------------------------------------
 
-const FLOOR_Y := {"ground": 0.0, "second": 3.2, "attic": 6.4, "basement": -3.2}
-
-## Maps each stairs/ladder action to the target floor and the player spawn offset.
+## Maps each stairs/ladder action to the target floor. Spawn offset is always the same.
 const STAIRS_TARGET := {
-	"stairs_up": ["second", Vector3(2.5, 0.05, 0.0)],
-	"stairs_down": ["basement", Vector3(2.5, 0.05, 0.0)],
-	"stairs_down_from_second": ["ground", Vector3(2.5, 0.05, 0.0)],
-	"stairs_up_from_basement": ["ground", Vector3(2.5, 0.05, 0.0)],
-	"ladder_up": ["attic", Vector3(2.5, 0.05, 0.0)],
-	"ladder_down": ["second", Vector3(2.5, 0.05, 0.0)],
+	"stairs_up": "second",
+	"stairs_down": "basement",
+	"stairs_down_from_second": "ground",
+	"stairs_up_from_basement": "ground",
+	"ladder_up": "attic",
+	"ladder_down": "second",
 }
 
 func _action_stairs(action: String) -> void:
 	if not STAIRS_TARGET.has(action):
 		return
-	var target_floor: String = STAIRS_TARGET[action][0]
-	var local_offset: Vector3 = STAIRS_TARGET[action][1]
+	var target_floor: String = STAIRS_TARGET[action]
 	if house3d == null:
 		return
-	# Teleport the player to the corresponding position on the target floor.
-	var target_pos := Vector3(local_offset.x, FLOOR_Y[target_floor] + local_offset.y, local_offset.z)
-	house3d.player.position = target_pos
+	var y_off: float = house3d.FLOOR_Y[target_floor]
+	house3d.player.position = Vector3(2.5, y_off + 0.05, 0.0)
 	house3d._current_floor = target_floor
 	_open_popup("STAIRS" if "ladder" not in action else "LADDER", "", "You climb to the %s." % target_floor)
 
@@ -421,7 +417,8 @@ func _action_generator() -> void:
 		_open_popup("GENERATOR", "", _energy_blocked_text())
 		return
 	FlagsManager.set_flag("generator_checked", true)
-	var fuel: int = int(ResourceSystem.get_resources().get("fuel", 0))
+	var res: Dictionary = ResourceSystem.get_resources()
+	var fuel: int = int(res.get("fuel", 0))
 	if fuel <= 0:
 		_open_popup("GENERATOR — EMPTY", "", "The generator sputters and dies. The lights go out. Find fuel in the cellar before nightfall.")
 		_refresh_hud()
@@ -430,7 +427,7 @@ func _action_generator() -> void:
 	ResourceSystem.consume_fuel(refuel)
 	GameManager.security_value += 2
 	_refresh_hud()
-	_open_popup("GENERATOR", "", "You top off the tank. +2 SECURITY. The hum steadies. Fuel remaining: %d." % ResourceSystem.get_resources().get("fuel", 0))
+	_open_popup("GENERATOR", "", "You top off the tank. +2 SECURITY. The hum steadies. Fuel remaining: %d." % int(ResourceSystem.get_resources().get("fuel", 0)))
 
 func _action_cellar_search() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):

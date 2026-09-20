@@ -397,31 +397,11 @@ func _floor_collisions_for(floor_name: String, y_off: float, rooms: Dictionary, 
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
 		var hz := sz * 0.5
 		var drs: Dictionary = doors.get(room, {})
-		_solid_wall_y(base, hz, "z", -1.0, bool(drs.get("n", false)))
-		_solid_wall_y(base, hz, "z", 1.0, bool(drs.get("s", false)))
-		_solid_wall_y(base, hz, "x", -1.0, bool(drs.get("w", false)))
-		_solid_wall_y(base, hz, "x", 1.0, bool(drs.get("e", false)))
+		_solid_wall(base, hz, "z", -1.0, bool(drs.get("n", false)))
+		_solid_wall(base, hz, "z", 1.0, bool(drs.get("s", false)))
+		_solid_wall(base, hz, "x", -1.0, bool(drs.get("w", false)))
+		_solid_wall(base, hz, "x", 1.0, bool(drs.get("e", false)))
 
-func _solid_wall_y(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
-	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
-	var seg := (length - 1.6) / 2.0
-	var off := 1.6 / 2.0 + seg / 2.0
-	if axis == "x":
-		var pos := base + Vector3(dir_sign * (hz.x + 0.1), 1.5, 0)
-		if not has_gap:
-			_solid(pos, Vector3(0.2, 3, length + 0.4))
-			return
-		_solid(pos + Vector3(0, 0, -off), Vector3(0.2, 3, seg))
-		_solid(pos + Vector3(0, 0, off), Vector3(0.2, 3, seg))
-		_solid(pos + Vector3(0, 1.1, 0), Vector3(0.2, 0.8, 1.6))
-	else:
-		var pos2 := base + Vector3(0, 1.5, dir_sign * (hz.y + 0.1))
-		if not has_gap:
-			_solid(pos2, Vector3(length + 0.4, 3, 0.2))
-			return
-		_solid(pos2 + Vector3(-off, 0, 0), Vector3(seg, 3, 0.2))
-		_solid(pos2 + Vector3(off, 0, 0), Vector3(seg, 3, 0.2))
-		_solid(pos2 + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2))
 
 ## Floor + side rails across the 1m voids between cells: every doorway is an
 ## enclosed tunnel stub, never a pit you can strafe off.
@@ -726,10 +706,10 @@ func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes:
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
 		var hz := sz * 0.5
 		_box(self, base + Vector3(0, -0.1, 0), Vector3(hz.x * 2.0, 0.2, hz.y * 2.0), FLOOR_COL)
-		_wall_y(base, hz, "z", -1.0, doors.get(room, {}).get("n", false), y_off)
-		_wall_y(base, hz, "z", 1.0, doors.get(room, {}).get("s", false), y_off)
-		_wall_y(base, hz, "x", -1.0, doors.get(room, {}).get("w", false), y_off)
-		_wall_y(base, hz, "x", 1.0, doors.get(room, {}).get("e", false), y_off)
+		_wall(base, hz, "z", -1.0, doors.get(room, {}).get("n", false))
+		_wall(base, hz, "z", 1.0, doors.get(room, {}).get("s", false))
+		_wall(base, hz, "x", -1.0, doors.get(room, {}).get("w", false))
+		_wall(base, hz, "x", 1.0, doors.get(room, {}).get("e", false))
 		var light := OmniLight3D.new()
 		light.position = base + Vector3(0, 2.6, 0)
 		light.omni_range = 12.0
@@ -737,31 +717,7 @@ func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes:
 		add_child(light)
 		_lights[room] = light
 
-## Wall builder with explicit Y offset (supports multi-floor).
-func _wall_y(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool, y_off: float) -> void:
-	var pos: Vector3
-	var size: Vector3
-	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
-	if axis == "x":
-		pos = base + Vector3(dir_sign * (hz.x + 0.1), 1.5, 0)
-		size = Vector3(0.2, 3, length + 0.4)
-	else:
-		pos = base + Vector3(0, 1.5, dir_sign * (hz.y + 0.1))
-		size = Vector3(length + 0.4, 3, 0.2)
-	if not has_gap:
-		_box(self, pos, size, WALL_COL)
-		return
-	var seg := (length - 1.6) / 2.0
-	var off := 1.6 / 2.0 + seg / 2.0
-	if axis == "x":
-		_box(self, pos + Vector3(0, 0, -off), Vector3(0.2, 3, seg), WALL_COL)
-		_box(self, pos + Vector3(0, 0, off), Vector3(0.2, 3, seg), WALL_COL)
-		_box(self, pos + Vector3(0, 1.1, 0), Vector3(0.2, 0.8, 1.6), WALL_COL)
-	else:
-		_box(self, pos + Vector3(-off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
-		_box(self, pos + Vector3(off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
-		_box(self, pos + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2), WALL_COL)
-
+## Wall builder — called by _build_floor_at for any floor.
 func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
 	var pos: Vector3
 	var size: Vector3
@@ -785,6 +741,7 @@ func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: b
 		_box(self, pos + Vector3(-off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
 		_box(self, pos + Vector3(off, 0, 0), Vector3(seg, 3, 0.2), WALL_COL)
 		_box(self, pos + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2), WALL_COL)
+
 
 func _build_bedroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bedroom"]

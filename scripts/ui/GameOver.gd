@@ -8,7 +8,6 @@ extends Control
 @onready var menu_btn: Button = $EndingVBox/ButtonsHBox/MenuButton
 
 const MAIN_MENU_PATH := "res://scenes/core/MainMenu.tscn"
-const INSPECTION_SCENE_PATH := "res://scenes/gameplay/InspectionScene.tscn"
 
 func _ready() -> void:
 	GameManager.change_state(GameManager.GameState.GAME_OVER)
@@ -28,11 +27,7 @@ func _ready() -> void:
 
 func _on_restart() -> void:
 	SaveManager.delete_save()
-	GameManager.start_new_game()
-	VisitorManager.reset_history()
-	GameManager.start_night_phase()
-	VisitorManager.prepare_night_queue(GameManager.current_day)
-	SceneManager.change_scene(INSPECTION_SCENE_PATH)
+	GameManager.start_new_game()  # routes to the house at night 1
 
 func _on_menu() -> void:
 	SceneManager.change_scene(MAIN_MENU_PATH)

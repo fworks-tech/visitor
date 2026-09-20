@@ -28,7 +28,7 @@ func _on_continue() -> void:
 	if SaveManager.load_game():
 		# Route to the phase the save left off in
 		match GameManager.current_state:
-			GameManager.GameState.DAY:
+			GameManager.GameState.DAY, GameManager.GameState.NIGHT:
 				SceneManager.change_scene(GameManager.HOUSE_SCENE_PATH)
 			_:
 				SceneManager.change_scene(INSPECTION_SCENE_PATH)

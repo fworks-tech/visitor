@@ -432,8 +432,8 @@ func set_tv_on(on: bool) -> void:
 func toggle_cabinets() -> bool:
 	_cabinets_open = not _cabinets_open
 	for h in _cab_hinges:
-		var sign: float = h.get_meta("hinge_sign")
-		h.rotation.y = sign * PI / 2.0 if _cabinets_open else 0.0
+		var hinge_sign: float = h.get_meta("hinge_sign")
+		h.rotation.y = hinge_sign * PI / 2.0 if _cabinets_open else 0.0
 	_set_label("cabinet", "CLOSE CABINET" if _cabinets_open else "OPEN CABINET")
 	return _cabinets_open
 

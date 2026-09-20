@@ -563,8 +563,8 @@ func _on_eliminate_pressed() -> void:
 	_record_decision(VisitorManager.Decision.ELIMINATE, current_visitor.get("is_actually_infected", false))
 	_apply_consequences(cons)
 
-	if ResourceSystem.consume_ammo(1):
-		_update_resources_ui()
+	# The round is spent inside VisitorManager.process_decision; refresh only.
+	_update_resources_ui()
 
 	_say("One shot. The knocking stops.")
 	SettingsManager.trigger_haptic_feedback(50)

@@ -22,11 +22,19 @@ func toggle() -> void:
 	get_tree().paused = visible
 	if visible:
 		GameManager.change_state(GameManager.GameState.PAUSED)
+	else:
+		_resume_state()
 
 func _on_resume() -> void:
 	get_tree().paused = false
 	visible = false
+	_resume_state()
 	emit_signal("resume_pressed")
+
+## Leaving PAUSED restores the phase the game was in before the pause.
+func _resume_state() -> void:
+	if GameManager.current_state == GameManager.GameState.PAUSED:
+		GameManager.change_state(GameManager.previous_state)
 
 func _on_settings() -> void:
 	# Settings is embedded via pause; simplest approach: open as sub-scene later.

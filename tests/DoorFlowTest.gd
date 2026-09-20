@@ -26,8 +26,10 @@ func _run() -> void:
 	await get_tree().process_frame
 
 	# Simulate post-start_night_phase state: day set, queue prepared.
-	GameManager.current_day = 1
-	VisitorManager.prepare_night_queue(1)
+	# Night 2 keeps >= 2 visitors in queue for the two-decision flow;
+	# night 1 is the authored Marcus-only tutorial (story.json pool).
+	GameManager.current_day = 2
+	VisitorManager.prepare_night_queue(2)
 	VisitorManager.current_visitor_index = 0
 	print("INFO db=%d queue=%d day=%d" % [VisitorManager.visitor_database.size(), VisitorManager.night_queue.size(), GameManager.current_day])
 
@@ -80,7 +82,11 @@ func _run() -> void:
 		print("INFO second visitor: ", scene.current_visitor.get("name", "?"))
 		scene._on_turn_away_pressed()
 		await get_tree().create_timer(2.5).timeout
-	check(scene.current_visitor.is_empty(), "queue exhausted after 2 decisions")
+	# Drain whatever the night queue still holds (night 2 serves 3).
+	while not scene.current_visitor.is_empty():
+		scene._on_turn_away_pressed()
+		await get_tree().create_timer(2.5).timeout
+	check(scene.current_visitor.is_empty(), "queue exhausted after decisions")
 	check(not scene.portrait_art.visible, "portrait hidden when door empty")
 	check(scene.end_night_btn.visible, "RETURN HOME offered at night end")
 	check(VisitorManager.night_completed == false, "night_completed still false before RETURN HOME")

@@ -138,6 +138,7 @@ func start_day_phase() -> void:
 	tv_watched_today = false
 	unlocked_tools_today = []
 	
+	SaveManager.save_game()  # checkpoint: sleep is the only save point
 	SceneManager.change_scene(HOUSE_SCENE_PATH)
 
 ## Sleep is the only night/day transition, triggered from the bedroom bed.

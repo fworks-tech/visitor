@@ -7,9 +7,9 @@ device; record results in `QA_LOG.md`.
 
 ## 0. Pre-flight (both genres)
 
-- [ ] `python3 tools/author_cli.py validate <game>` → PASSED
-- [ ] `python3 tools/author_cli.py stats <game>` → note checkpoint/ending counts below
-- [ ] `python3 tools/author_cli.py diagram <game>` → open the Mermaid graph; this is your coverage map
+- [ ] `python3 tests/validate_systems.py` → PASSED
+- [ ] Inspect `assets/data/story.json` → note checkpoint/ending counts below
+- [ ] Coverage map: trace `story.json` events by hand (no graph exporter available)
 
 Checkpoints: ___ Endings: ___
 

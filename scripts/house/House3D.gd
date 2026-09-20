@@ -50,6 +50,14 @@ var _tv_on: bool = false
 var _is_night: bool = false
 var _time: float = 0.0
 var _figures_root: Node3D
+var _cab_hinges: Array = []
+var _cab_bodies: Array = []
+var _drawer: Node3D
+var _drawer_open: bool = false
+var _cabinets_open: bool = false
+var _tap_on: bool = false
+var _tap_streak: MeshInstance3D
+var _tap_mat: StandardMaterial3D
 
 func _ready() -> void:
 	_build_environment()
@@ -399,6 +407,9 @@ func _build_interactables() -> void:
 		_it("front_door", h + Vector3(-1.8, 1.5, 2.9), "FRONT DOOR"),
 		_it("window", h + Vector3(1.8, 1.8, -2.9), "LOOK OUT THE WINDOW"),
 		_it("scavenge", k + Vector3(1.55, 0.9, 0.0), "SCAVENGE PANTRY"),
+		_it("cabinet", k + Vector3(1.7, 1.75, 0.0), "OPEN CABINET"),
+		_it("drawer", k + Vector3(0.85, 0.55, -1.0), "PULL DRAWER"),
+		_it("tap", k + Vector3(1.6, 1.15, 0.0), "TURN ON TAP"),
 		_it("fortify", o + Vector3(-0.9, 1.2, -1.9), "FORTIFY WINDOWS"),
 		_it("mirror", t + Vector3(1.4, 1.7, -0.2), "MIRROR — CHECK YOURSELF"),
 	]
@@ -416,6 +427,42 @@ func set_mood(day: bool) -> void:
 
 func set_tv_on(on: bool) -> void:
 	_tv_on = on
+
+
+func toggle_cabinets() -> bool:
+	_cabinets_open = not _cabinets_open
+	for h in _cab_hinges:
+		var sign: float = h.get_meta("hinge_sign")
+		h.rotation.y = sign * PI / 2.0 if _cabinets_open else 0.0
+	_set_label("cabinet", "CLOSE CABINET" if _cabinets_open else "OPEN CABINET")
+	return _cabinets_open
+
+
+func toggle_drawer() -> bool:
+	_drawer_open = not _drawer_open
+	if _drawer != null:
+		_drawer.position.x += -0.3 if _drawer_open else 0.3
+	_set_label("drawer", "CLOSE DRAWER" if _drawer_open else "PULL DRAWER")
+	return _drawer_open
+
+
+func toggle_tap() -> bool:
+	_tap_on = not _tap_on
+	if _tap_streak != null:
+		_tap_streak.visible = _tap_on
+	if _tap_on:
+		AudioManager.play_tap()
+	else:
+		AudioManager.stop_tap()
+	_set_label("tap", "TURN OFF TAP" if _tap_on else "TURN ON TAP")
+	return _tap_on
+
+
+func _set_label(id: String, label: String) -> void:
+	for it in _interactables:
+		if str(it.get("id", "")) == id:
+			it["label"] = label
+			return
 
 func set_guests(guests: Array) -> void:
 	for child in _figures_root.get_children():
@@ -635,7 +682,7 @@ func _build_window(center: Vector3) -> void:
 func _build_kitchen() -> void:
 	var base: Vector3 = ROOM_POSITIONS["kitchen"]
 	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, 0.0), -PI / 2.0, 2.0)
-	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.0), -PI / 2.0, 2.0)
+	var cab_n := _prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.0), -PI / 2.0, 2.0)
 	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, 1.0), -PI / 2.0, 2.0)
 	# Fridge flush on the west wall (depth 0.58 scaled).
 	_prop("kitchenFridgeSmall.glb", base + Vector3(-1.71, 0, -1.5), PI / 2.0, 2.0)
@@ -644,7 +691,82 @@ func _build_kitchen() -> void:
 	_atomic("cupboard_top.glb", base + Vector3(-1.85, 0.69, 0.6), PI / 2.0)
 	# Serving counter flush on the south wall (depth 1.38).
 	_pack_prop("caffetaria_001", base + Vector3(-0.3, 0, 1.31), PI)
-	_focus_boxes["scavenge"] = _world_box(sink).grow(0.2)
+	# --- kitchen realism: wall cabinets, drawer, tap --------------------------
+	# Procedural add-ons wear the set's own paint (sampled GLB finishes —
+	# flat Kenney materials, no textures) instead of the generic WOOD_COL.
+	var cab_tint := _finish(cab_n, WOOD_COL)
+	var sink_tint := _finish(sink, Color(0.5, 0.48, 0.45))
+	_wall_cabinet(base + Vector3(1.825, 1.75, -1.0), 1.0, cab_tint)
+	_wall_cabinet(base + Vector3(1.825, 1.75, 1.0), -1.0, cab_tint)
+	_drawer = Node3D.new()
+	_drawer.name = "kinematic_drawer"
+	_drawer.position = base + Vector3(0.94, 0.55, -1.0)
+	add_child(_drawer)
+	_box(_drawer, Vector3.ZERO, Vector3(0.36, 0.28, 0.7), cab_tint)
+	_box(_drawer, Vector3(-0.19, 0, 0), Vector3(0.02, 0.05, 0.18), cab_tint.darkened(0.45))
+	# Faucet rides its own unscaled rig (NOT a sink child — the sink prop is
+	# scaled x2, which once launched the tap halfway to the ceiling).
+	var rig := Node3D.new()
+	rig.name = "tap_rig"
+	add_child(rig)
+	_box(rig, base + Vector3(1.85, 1.13, 0.0), Vector3(0.06, 0.30, 0.06), sink_tint)
+	_box(rig, base + Vector3(1.77, 1.26, 0.0), Vector3(0.22, 0.05, 0.05), sink_tint)
+	var streak := _box(rig, base + Vector3(1.68, 1.04, 0.0), Vector3(0.035, 0.40, 0.035), Color(0, 0, 0))
+	var water := _mat(Color(0.2, 0.4, 0.38))
+	water.emission_enabled = true
+	water.emission = Color(0.35, 0.8, 0.7)
+	water.emission_energy_multiplier = 0.9
+	streak.material_override = water
+	streak.visible = false
+	_tap_streak = streak
+	_tap_mat = water
+	var cab_box: AABB = _world_box(_cab_bodies[0]).merge(_world_box(_cab_bodies[1]))
+	cab_box.position.x -= 0.62
+	cab_box.size.x += 0.62
+	_focus_boxes["cabinet"] = cab_box
+	_focus_boxes["drawer"] = AABB(base + Vector3(0.40, 0.35, -1.41), Vector3(0.78, 0.5, 0.82))
+	_focus_boxes["tap"] = AABB(base + Vector3(1.30, 0.80, -0.18), Vector3(0.62, 0.62, 0.36))
+	# Scavenge box is explicit: the grown sink-GLB box would swallow the
+	# tap/cabinet rays. ymax 1.23 threads the needle — above the sink-look
+	# x-entry (1.21) so SCAVENGE wins its pose, below the tap-look top-entry
+	# (1.47, past the tap box at 1.42) so TAP wins its own.
+	_focus_boxes["scavenge"] = AABB(base + Vector3(0.90, -0.30, -0.73), Vector3(1.15, 1.529, 1.46))
+
+
+## First imported finish under a prop, so procedural add-ons match the set.
+func _finish(prop: Node3D, fallback: Color) -> Color:
+	if prop == null:
+		return fallback
+	var stack: Array = [prop]
+	while not stack.is_empty():
+		var cur: Node = stack.pop_back()
+		if cur is MeshInstance3D:
+			var m: Material = (cur as MeshInstance3D).get_active_material(0)
+			if m is StandardMaterial3D:
+				return (m as StandardMaterial3D).albedo_color
+		stack.append_array(cur.get_children())
+	return fallback
+
+
+## Wall cabinet (armário aéreo): procedural shell + one hinged door leaf.
+## hinge_sign +1: hinge on the +z edge, leaf opens swinging -X; -1 mirrored.
+func _wall_cabinet(center: Vector3, hinge_sign: float, tint: Color) -> void:
+	var cab := Node3D.new()
+	cab.position = center
+	add_child(cab)
+	_box(cab, Vector3(0, 0.325, 0), Vector3(0.35, 0.05, 1.2), tint)
+	_box(cab, Vector3(0, -0.325, 0), Vector3(0.35, 0.05, 1.2), tint)
+	_box(cab, Vector3(0, 0, 0.575), Vector3(0.35, 0.7, 0.05), tint)
+	_box(cab, Vector3(0, 0, -0.575), Vector3(0.35, 0.7, 0.05), tint)
+	_box(cab, Vector3(0.155, 0, 0), Vector3(0.04, 0.7, 1.2), tint)
+	_box(cab, Vector3(0.05, 0, 0), Vector3(0.02, 0.6, 1.08), tint.darkened(0.6))
+	var hinge := Node3D.new()
+	hinge.set_meta("hinge_sign", hinge_sign)
+	hinge.position = Vector3(-0.155, 0, hinge_sign * 0.56)
+	cab.add_child(hinge)
+	_box(hinge, Vector3(-0.02, 0, -hinge_sign * 0.54), Vector3(0.04, 0.66, 1.08), tint)
+	_cab_hinges.append(hinge)
+	_cab_bodies.append(cab)
 
 func _build_office() -> void:
 	var base: Vector3 = ROOM_POSITIONS["office"]
@@ -782,6 +904,8 @@ func _process(delta: float) -> void:
 	if _tv_on and _tv_mat:
 		_tv_mat.emission = Color(randf_range(0.5, 0.9), randf_range(0.5, 0.9), randf_range(0.55, 0.95))
 		_tv_mat.emission_energy_multiplier = randf_range(0.6, 1.4)
+	if _tap_on and _tap_mat:
+		_tap_mat.emission_energy_multiplier = randf_range(0.7, 1.1)
 	if _window_mat:
 		_refresh_window()
 

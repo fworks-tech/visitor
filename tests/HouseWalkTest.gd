@@ -53,7 +53,7 @@ func _run() -> void:
 	GameManager.flashlight_battery = 100.0
 	GameManager.batteries = 1
 	check(scene.current_room == "bedroom", "starts in bedroom")
-	check(scene.house3d._interactables.size() == 8, "8 static interactables registered")
+	check(scene.house3d._interactables.size() == 11, "11 static interactables registered")
 	check(scene.house3d._fan != null, "ceiling fan mounted")
 	check(ResourceLoader.exists("res://assets/models/building/door-rotate-square-a.glb"), "kit door leaf on disk")
 	check(ResourceLoader.exists("res://assets/models/furniture/bedSingle.glb"), "CC0 bed model on disk")
@@ -68,10 +68,15 @@ func _run() -> void:
 	scene.house3d.show_guest_sign("t1", {"id": "s002"})
 	check(true, "examined sign marks the body without crashing")
 
-	for aid in ["tv", "radio", "window", "front_door", "scavenge", "fortify", "mirror"]:
+	for aid in ["tv", "radio", "window", "front_door", "scavenge", "cabinet", "drawer", "tap", "fortify", "mirror"]:
 		scene._do_interact({"id": aid})
 		scene._on_popup_action("close")
 	check(true, "static interactables dispatch without crashing")
+
+	scene._do_interact({"id": "tap"})
+	scene._on_popup_action("close")
+	check(int(FlagsManager.get_flag("tap_day", 0)) == GameManager.current_day,
+		"tap fills water once per day")
 
 	var gpos: Vector3 = scene.house3d._guest_interactables[0]["pos"]
 	var f := scene.house3d.get_focus(gpos + Vector3(0, 0, 1.0), Vector3(0, 0, -1))

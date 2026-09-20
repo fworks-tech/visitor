@@ -12,6 +12,7 @@ Usage: python3 audio_synth.py [--out assets/audio] [--cue NAME ...]
 import argparse
 import math
 import random
+import shutil
 import struct
 import subprocess
 import wave
@@ -175,6 +176,23 @@ def cue_glitch(seconds: float, harsh: int = 1) -> list[float]:
             pass
         t += seg + RNG.uniform(0.005, 0.05)
     return _gain(buf, 0.5 * harsh)
+
+
+def cue_drawer_slide() -> list[float]:
+    """Wooden drawer: short runner swish, soft wood stop."""
+    buf = _buf(0.55)
+    _add(buf, _env(_noise(0.3, 0.35, lp=0.3), 0.04, 0.08), at=0.02, gain=0.7)
+    _add(buf, knock_single(260.0, gain=0.6), at=0.36)
+    return _gain(buf, 0.55)
+
+
+def cue_water_tap() -> list[float]:
+    """Looped trickle: low-passed hiss with irregular little gulps."""
+    buf = _noise(3.0, 0.16, lp=0.3)
+    for t in [0.2, 0.55, 1.05, 1.4, 1.6, 2.2, 2.55, 2.75]:
+        drip = _decay(_sine(0.06, RNG.uniform(700, 1100), 0.5), tau=0.015)
+        _add(buf, _env(drip, 0.001, 0.01), at=t, gain=0.5)
+    return _loopify(_gain(buf, 0.5), 0.4)
 
 
 def cue_power_down() -> list[float]:
@@ -352,6 +370,9 @@ CUES = {
     "sfx_glitch_2": (lambda: cue_glitch(1.0, harsh=1), False),
     "sfx_glitch_3": (lambda: cue_glitch(2.0, harsh=2), False),
     "sfx_power_down": (cue_power_down, False),
+    # house realism (kitchen)
+    "sfx_drawer_slide": (cue_drawer_slide, False),
+    "sfx_water_tap":    (cue_water_tap, True),
     # music (menu + endings, used sparingly)
     "music_menu": (cue_music_menu, True),
     "music_ending_gatekeeper":  (cue_end_gatekeeper, True),
@@ -373,6 +394,11 @@ def write_ogg(samples: list[float], out: Path, loop: bool):
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm)
+    if shutil.which("ffmpeg") is None:
+        # No ffmpeg here: keep the WAV — Godot imports it natively and
+        # AudioManager falls back to .wav when the .ogg cue is absent.
+        print(f"  (no ffmpeg — kept {tmp.name}, Godot WAV import)")
+        return
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(tmp),
                     "-c:a", "libvorbis", "-qscale:a", "4", str(out)], check=True)
     tmp.unlink()

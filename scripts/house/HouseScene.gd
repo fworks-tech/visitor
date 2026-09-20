@@ -58,6 +58,7 @@ var _look_touch := -1
 
 func _ready() -> void:
 	AudioManager.stop_music()
+	AudioManager.stop_tap()
 	house3d.set_mood(_is_day())
 	house3d.set_guests(VisitorManager.admitted_visitors)
 	_refresh_hud()
@@ -139,8 +140,22 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("interact") or event.is_action_pressed("ui_accept") \
 			or (event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_E):
 		use = true
-	if use and not _focus.is_empty():
-		_do_interact(_focus)
+	if use:
+		_try_use_from_input()
+
+var _last_use_msec := 0
+
+## Single gate for every physical use-input (left-click, E, touch USA): one
+## press can arrive as two events on some stacks, and a doubled toggle would
+## open-then-close furniture (or stop the tap it just started) in one click.
+func _try_use_from_input() -> void:
+	if popup.visible or _focus.is_empty():
+		return
+	var now := Time.get_ticks_msec()
+	if now - _last_use_msec < 350:
+		return
+	_last_use_msec = now
+	_do_interact(_focus)
 
 func _do_interact(focus: Dictionary) -> void:
 	if str(focus.get("id", "")) == "guest":
@@ -178,6 +193,12 @@ func _on_hotspot(data: Dictionary) -> void:
 			_action_front_door()
 		"scavenge":
 			_action_scavenge()
+		"cabinet":
+			_action_cabinet()
+		"drawer":
+			_action_drawer()
+		"tap":
+			_action_tap()
 		"fortify":
 			_action_fortify()
 		"mirror":
@@ -266,6 +287,24 @@ func _action_scavenge() -> void:
 		loot += "\n[Spare battery found — press R to swap it in.]"
 	_refresh_hud()
 	_open_popup("SCAVENGE", "", loot)
+
+func _action_cabinet() -> void:
+	AudioManager.play_sfx("door_latch")
+	house3d.toggle_cabinets()
+
+func _action_drawer() -> void:
+	AudioManager.play_sfx("drawer_slide")
+	house3d.toggle_drawer()
+
+func _action_tap() -> void:
+	if not house3d.toggle_tap():
+		return
+	if int(FlagsManager.get_flag("tap_day", 0)) == GameManager.current_day:
+		return
+	FlagsManager.set_flag("tap_day", GameManager.current_day)
+	ResourceSystem.add_resources({"water": 1})
+	_refresh_hud()
+	_open_popup("TAP", "", "You hold an old bottle under the trickle. +1 WATER — the pipes still run, for now.")
 
 func _action_fortify() -> void:
 	if not _is_day() or not GameManager.spend_energy(1):
@@ -454,8 +493,7 @@ func _add_touch_button(parent: Control, label: String, cb: Callable) -> void:
 
 
 func _on_touch_use() -> void:
-	if not popup.visible and not _focus.is_empty():
-		_do_interact(_focus)
+	_try_use_from_input()
 
 
 func _on_touch_flashlight() -> void:

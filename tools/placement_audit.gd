@@ -38,6 +38,8 @@ func _run() -> void:
 			for g in c.get_children():
 				items.append(g)
 			continue
+		if String(c.name).begins_with("kinematic_"):
+			continue  # kinematic furniture (sliding drawer) — exempt
 		items.append(c)
 	var boxed := []
 	for item in items:

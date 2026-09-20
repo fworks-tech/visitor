@@ -64,6 +64,7 @@ var _knock_player: AudioStreamPlayer
 var _glitch_player: AudioStreamPlayer
 var _door_voice_player: AudioStreamPlayer
 var _ui_player: AudioStreamPlayer
+var _tap_player: AudioStreamPlayer
 
 var audio_volumes: Dictionary = {
 	"master": 0.8,
@@ -87,9 +88,11 @@ func _ready() -> void:
 	_glitch_player = AudioStreamPlayer.new()
 	_door_voice_player = AudioStreamPlayer.new()
 	_ui_player = AudioStreamPlayer.new()
+	_tap_player = AudioStreamPlayer.new()
 
 	for p in [_crt_player, _ambient_player, _music_player, _sfx_player,
-			_knock_player, _glitch_player, _door_voice_player, _ui_player]:
+			_knock_player, _glitch_player, _door_voice_player, _ui_player,
+			_tap_player]:
 		add_child(p)
 
 	_crt_player.bus = &"CRT"
@@ -100,6 +103,7 @@ func _ready() -> void:
 	_glitch_player.bus = &"SFX"
 	_door_voice_player.bus = &"Voice"
 	_ui_player.bus = &"SFX"
+	_tap_player.bus = &"SFX"
 
 	# Every Button in the game clicks on press, current and future — no
 	# per-script wiring. Disabled buttons never emit, so this is inert until used.
@@ -123,11 +127,16 @@ func _on_node_added(node: Node) -> void:
 func _stream(cue: String, loop: bool) -> AudioStream:
 	var path := AUDIO_DIR + cue + ".ogg"
 	if not ResourceLoader.exists(path):
+		path = AUDIO_DIR + cue + ".wav"
+	if not ResourceLoader.exists(path):
 		push_warning("[AudioManager] missing cue %s" % cue)
 		return null
 	var stream: AudioStream = load(path)
 	if loop and stream is AudioStreamOggVorbis:
 		stream.loop = true
+	if loop and stream is AudioStreamWAV:
+		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		stream.loop_end = stream.data.size() / 2
 	return stream
 
 
@@ -280,6 +289,16 @@ func play_ending_music(ending_id: String) -> void:
 
 func power_down() -> void:
 	_play_on(_sfx_player, "sfx_power_down", false, audio_volumes["sfx"])
+
+
+func play_tap() -> void:
+	# Running water rides its own looping player (play_sfx can't loop).
+	_play_on(_tap_player, "sfx_water_tap", true, audio_volumes["sfx"] * 0.6)
+
+
+func stop_tap() -> void:
+	if _tap_player != null:
+		_tap_player.stop()
 
 
 # ---------------------------------------------------------------- volumes

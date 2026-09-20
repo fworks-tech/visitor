@@ -21,7 +21,7 @@ const BATHROOM := Vector3(0, 0, 5.5)
 var poses := [
 	["radio on table", BEDROOM, Vector3(0.2, 1.65, 0.2), Vector3(-0.85, 0.6, -1.6), "radio"],
 	["bedroom blank wall", BEDROOM, Vector3(0.2, 1.65, 0.2), Vector3(0.0, 1.4, -2.0), ""],
-	["tv panel", BEDROOM, Vector3(0.2, 1.65, 0.0), Vector3(1.95, 1.0, -1.2), "tv"],
+	["tv panel", BEDROOM, Vector3(-1.6, 1.65, 0.4), Vector3(-1.3, 1.0, 1.75), "tv"],
 	["front door", HALL, Vector3(-0.9, 1.65, 1.2), Vector3(-1.8, 1.5, 2.9), "front_door"],
 	["hall blank wall", HALL, Vector3(-0.9, 1.65, 1.2), Vector3(-0.6, 1.5, 2.9), ""],
 	["window", HALL, Vector3(0.6, 1.65, -0.8), Vector3(1.8, 1.8, -2.9), "window"],

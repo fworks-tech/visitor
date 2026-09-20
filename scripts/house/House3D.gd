@@ -376,7 +376,7 @@ func _build_furniture_solids() -> void:
 	var o: Vector3 = ROOM_POSITIONS["office"]
 	var t: Vector3 = ROOM_POSITIONS["bathroom"]
 	_solid(b + Vector3(-1.72, 0.35, -0.8), Vector3(1.1, 0.7, 2.0))
-	_solid(b + Vector3(2.0, 0.31, -1.2), Vector3(0.5, 0.62, 1.6))
+	_solid(b + Vector3(-1.3, 0.31, 1.75), Vector3(1.6, 0.62, 0.5))
 	_solid(b + Vector3(-0.85, 0.25, -1.6), Vector3(0.7, 0.5, 0.5))
 	_solid(k + Vector3(1.55, 0.45, 0), Vector3(1.0, 0.9, 3.6))
 	_solid(k + Vector3(1.6, 0.6, 1.65), Vector3(0.9, 1.2, 0.7))
@@ -394,7 +394,7 @@ func _build_interactables() -> void:
 	var t: Vector3 = ROOM_POSITIONS["bathroom"]
 	_interactables = [
 		_it("bed", b + Vector3(-1.72, 0.7, -0.8), "SLEEP"),
-		_it("tv", b + Vector3(1.95, 1.0, -1.2), "WATCH TV"),
+		_it("tv", b + Vector3(-1.3, 1.0, 1.75), "WATCH TV"),
 		_it("radio", b + Vector3(-0.85, 0.6, -1.6), "TURN ON RADIO"),
 		_it("front_door", h + Vector3(-1.8, 1.5, 2.9), "FRONT DOOR"),
 		_it("window", h + Vector3(1.8, 1.8, -2.9), "LOOK OUT THE WINDOW"),
@@ -583,10 +583,10 @@ func _build_bedroom() -> void:
 	var bed := _prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
 	_prop("pillow.glb", base + Vector3(-1.72, 0.62, -1.5), 0.0, 1.7)
 	_prop("sideTable.glb", base + Vector3(-0.85, 0, -1.6), 0.0, 1.2)
-	# Cabinet flush on the east wall (depth 0.5 scaled), front into the room.
-	_prop("cabinetTelevision.glb", base + Vector3(2.0, 0, -1.2), -PI / 2.0, 2.0)
-	# Screen stands on the cabinet top (0.62), mid-stand, panel facing west.
-	var tv_pair: Array = _emissive(base + Vector3(1.95, 1.02, -1.2), Vector3(0.08, 0.8, 1.4), Color(0.1, 0.12, 0.15))
+	# Cabinet flush on the south wall (facing the bed), front into the room.
+	_prop("cabinetTelevision.glb", base + Vector3(-1.3, 0, 1.75), PI, 2.0)
+	# Screen stands on the cabinet top (0.62), mid-stand, panel facing the bed.
+	var tv_pair: Array = _emissive(base + Vector3(-1.3, 1.02, 1.75), Vector3(1.4, 0.8, 0.08), Color(0.1, 0.12, 0.15))
 	_tv_mat = tv_pair[1]
 	var radio := _prop("radio.glb", base + Vector3(-0.85, 0.46, -1.6), 0.0, 1.5)
 	# Salvaged radiator hugging the north wall — shelter heating.

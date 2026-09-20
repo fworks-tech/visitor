@@ -59,6 +59,10 @@ func load_game() -> bool:
 		GameManager.current_day = gm.get("current_day", 1)
 		GameManager.trust_value = gm.get("trust_value", 60)
 		GameManager.corruption_value = gm.get("corruption_value", 10)
+		# Restore the phase so MainMenu routes Continue to the right scene
+		# (set directly — no change_state, no scene change, no pause side effect).
+		var loaded_state: GameManager.GameState = gm.get("current_state", int(GameManager.GameState.NIGHT)) as GameManager.GameState
+		GameManager.current_state = loaded_state
 		
 	if data.has("flags"):
 		FlagsManager.load_flags_data(data["flags"])

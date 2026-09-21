@@ -223,23 +223,26 @@ func _first_free_room() -> String:
 
 ## Removes an admitted guest back outside; trust takes the hit.
 func kick_guest(guest_id: String) -> Dictionary:
-	for i in admitted_visitors.size():
-		if str(admitted_visitors[i].get("id", "")) == guest_id:
-			var g: Dictionary = admitted_visitors.pop_at(i)
-			rejected_visitors.append(g)
-			FlagsManager.increment_flag("humans_turned_away")
-			GameManager.trust_value -= 10
-			return g
-	return {}
+	var g := _pop_guest(guest_id)
+	if g.is_empty():
+		return g
+	rejected_visitors.append(g)
+	FlagsManager.increment_flag("humans_turned_away")
+	GameManager.trust_value -= 10
+	return g
 
 ## Shooting a turned guest inside the house: it leaves no corpse outside and
 ## costs no trust — the community saw a Visitor fall.
 func eliminate_guest(guest_id: String) -> Dictionary:
+	var g := _pop_guest(guest_id)
+	if not g.is_empty():
+		FlagsManager.increment_flag("infected_eliminated")
+	return g
+
+func _pop_guest(guest_id: String) -> Dictionary:
 	for i in admitted_visitors.size():
 		if str(admitted_visitors[i].get("id", "")) == guest_id:
-			var g: Dictionary = admitted_visitors.pop_at(i)
-			FlagsManager.increment_flag("infected_eliminated")
-			return g
+			return admitted_visitors.pop_at(i)
 	return {}
 
 func get_save_data() -> Dictionary:

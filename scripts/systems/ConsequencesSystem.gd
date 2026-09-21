@@ -162,9 +162,9 @@ func process_day(current_day: int, shelter_state: Dictionary) -> Array:
 			if c_type == TYPE_INFECTED_LET_IN:
 				guest = _guest_by_id(c.get("visitor_id", ""))
 				if guest.is_empty():
-					for key in payload.keys():
-						if str(key).ends_with("_change"):
-							payload[key] = int(payload[key] / 2.0)
+					for k in ["trust_change", "morale_change"]:
+						if payload.has(k):
+							payload[k] = int(payload[k] / 2.0)
 
 			# Apply payload stat modifications
 			var stat_changes: Dictionary = {}
@@ -241,7 +241,7 @@ func _run_infection(current_day: int, shelter_state: Dictionary, logs: Array) ->
 			break
 		if randf() >= 0.5:
 			continue
-		var victim: Dictionary = pool.pop_at(randi() % pool.size())
+		var victim: Dictionary = pool.pop_at(randi_range(0, pool.size() - 1))
 		victim["bitten"] = true
 		victim["infection_progress"] = 0.2
 		apply_stat_changes(shelter_state, {"trust": -10, "morale": -10})

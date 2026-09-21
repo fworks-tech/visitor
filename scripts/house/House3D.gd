@@ -111,7 +111,7 @@ var _tap_mat: StandardMaterial3D
 ## Multi-floor state: which floors are accessible (drives collision + interactables).
 var _unlocked_floors: Array = ["ground"]
 var _current_floor: String = "ground"
-var _obstacle_props: Array = []
+var _barricades := Node3D.new()
 
 func _ready() -> void:
 	_build_environment()
@@ -534,37 +534,37 @@ func _build_interactables() -> void:
 		_interactables.append(_it("generator", Vector3(-6.25, by + 0.9, 0.0), "CHECK GENERATOR"))
 		_interactables.append(_it("cellar_search", Vector3(6.0, by + 0.9, 0.0), "SEARCH CELLAR"))
 
-## Adds visual + collision obstacles on locked paths. The geometry (marker
-## boxes, barricade props) is always visible, but collision blocks the player
-## until the floor unlocks. Ground floor: stairs_up (day 3), basement door (day 7).
-## Second floor: attic hatch (day 5).
+## Barricades on not-yet-unlocked paths: floor stays visible, prop + collision
+## block it. locks = floor that must stay locked; requires = floors that must
+## exist for this barricade to stand anywhere.
+const BARRICADES := [
+	{"locks": "second", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.9, 0.0), "col": Vector3(2.5, 1.0, 0.0), "size": Vector3(0.3, 2.0, 1.6), "scale": 1.4},
+	{"locks": "basement", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.9, 1.8), "col": Vector3(2.5, 1.0, 1.5), "size": Vector3(0.3, 2.0, 1.2), "scale": 1.4},
+	{"locks": "attic", "requires": ["second"], "on": "second", "prop": Vector3(2.5, 0.9, 1.5), "col": Vector3(2.5, 1.0, 1.5), "size": Vector3(0.3, 0.6, 1.0), "scale": 1.0},
+]
+
+## Adds visual + collision obstacles on locked paths. Marker geometry is
+## always built (see _build_house); barricade props live in one holder node
+## so a rebuild is a single free. Collisions clear with the rest of the
+## StaticBody3D set in set_unlocked_floors.
 func _build_obstacles() -> void:
-	# Clear previous obstacle props.
-	for p in _obstacle_props:
-		if is_instance_valid(p):
-			p.queue_free()
-	_obstacle_props = []
-	# Stairs to second floor: blocked until day 3.
-	if not _unlocked_floors.has("second"):
-		var h: Vector3 = ROOM_POSITIONS["hall"]
-		var barricade_1: Node3D = _bprop("barricade-window-a.glb", h + Vector3(2.5, 0.9, 0.0), PI / 2.0, 1.4)
-		if barricade_1 != null:
-			_obstacle_props.append(barricade_1)
-		_solid(Vector3(2.5, 1.0, 0.0), Vector3(0.3, 2.0, 1.6))
-	# Basement door: locked until day 7.
-	if not _unlocked_floors.has("basement"):
-		var h: Vector3 = ROOM_POSITIONS["hall"]
-		var barricade_2: Node3D = _bprop("barricade-window-a.glb", h + Vector3(2.5, 0.9, 1.8), PI / 2.0, 1.4)
-		if barricade_2 != null:
-			_obstacle_props.append(barricade_2)
-		_solid(Vector3(2.5, 1.0, 1.5), Vector3(0.3, 2.0, 1.2))
-	# Attic hatch: on second floor, blocked until day 5.
-	if _unlocked_floors.has("second") and not _unlocked_floors.has("attic"):
-		var sy := FLOOR_Y["second"]
-		var barricade_3: Node3D = _bprop("barricade-window-a.glb", Vector3(2.5, sy + 0.9, 1.5), PI / 2.0, 1.0)
-		if barricade_3 != null:
-			_obstacle_props.append(barricade_3)
-		_solid(Vector3(2.5, sy + 1.0, 1.5), Vector3(0.3, 0.6, 1.0))
+	_barricades.free()
+	_barricades = Node3D.new()
+	add_child(_barricades)
+	for b in BARRICADES:
+		if _unlocked_floors.has(str(b.locks)):
+			continue
+		var ready := true
+		for r in b.requires:
+			ready = ready and _unlocked_floors.has(str(r))
+		if not ready:
+			continue
+		var y: float = FLOOR_Y[b.on]
+		var p: Node3D = _bprop("barricade-window-a.glb", Vector3(b.prop.x, y + b.prop.y, b.prop.z), PI / 2.0, b.scale)
+		if p != null:
+			p.get_parent().remove_child(p)
+			_barricades.add_child(p)
+		_solid(Vector3(b.col.x, y + b.col.y, b.col.z), b.size)
 
 func set_mood(day: bool) -> void:
 	_is_night = not day

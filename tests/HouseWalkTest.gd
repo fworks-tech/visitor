@@ -96,7 +96,7 @@ func _run() -> void:
 			has_stairs = true
 	check(not has_stairs, "no stairs on day 2 (unlock day 3)")
 	# Obstacle blocks the locked path.
-	check(scene.house3d._obstacle_props.size() == 2, "2 obstacles on locked paths (stairs + basement)")
+	check(scene.house3d._barricades.get_child_count() == 2, "2 obstacles on locked paths (stairs + basement)")
 
 	# Unlock second floor and verify stairs appear.
 	GameManager.current_day = 3
@@ -112,7 +112,7 @@ func _run() -> void:
 	check(has_stairs, "stairs_up appears on day 3")
 	check(has_guest_bed, "guest_room_bed appears on day 3")
 	# Basement obstacle (ground) + attic obstacle (second floor) remain.
-	check(scene.house3d._obstacle_props.size() == 2, "2 obstacles left (basement + attic locked)")
+	check(scene.house3d._barricades.get_child_count() == 2, "2 obstacles left (basement + attic locked)")
 
 	# Guest room bed restores energy (day only).
 	GameManager.change_state(GameManager.GameState.DAY)
@@ -134,7 +134,7 @@ func _run() -> void:
 	check(has_gen, "generator appears on day 7")
 	check(has_cellar, "cellar_search appears on day 7")
 	# All paths clear when every floor is unlocked.
-	check(scene.house3d._obstacle_props.size() == 0, "0 obstacles on day 7 (all floors unlocked)")
+	check(scene.house3d._barricades.get_child_count() == 0, "0 obstacles on day 7 (all floors unlocked)")
 
 	# --- turned-guest confrontation ------------------------------------------------
 	# Root regression: the gate LET_IN of an infected must queue the turn consequence.

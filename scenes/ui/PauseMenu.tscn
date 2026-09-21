@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/PauseMenu.gd" id="1"]
 [ext_resource type="Theme" path="res://theme/visitor_theme.tres" id="2"]
 
-[node name="PauseMenu" type="CanvasLayer" parent="."]
+[node name="PauseMenu" type="CanvasLayer"]
 layer = 90
 script = ExtResource("1")
 

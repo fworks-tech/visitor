@@ -343,7 +343,8 @@ func _action_mirror() -> void:
 
 # --- multi-floor navigation ---------------------------------------------------
 
-## Maps each stairs/ladder action to the target floor. Spawn offset is always the same.
+## Maps each stairs/ladder action to the target floor. Landing z is per action:
+## north landings (top of an upward flight) vs the down-run top (south entry).
 const STAIRS_TARGET := {
 	"stairs_up": "second",
 	"stairs_down": "basement",
@@ -351,6 +352,14 @@ const STAIRS_TARGET := {
 	"stairs_up_from_basement": "ground",
 	"ladder_up": "attic",
 	"ladder_down": "second",
+}
+const STAIRS_LAND_Z := {
+	"stairs_up": -2.5,
+	"stairs_down": -2.6,
+	"stairs_down_from_second": -2.5,
+	"stairs_up_from_basement": 2.6,
+	"ladder_up": -2.5,
+	"ladder_down": -2.5,
 }
 
 func _action_stairs(action: String) -> void:
@@ -363,7 +372,7 @@ func _action_stairs(action: String) -> void:
 		_open_popup("BLOCKED", "", "The way is barricaded. It will open when the time comes.")
 		return
 	var y_off: float = house3d.FLOOR_Y[target_floor]
-	house3d.player.position = Vector3(2.5, y_off + 0.05, 0.0)
+	house3d.player.position = Vector3(2.3, y_off + 0.05, STAIRS_LAND_Z[action])
 	house3d._current_floor = target_floor
 	_open_popup("STAIRS" if "ladder" not in action else "LADDER", "", "You climb to the %s." % target_floor)
 

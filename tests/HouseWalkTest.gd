@@ -229,6 +229,33 @@ func _run() -> void:
 	check(rev, "kick of turned guest queues revenge attack")
 	ConsequenceSystem.consequence_queue.clear()
 
+	# Save/restore round-trip (#5): guests and pending consequences survive.
+	var backup := ""
+	if FileAccess.file_exists(SaveManager.SAVE_PATH):
+		var bf := FileAccess.open(SaveManager.SAVE_PATH, FileAccess.READ)
+		backup = bf.get_as_text()
+	VisitorManager.admitted_visitors = [
+		{"id": "s1", "name": "TurnedOne", "room": "hall", "turned": true, "admitted_day": 3},
+		{"id": "s2", "name": "BittenOne", "room": "kitchen", "bitten": true, "infection_progress": 0.45}]
+	ConsequenceSystem.queue_consequence("infected_let_in", 9, {"id": "s3", "name": "Later"},
+		{"trust_change": -25, "morale_change": -30})
+	check(SaveManager.save_game(), "save_game succeeds")
+	VisitorManager.admitted_visitors = []
+	ConsequenceSystem.consequence_queue.clear()
+	check(SaveManager.load_game(), "load_game succeeds")
+	var by_id := {}
+	for g in VisitorManager.admitted_visitors:
+		by_id[str(g.get("id", ""))] = g
+	check(bool(by_id.get("s1", {}).get("turned", false)), "turned flag survives save/restore")
+	check(absf(float(by_id.get("s2", {}).get("infection_progress", 0.0)) - 0.45) < 0.001, "bite progress survives save/restore")
+	check(ConsequenceSystem.consequence_queue.size() == 1, "pending consequence survives save/restore")
+	ConsequenceSystem.consequence_queue.clear()
+	if backup != "":
+		var wf := FileAccess.open(SaveManager.SAVE_PATH, FileAccess.WRITE)
+		wf.store_string(backup)
+	else:
+		SaveManager.delete_save()
+
 	VisitorManager.admitted_visitors.clear()
 	print("RESULT %d failures" % failures.size())
 	for x in failures:

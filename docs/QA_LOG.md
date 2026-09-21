@@ -28,6 +28,7 @@ Per-game record, filled during QA passes. Procedures: `DEVICE_QA.md`
 | Signs observed (fate) | 40 | 40 | All signs referenced in visitors.json exist in signs.json |
 | Floors reachable (headless) | 4 | 4 | Ground + 2F (night 3) + attic (night 5) + basement (night 7), via house-walk gate |
 | Obstacle-gated paths | 3 | 3 | Stairs/basement/attic barricades present when locked, cleared on unlock (house-walk gate) |
+| Save/restore round-trip | 1 | 1 | Guests (turned/bitten) + pending consequence queue survive save→load (house-walk gate, save v1.1) |
 
 ## Art pipeline
 

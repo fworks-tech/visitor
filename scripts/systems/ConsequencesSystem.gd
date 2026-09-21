@@ -263,9 +263,12 @@ func apply_stat_changes(shelter_state: Dictionary, changes: Dictionary) -> void:
 
 	shelter_stats_changed.emit(shelter_state)
 
-## Retrieve queue of upcoming pending consequences
-func get_queued_consequences() -> Array:
-	return consequence_queue.duplicate()
+## JSON-safe save round-trip for the pending consequence queue.
+func get_save_data() -> Dictionary:
+	return {"consequence_queue": consequence_queue}
+
+func load_save_data(data: Dictionary) -> void:
+	consequence_queue = data.get("consequence_queue", [])
 
 ## Retrieve full decision log
 func get_decision_history() -> Array:

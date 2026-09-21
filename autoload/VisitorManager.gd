@@ -245,9 +245,11 @@ func eliminate_guest(guest_id: String) -> Dictionary:
 func get_save_data() -> Dictionary:
 	return {
 		"decision_history": decision_history,
-		"current_visitor_index": current_visitor_index
+		"current_visitor_index": current_visitor_index,
+		"admitted_visitors": admitted_visitors
 	}
 
 func load_save_data(data: Dictionary) -> void:
 	decision_history = data.get("decision_history", [])
 	current_visitor_index = data.get("current_visitor_index", 0)
+	admitted_visitors = data.get("admitted_visitors", [])

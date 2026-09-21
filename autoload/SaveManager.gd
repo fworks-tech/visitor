@@ -9,7 +9,7 @@ const SAVE_PATH: String = "user://visitor_save.json"
 
 func save_game() -> bool:
 	var save_data := {
-		"version": "1.0",
+		"version": "1.1",
 		"timestamp": Time.get_datetime_string_from_system(),
 		"game_manager": {
 			"current_day": GameManager.current_day,
@@ -21,6 +21,7 @@ func save_game() -> bool:
 		},
 		"flags": FlagsManager.get_all_flags(),
 		"visitor_data": VisitorManager.get_save_data(),
+		"consequences": ConsequenceSystem.get_save_data(),
 		"resources": ResourceSystem.get_save_data()
 	}
 	
@@ -73,6 +74,10 @@ func load_game() -> bool:
 		
 	if data.has("visitor_data"):
 		VisitorManager.load_save_data(data["visitor_data"])
+
+	# v1.1: absent in old saves, defaults to empty queue.
+	if data.has("consequences"):
+		ConsequenceSystem.load_save_data(data["consequences"])
 		
 	if data.has("resources"):
 		ResourceSystem.load_save_data(data["resources"])

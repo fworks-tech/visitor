@@ -84,6 +84,33 @@ const DOORS := {
 	"bathroom": {"n": true},
 }
 
+## Single source of truth for the floor plan: floor -> room -> {pos, size, doors}.
+## Mirrors the per-floor tables above (kept for the geometry builders until the
+## shell rebuild); new code reads LAYOUT. get_room_at + _half already do.
+const LAYOUT := {
+	"ground": {
+		"hall": {"pos": Vector3(0, 0, 0), "size": Vector2(6, 6), "doors": {"n": true, "s": true, "e": true, "w": true}},
+		"bedroom": {"pos": Vector3(-6.25, 0, 0), "size": Vector2(4.5, 4), "doors": {"e": true}},
+		"kitchen": {"pos": Vector3(6.0, 0, 0), "size": Vector2(4, 4), "doors": {"w": true}},
+		"office": {"pos": Vector3(0, 0, -6.0), "size": Vector2(4.5, 4), "doors": {"s": true}},
+		"bathroom": {"pos": Vector3(0, 0, 5.5), "size": Vector2(3, 3), "doors": {"n": true}},
+	},
+	"second": {
+		"hall_up": {"pos": Vector3(0, 0, 0), "size": Vector2(6, 6), "doors": {"n": false, "s": false, "e": true, "w": true}},
+		"storage": {"pos": Vector3(-6.25, 0, 0), "size": Vector2(4, 4), "doors": {"e": true}},
+		"guest_room": {"pos": Vector3(6.0, 0, 0), "size": Vector2(4, 4), "doors": {"w": true}},
+	},
+	"attic": {
+		"attic_hall": {"pos": Vector3(0, 0, 0), "size": Vector2(6, 6), "doors": {"n": false, "s": false, "e": true, "w": false}},
+		"attic_storage": {"pos": Vector3(-6.25, 0, 0), "size": Vector2(4, 4), "doors": {"e": true}},
+	},
+	"basement": {
+		"basement_hall": {"pos": Vector3(0, 0, 0), "size": Vector2(6, 6), "doors": {"n": false, "s": false, "e": true, "w": true}},
+		"generator_room": {"pos": Vector3(-6.25, 0, 0), "size": Vector2(4, 4), "doors": {"e": true}},
+		"cellar": {"pos": Vector3(6.0, 0, 0), "size": Vector2(4, 4), "doors": {"w": true}},
+	},
+}
+
 var player: HousePlayer3D
 var _interactables: Array = []
 var _guest_interactables: Array = []
@@ -154,11 +181,13 @@ func set_unlocked_floors(floors: Array) -> void:
 func get_room_at(pos: Vector3) -> String:
 	var best := "hall"
 	var best_d := 1e9
-	for room in ROOM_POSITIONS:
-		var d: float = Vector2(pos.x - ROOM_POSITIONS[room].x, pos.z - ROOM_POSITIONS[room].z).length()
-		if d < best_d:
-			best_d = d
-			best = room
+	for floor in LAYOUT:
+		for room in LAYOUT[floor]:
+			var rp: Vector3 = LAYOUT[floor][room]["pos"]
+			var d: float = Vector2(pos.x - rp.x, pos.z - rp.z).length()
+			if d < best_d:
+				best_d = d
+				best = room
 	return best
 
 ## The focus the crosshair actually points at. Statics: the camera ray must
@@ -755,7 +784,10 @@ func _build_environment() -> void:
 	add_child(we)
 
 func _half(room: String) -> Vector2:
-	return ROOM_SIZES.get(room, Vector2(6, 6)) * 0.5
+	for floor in LAYOUT:
+		if LAYOUT[floor].has(room):
+			return LAYOUT[floor][room]["size"] * 0.5
+	return Vector2(6, 6) * 0.5
 
 func _build_house() -> void:
 	_build_floor_at("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)

@@ -10,6 +10,7 @@ const FLOOR_COL := Color(0.17, 0.17, 0.2)
 const DOOR_COL := Color(0.4, 0.3, 0.2)
 const FURNITURE_COL := Color(0.24, 0.23, 0.26)
 const CEIL_COL := Color(0.18, 0.17, 0.2)
+const EARTH_COL := Color(0.05, 0.05, 0.06)
 
 ## Floor offsets: each floor is 3.2m above the one below.
 const FLOOR_Y := {"ground": 0.0, "second": 3.2, "attic": 6.4, "basement": -3.2}
@@ -463,6 +464,7 @@ func _build_collisions() -> void:
 	_build_furniture_solids()
 
 func _floor_collisions_for(y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+	doors = _linked_doors(rooms, sizes, doors)
 	for room in rooms:
 		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
@@ -474,39 +476,95 @@ func _floor_collisions_for(y_off: float, rooms: Dictionary, sizes: Dictionary, d
 		_solid_wall(base, hz, "x", 1.0, bool(drs.get("e", false)))
 
 
-## Floor + side rails across the 1m voids between cells: every doorway is an
-## enclosed tunnel stub, never a pit you can strafe off.
-func _build_bridges() -> void:
-	var h: Vector3 = ROOM_POSITIONS["hall"]
-	var links := [
-		[ROOM_POSITIONS["bedroom"] + Vector3(_half("bedroom").x, 0, 0), h + Vector3(-3.0, 0, 0), "x"],
-		[ROOM_POSITIONS["kitchen"] + Vector3(-_half("kitchen").x, 0, 0), h + Vector3(3.0, 0, 0), "x"],
-		[ROOM_POSITIONS["office"] + Vector3(0, 0, _half("office").y), h + Vector3(0, 0, -3.0), "z"],
-		[ROOM_POSITIONS["bathroom"] + Vector3(0, 0, -_half("bathroom").y), h + Vector3(0, 0, 3.0), "z"],
-	]
-	for link in links:
-		var a: Vector3 = link[0]
-		var b: Vector3 = link[1]
-		var mid := (a + b) * 0.5
-		var span: float = absf(a.x - b.x) if link[2] == "x" else absf(a.z - b.z)
+## Connectors join door gaps that face each other across a void, on every floor.
+## Derived from the layout, not hardcoded: span comes from actual face distance
+## (ground/second sit 1.0 apart, attic/basement 1.25), and a door gap with no
+## neighbor across it reads as solid wall — upstairs gaps can no longer open
+## onto nothing. Dedupe by pair: each link is found twice (a->b and b->a).
+const _LINK_DIRS := {"n": Vector3(0, 0, -1), "s": Vector3(0, 0, 1), "e": Vector3(1, 0, 0), "w": Vector3(-1, 0, 0)}
+const _LINK_OPP := {"n": "s", "s": "n", "e": "w", "w": "e"}
+
+func _connector_links(rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> Array:
+	var links := []
+	var seen := {}
+	for a in rooms:
+		var ah: Vector2 = (sizes.get(a, Vector2(4, 4)) as Vector2) * 0.5
+		for d in _LINK_DIRS:
+			if not bool(doors.get(a, {}).get(d, false)):
+				continue
+			var axis := "x" if d == "e" or d == "w" else "z"
+			var dir: Vector3 = _LINK_DIRS[d]
+			var step: float = (ah.x if axis == "x" else ah.y)
+			for b in rooms:
+				if str(b) == str(a):
+					continue
+				if not bool(doors.get(b, {}).get(_LINK_OPP[d], false)):
+					continue
+				var bh: Vector2 = (sizes.get(b, Vector2(4, 4)) as Vector2) * 0.5
+				step = (ah.x if axis == "x" else ah.y) + (bh.x if axis == "x" else bh.y)
+				var delta: Vector3 = rooms[b] - rooms[a]
+				var along: float = (delta.x if axis == "x" else delta.z) * (dir.x if axis == "x" else dir.z)
+				var across: float = absf(delta.z if axis == "x" else delta.x)
+				if along <= 0.0 or across > 0.05:
+					continue
+				var span: float = along - step
+				if span < 0.3 or span > 2.5:
+					continue
+				var pair := [str(a), str(b)]
+				pair.sort()
+				var key: String = pair[0] + "|" + pair[1]
+				if seen.has(key):
+					continue
+				seen[key] = true
+				var mid: Vector3 = (rooms[a] + rooms[b]) * 0.5
+				mid.y = 0.0
+				links.append({"a": str(a), "b": str(b), "d": d, "mid": mid, "span": span, "axis": axis})
+	return links
+
+## Doors that actually link somewhere. Walls and their collision read this, so
+## a gap with no connector builds solid on both sides, visual and physics alike.
+func _linked_doors(rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> Dictionary:
+	var out := {}
+	for room in rooms:
+		out[room] = {}
+	for link in _connector_links(rooms, sizes, doors):
+		out[link["a"]][link["d"]] = true
+		out[link["b"]][_LINK_OPP[link["d"]]] = true
+	return out
+
+func _build_connectors_for(y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+	for link in _connector_links(rooms, sizes, doors):
+		var mid: Vector3 = link["mid"] + Vector3(0, y_off, 0)
+		var span: float = link["span"]
 		# Floor meets the room slabs edge-to-edge (shared edges don't fight).
-		var floor_size := Vector3(span, 0.3, 1.6) if link[2] == "x" else Vector3(1.6, 0.3, span)
-		_solid(Vector3(mid.x, -0.15, mid.z), floor_size)
-		_box(self, Vector3(mid.x, -0.1, mid.z), Vector3(floor_size.x, 0.2, floor_size.z), FLOOR_COL)
-		# Rails stop short of every face and clear the stub planes: no fins
+		var floor_size := Vector3(span, 0.3, 1.6) if link["axis"] == "x" else Vector3(1.6, 0.3, span)
+		_solid(Vector3(mid.x, y_off - 0.15, mid.z), floor_size)
+		_box(self, Vector3(mid.x, y_off - 0.1, mid.z), Vector3(floor_size.x, 0.2, floor_size.z), FLOOR_COL)
+		# Side walls stop short of every face and clear the stub planes: no fins
 		# poking into rooms, no coplanar flicker at the mouths.
-		var rail := Vector3(span - 0.1, 3.0, 0.12) if link[2] == "x" else Vector3(0.12, 3.0, span - 0.1)
+		var wall := Vector3(span - 0.1, 3.0, 0.2) if link["axis"] == "x" else Vector3(0.2, 3.0, span - 0.1)
 		var off := 0.9
-		if link[2] == "x":
-			_solid(Vector3(mid.x, 1.5, mid.z - off), rail)
-			_solid(Vector3(mid.x, 1.5, mid.z + off), rail)
-			_box(self, Vector3(mid.x, 1.5, mid.z - off), rail, WALL_COL)
-			_box(self, Vector3(mid.x, 1.5, mid.z + off), rail, WALL_COL)
+		if link["axis"] == "x":
+			_solid(Vector3(mid.x, y_off + 1.5, mid.z - off), wall)
+			_solid(Vector3(mid.x, y_off + 1.5, mid.z + off), wall)
+			_box(self, Vector3(mid.x, y_off + 1.5, mid.z - off), wall, WALL_COL)
+			_box(self, Vector3(mid.x, y_off + 1.5, mid.z + off), wall, WALL_COL)
 		else:
-			_solid(Vector3(mid.x - off, 1.5, mid.z), rail)
-			_solid(Vector3(mid.x + off, 1.5, mid.z), rail)
-			_box(self, Vector3(mid.x - off, 1.5, mid.z), rail, WALL_COL)
-			_box(self, Vector3(mid.x + off, 1.5, mid.z), rail, WALL_COL)
+			_solid(Vector3(mid.x - off, y_off + 1.5, mid.z), wall)
+			_solid(Vector3(mid.x + off, y_off + 1.5, mid.z), wall)
+			_box(self, Vector3(mid.x - off, y_off + 1.5, mid.z), wall, WALL_COL)
+			_box(self, Vector3(mid.x + off, y_off + 1.5, mid.z), wall, WALL_COL)
+
+## Every doorway is an enclosed connector stub, never a pit you can strafe off —
+## on all four floors, not just ground.
+func _build_bridges() -> void:
+	_build_connectors_for(FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
+	if _unlocked_floors.has("second"):
+		_build_connectors_for(FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+	if _unlocked_floors.has("attic"):
+		_build_connectors_for(FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+	if _unlocked_floors.has("basement"):
+		_build_connectors_for(FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
 
 func _solid_wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
 	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
@@ -790,6 +848,7 @@ func _half(room: String) -> Vector2:
 	return Vector2(6, 6) * 0.5
 
 func _build_house() -> void:
+	_build_groundscape()
 	_build_floor_at("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
 	_build_bedroom()
 	_build_hall()
@@ -812,8 +871,16 @@ func _build_house() -> void:
 		_build_floor_at("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
 		_build_basement()
 
+## Earth under the composition + the front stoop: window and door views meet
+## dirt and concrete, never void. Visual only — collision already spans it.
+func _build_groundscape() -> void:
+	_box(self, Vector3(-0.25, -0.4, -0.5), Vector3(20.5, 0.2, 19.0), EARTH_COL)
+	var h: Vector3 = ROOM_POSITIONS["hall"]
+	_box(self, h + Vector3(-1.8, -0.1, 3.6), Vector3(2.0, 0.2, 1.2), FLOOR_COL)
+
 ## Builds floor geometry (floor slab + walls + ceiling + lights) for a set of rooms at a Y offset.
 func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+	doors = _linked_doors(rooms, sizes, doors)
 	for room in rooms:
 		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))

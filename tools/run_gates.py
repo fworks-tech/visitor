@@ -21,6 +21,8 @@ GATES = [
      "RESULT 0 failures"),
     ("house-walk", [GODOT, "--headless", "--path", str(ROOT), "--", "--house-test"],
      "RESULT 0 failures"),
+    ("balance", [GODOT, "--headless", "--path", str(ROOT), "--", "--balance-test"],
+     "RESULT 0 failures"),
     ("placement", [GODOT, "--headless", "--path", str(ROOT), "--script",
                    "res://tools/placement_audit.gd"], "0 FAIL"),
     ("focus", [GODOT, "--headless", "--path", str(ROOT), "--script",

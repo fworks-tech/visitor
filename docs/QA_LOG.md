@@ -49,6 +49,19 @@ Per-game record, filled during QA passes. Procedures: `DEVICE_QA.md`
 Severity: blocker (cannot ship) / major (visible, has workaround) / minor.
 Status: open / fixed-unverified / verified / wontfix-with-reason.
 
+## Balance read-out (balance-test gate, seed 42)
+
+Raw numbers for the tuning pass (fuel is the only resource with a collapse state):
+
+| Policy | Dawn 1-6 fuel (pre-payment) | Dark on | Day-7 cellar (20 runs) |
+|---|---|---|---|
+| Rational (generator checked daily, cellar farmed) | 10, 8, 6, 4, 2, 0 | day 5 (payment zeroes it) | mean ≈ +3.0 fuel, min ≥ 0 |
+| Passive (ignores generator) | 10, 7, 4, 1, 0, 0 | day 4 | — |
+
+Design notes the sim surfaced (not bugs — decide before tuning):
+- No fuel source exists before night 7, so even perfect play sits dark on days 5-6.
+- Admitted guests have no daily upkeep (food costs only 1 per LET_IN); water and medicine have no sink.
+
 ## Sign-off
 
 No open blockers. No open majors, or each has a logged reason.

@@ -467,7 +467,7 @@ func _build_stair_flight(y_base: float, rise: float, holder: Node3D) -> void:
 	var w := STAIR_X1 - STAIR_X0
 	var run := STAIR_ZB - STAIR_ZT
 	var ang := atan2(rise, run)
-	var slope_len := sqrt(rise * rise + run * run) + 0.4
+	var slope_len := sqrt(rise * rise + run * run)
 	for i in range(STAIR_STEPS):
 		var t := float(i) / float(STAIR_STEPS - 1)
 		_box(holder, Vector3(xc, y_base + t * rise + 0.05, lerpf(STAIR_ZB, STAIR_ZT, t)),
@@ -489,10 +489,10 @@ func _build_stair_landing(y_top: float, holder: Node3D) -> void:
 	_box(holder, Vector3(STAIR_X0 - 0.1, y_top + 0.5, -2.25), Vector3(0.1, 1.0, 1.6), WOOD_COL)
 	_box(holder, Vector3(xc, y_top + 0.5, -1.45), Vector3(STAIR_X1 - STAIR_X0, 1.0, 0.1), WOOD_COL)
 
-## Hatch-hole guards on the hall slab (entry from the south stays open).
+## Slot-edge rails: west rail runs the full slot length (east edge is the hall
+## wall); the south entry stays open — that's where the flights are boarded.
 func _build_hatch_guards(holder: Node3D) -> void:
-	_box(holder, Vector3(1.6, 0.5, 1.65), Vector3(0.1, 1.0, 1.6), WOOD_COL)
-	_box(holder, Vector3(2.35, 0.5, 0.85), Vector3(1.4, 1.0, 0.1), WOOD_COL)
+	_box(holder, Vector3(1.65, 0.5, 0.0), Vector3(0.1, 1.0, 4.8), WOOD_COL)
 
 func _build_stairs_visuals() -> void:
 	var f1 := Node3D.new()
@@ -516,13 +516,15 @@ func _build_stair_ramps() -> void:
 	var xc := (STAIR_X0 + STAIR_X1) * 0.5
 	var w := STAIR_X1 - STAIR_X0
 	var run := STAIR_ZB - STAIR_ZT
+	# Exact slope length: the ramp ends flush at base and landing — no +0.4
+	# overshoot poking out of slabs or walls.
 	for spec in [[FLOOR_Y["ground"], 3.2], [FLOOR_Y["ground"], -3.2]]:
 		_solid(Vector3(xc, spec[0] + spec[1] * 0.5 - 0.02, 0.0),
-			Vector3(w - 0.1, 0.25, sqrt(spec[1] * spec[1] + run * run) + 0.4),
+			Vector3(w - 0.1, 0.25, sqrt(spec[1] * spec[1] + run * run)),
 			Vector3(atan2(spec[1], run), 0, 0))
 	if _unlocked_floors.has("second"):
 		_solid(Vector3(xc, FLOOR_Y["second"] + 1.58, 0.0),
-			Vector3(w - 0.1, 0.25, sqrt(3.2 * 3.2 + run * run) + 0.4),
+			Vector3(w - 0.1, 0.25, sqrt(3.2 * 3.2 + run * run)),
 			Vector3(atan2(3.2, run), 0, 0))
 
 ## Collision mirrors the visual walls, but door gaps stay walkable: gap walls
@@ -731,9 +733,9 @@ func _build_interactables() -> void:
 ## block it. locks = floor that must stay locked; requires = floors that must
 ## exist for this barricade to stand anywhere.
 const BARRICADES := [
-	{"locks": "second", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.0, 2.6), "col": Vector3(2.5, 1.0, 2.6), "size": Vector3(1.1, 2.0, 0.4), "scale": 1.4},
-	{"locks": "basement", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.0, 1.5), "col": Vector3(2.5, 1.0, 1.65), "size": Vector3(1.1, 2.0, 1.6), "scale": 1.4},
-	{"locks": "attic", "requires": ["second"], "on": "second", "prop": Vector3(2.5, 0.0, 1.5), "col": Vector3(2.5, 1.0, 2.3), "size": Vector3(1.1, 2.0, 0.5), "scale": 1.0},
+	{"locks": "second", "requires": [], "on": "ground", "prop": Vector3(2.3, 0.0, 2.65), "col": Vector3(2.3, 1.0, 2.65), "size": Vector3(1.2, 2.0, 0.4), "scale": 1.4},
+	{"locks": "basement", "requires": [], "on": "basement", "prop": Vector3(2.3, 0.0, -2.6), "col": Vector3(2.3, 1.0, -2.6), "size": Vector3(1.2, 2.0, 0.4), "scale": 1.4},
+	{"locks": "attic", "requires": ["second"], "on": "second", "prop": Vector3(2.3, 0.0, 2.5), "col": Vector3(2.3, 1.0, 2.5), "size": Vector3(1.2, 2.0, 0.4), "scale": 1.0},
 ]
 
 ## Adds visual + collision obstacles on locked paths. Marker geometry is
@@ -931,7 +933,7 @@ func _half(room: String) -> Vector2:
 func _build_house() -> void:
 	_build_groundscape()
 	_build_floor_at("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS,
-		{"hall": Rect2(1.65, 0.9, 1.35, 1.5)})
+		{"hall": Rect2(1.65, -2.4, 1.35, 4.8)})
 	_build_stairs_visuals()
 	_build_bedroom()
 	_build_hall()
@@ -942,15 +944,14 @@ func _build_house() -> void:
 	_build_structure()
 	# Stair base marker (run starts south, climbs north).
 	_box(self, Vector3(2.5, FLOOR_Y["ground"] + 0.05, 2.7), Vector3(1.2, 0.1, 0.6), DOOR_COL)
-	# Basement hatch lid over the slab hole (frame for the locked days).
-	_box(self, Vector3(2.5, FLOOR_Y["ground"] + 0.05, 1.65), Vector3(1.3, 0.1, 1.4), DOOR_COL)
+	# Basement descent: visible through the stairwell slot (west rail guards it).
 	if _unlocked_floors.has("second"):
 		_build_floor_at("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS,
-			{"hall_up": Rect2(1.65, -3.0, 1.35, 1.5)})
+			{"hall_up": Rect2(1.65, -2.4, 1.35, 4.8)})
 		_build_second_floor()
 	if _unlocked_floors.has("attic"):
 		_build_floor_at("attic", FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS,
-			{"attic_hall": Rect2(1.65, -3.0, 1.35, 1.5)})
+			{"attic_hall": Rect2(1.65, -2.4, 1.35, 4.8)})
 		_build_attic()
 	if _unlocked_floors.has("basement"):
 		_build_floor_at("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)

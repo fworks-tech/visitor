@@ -613,13 +613,13 @@ func _build_interactables() -> void:
 		_it("bed", b + Vector3(-1.72, 0.7, -0.8), "SLEEP"),
 		_it("tv", b + Vector3(-1.3, 1.0, 1.75), "WATCH TV"),
 		_it("radio", b + Vector3(-0.85, 0.6, -1.6), "TURN ON RADIO"),
-		_it("front_door", h + Vector3(-1.8, 1.5, 2.9), "FRONT DOOR"),
+		_it("front_door", h + Vector3(-2.2, 1.5, 2.9), "FRONT DOOR"),
 		_it("window", h + Vector3(1.8, 1.8, -2.9), "LOOK OUT THE WINDOW"),
 		_it("scavenge", k + Vector3(1.55, 0.9, 0.0), "SCAVENGE PANTRY"),
 		_it("cabinet", k + Vector3(1.7, 1.75, 0.0), "OPEN CABINET"),
 		_it("drawer", k + Vector3(0.85, 0.55, -1.0), "PULL DRAWER"),
 		_it("tap", k + Vector3(1.6, 1.15, 0.0), "TURN ON TAP"),
-		_it("fortify", o + Vector3(-0.9, 1.2, -1.9), "FORTIFY WINDOWS"),
+		_it("fortify", o + Vector3(0, 1.2, -1.9), "FORTIFY WINDOWS"),
 		_it("mirror", t + Vector3(1.4, 1.7, -0.2), "MIRROR — CHECK YOURSELF"),
 	]
 	# Stairs connect floors when unlocked.
@@ -817,13 +817,13 @@ func _mat(col: Color) -> StandardMaterial3D:
 	m.roughness = 0.9
 	return m
 
-func _emissive(pos: Vector3, size: Vector3, col: Color) -> Array:
+func _emissive(pos: Vector3, size: Vector3, col: Color, parent: Node3D = null) -> Array:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = Color(col.r * 0.2, col.g * 0.2, col.b * 0.2)
 	m.emission_enabled = true
 	m.emission = col
 	m.emission_energy_multiplier = 0.8
-	var mi := _box(self, pos, size, Color(0, 0, 0))
+	var mi := _box(parent if parent != null else self, pos, size, Color(0, 0, 0))
 	mi.material_override = m
 	return [mi, m]
 
@@ -876,7 +876,7 @@ func _build_house() -> void:
 func _build_groundscape() -> void:
 	_box(self, Vector3(-0.25, -0.4, -0.5), Vector3(20.5, 0.2, 19.0), EARTH_COL)
 	var h: Vector3 = ROOM_POSITIONS["hall"]
-	_box(self, h + Vector3(-1.8, -0.1, 3.6), Vector3(2.0, 0.2, 1.2), FLOOR_COL)
+	_box(self, h + Vector3(-2.2, -0.1, 3.6), Vector3(2.0, 0.2, 1.2), FLOOR_COL)
 
 ## Builds floor geometry (floor slab + walls + ceiling + lights) for a set of rooms at a Y offset.
 func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
@@ -925,6 +925,7 @@ func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: b
 
 func _build_bedroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bedroom"]
+	_build_window(base + Vector3(-2.19, 1.8, 0), PI / 2.0, false)
 	var bed := _prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
 	_prop("pillow.glb", base + Vector3(-1.72, 0.62, -1.5), 0.0, 1.7)
 	_prop("sideTable.glb", base + Vector3(-0.85, 0, -1.6), 0.0, 1.2)
@@ -943,12 +944,13 @@ func _build_bedroom() -> void:
 func _build_hall() -> void:
 	var base: Vector3 = ROOM_POSITIONS["hall"]
 	_build_window(base + Vector3(1.8, 1.8, -2.94))
-	# Real door leaf in the frame — the slab read as a hole in the wall.
-	_bprop("door-rotate-square-a.glb", base + Vector3(-1.8, 0, 2.96), PI / 2.0, 1.0)
-	var doorframe := _prop("doorwayFront.glb", base + Vector3(-1.8, 0, 2.9), 0.0, 2.1)
+	# Real door leaf in the frame, west of the bathroom passage — the slab read
+	# as a hole in the wall.
+	_bprop("door-rotate-square-a.glb", base + Vector3(-2.2, 0, 2.96), PI / 2.0, 1.0)
+	var doorframe := _prop("doorwayFront.glb", base + Vector3(-2.2, 0, 2.9), 0.0, 2.1)
 	_focus_boxes["front_door"] = _world_box(doorframe).grow(0.1)
-	_prop("rugDoormat.glb", base + Vector3(-1.8, 0.02, 2.0), 0.0, 2.5)
-	_prop("coatRackStanding.glb", base + Vector3(-2.5, 0, 1.0), 0.0, 2.2)
+	_prop("rugDoormat.glb", base + Vector3(-2.2, 0.02, 2.0), 0.0, 2.5)
+	_prop("coatRackStanding.glb", base + Vector3(2.5, 0, 1.0), 0.0, 2.2)
 	# Reading corner + salvaged medical gear on the north wall.
 	_pack_prop("Armchair red", base + Vector3(2.3, 0, 2.3), -PI * 0.75)
 	_atomic("machine_1.glb", base + Vector3(-2.3, 0, -2.45), 0.0)
@@ -959,26 +961,34 @@ func _build_hall() -> void:
 
 ## A real window: glow quad set in a wood frame with sill, muntins,
 ## curtain rod and drapes. `center` = glow-quad center on the wall face.
-func _build_window(center: Vector3) -> void:
-	var win: Array = _emissive(center, Vector3(1.2, 1.0, 0.06), Color(0.5, 0.4, 0.25))
+## Window assembly facing local +z. rot_y seats it on any wall; only the hall
+## window registers focus (the look-out interactable lives there, decor wins).
+func _build_window(center: Vector3, rot_y: float = 0.0, focus: bool = true) -> void:
+	var holder := Node3D.new()
+	holder.position = center
+	holder.rotation.y = rot_y
+	add_child(holder)
+	var win: Array = _emissive(Vector3.ZERO, Vector3(1.2, 1.0, 0.06), Color(0.5, 0.4, 0.25), holder)
 	_window_mat = win[1]
-	_focus_boxes["window"] = _world_box(win[0] as Node3D).grow(0.08)
+	if focus:
+		_focus_boxes["window"] = _world_box(win[0] as Node3D).grow(0.08)
 	var frame := WOOD_COL
-	_box(self, center + Vector3(0, 0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
-	_box(self, center + Vector3(0, -0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
-	_box(self, center + Vector3(-0.64, 0, 0.02), Vector3(0.08, 1.16, 0.08), frame)
-	_box(self, center + Vector3(0.64, 0, 0.02), Vector3(0.08, 1.16, 0.08), frame)
-	_box(self, center + Vector3(0, -0.62, 0.08), Vector3(1.5, 0.07, 0.18), frame)
+	_box(holder, Vector3(0, 0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
+	_box(holder, Vector3(0, -0.54, 0.02), Vector3(1.36, 0.08, 0.08), frame)
+	_box(holder, Vector3(-0.64, 0, 0.02), Vector3(0.08, 1.16, 0.08), frame)
+	_box(holder, Vector3(0.64, 0, 0.02), Vector3(0.08, 1.16, 0.08), frame)
+	_box(holder, Vector3(0, -0.62, 0.08), Vector3(1.5, 0.07, 0.18), frame)
 	var dark := Color(0.08, 0.07, 0.08)
-	_box(self, center + Vector3(0, 0, 0.04), Vector3(0.05, 1.0, 0.03), dark)
-	_box(self, center + Vector3(0, 0, 0.04), Vector3(1.2, 0.05, 0.03), dark)
+	_box(holder, Vector3(0, 0, 0.04), Vector3(0.05, 1.0, 0.03), dark)
+	_box(holder, Vector3(0, 0, 0.04), Vector3(1.2, 0.05, 0.03), dark)
 	var drape := Color(0.32, 0.1, 0.12)
-	_box(self, center + Vector3(-0.82, -0.1, 0.06), Vector3(0.28, 1.7, 0.1), drape)
-	_box(self, center + Vector3(0.82, -0.1, 0.06), Vector3(0.28, 1.7, 0.1), drape)
-	_box(self, center + Vector3(0, 0.72, 0.06), Vector3(1.9, 0.05, 0.05), WOOD_COL)
+	_box(holder, Vector3(-0.82, -0.1, 0.06), Vector3(0.28, 1.7, 0.1), drape)
+	_box(holder, Vector3(0.82, -0.1, 0.06), Vector3(0.28, 1.7, 0.1), drape)
+	_box(holder, Vector3(0, 0.72, 0.06), Vector3(1.9, 0.05, 0.05), WOOD_COL)
 
 func _build_kitchen() -> void:
 	var base: Vector3 = ROOM_POSITIONS["kitchen"]
+	_build_window(base + Vector3(1.94, 1.8, 0), -PI / 2.0, false)
 	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, 0.0), -PI / 2.0, 2.0)
 	var cab_n := _prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.0), -PI / 2.0, 2.0)
 	_prop("kitchenCabinet.glb", base + Vector3(1.55, 0, 1.0), -PI / 2.0, 2.0)
@@ -1068,6 +1078,7 @@ func _wall_cabinet(center: Vector3, hinge_sign: float, tint: Color) -> void:
 
 func _build_office() -> void:
 	var base: Vector3 = ROOM_POSITIONS["office"]
+	_build_window(base + Vector3(0, 1.8, -1.94), 0.0, false)
 	_prop("desk.glb", base + Vector3(-1.0, 0, -1.61), 0.0, 2.0)
 	_prop("chairDesk.glb", base + Vector3(-1.0, 0, -0.9), PI, 1.6)
 	_prop("bookcaseOpen.glb", base + Vector3(1.5, 0, 1.72), 0.0, 2.0)
@@ -1079,6 +1090,7 @@ func _build_office() -> void:
 
 func _build_bathroom() -> void:
 	var base: Vector3 = ROOM_POSITIONS["bathroom"]
+	_build_window(base + Vector3(0, 2.2, 1.44), PI, false)
 	# The north wall is mostly door gap — sink and mirror live on the east
 	# wall, facing west into the room (sink depth 0.46 scaled).
 	_prop("bathroomSink.glb", base + Vector3(1.27, 0, -0.2), -PI / 2.0, 1.6)
@@ -1092,6 +1104,9 @@ func _build_bathroom() -> void:
 
 func _build_second_floor() -> void:
 	var sy := FLOOR_Y["second"]
+	_build_window(Vector3(-8.19, sy + 1.8, 0.0), PI / 2.0, false)
+	_build_window(Vector3(6.0, sy + 1.8, 1.94), PI, false)
+	_build_window(Vector3(-1.8, sy + 1.8, -2.94), 0.0, false)
 	# Storage room: crates and supplies.
 	_prop("crate.glb", Vector3(-6.25, sy + 0.4, 0.0), 0.0, 1.5)
 	_prop("crate.glb", Vector3(-6.25, sy + 0.4, 1.2), 0.0, 1.3)
@@ -1144,7 +1159,7 @@ func _build_structure() -> void:
 	var b: Vector3 = ROOM_POSITIONS["bedroom"]
 	# Boarded office opening over the plank fortify: flat panel against the
 	# wall face (rot PI/2 — rot 0 left it perpendicular, planks through the wall).
-	var barricade := _bprop("barricade-window-a.glb", o + Vector3(-0.9, 0.95, -1.94), PI / 2.0, 1.2)
+	var barricade := _bprop("barricade-window-a.glb", o + Vector3(0, 0.95, -1.94), PI / 2.0, 1.2)
 	_focus_boxes["fortify"] = _world_box(barricade).grow(0.1)
 	# Baseboards kill the floating-wall read (crossings read as thresholds).
 	var bb := Color(0.1, 0.09, 0.1)

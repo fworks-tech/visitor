@@ -261,7 +261,33 @@ func _prop(file: String, pos: Vector3, rot_y: float = 0.0, scl: float = 1.0) -> 
 	return _prop_at(FURN_DIR, file, pos, rot_y, scl)
 
 func _bprop(file: String, pos: Vector3, rot_y: float = 0.0, scl: float = 1.0) -> Node3D:
-	return _prop_at(BUILD_DIR, file, pos, rot_y, scl)
+	var n := _prop_at(BUILD_DIR, file, pos, rot_y, scl)
+	_wood_fix(n)
+	return n
+
+## Kenney building-kit GLBs were vendored without the shared colormap atlas,
+## so textureless surfaces import paper-white. Barricades read as floating
+## paper instead of nailed planks — stain just those surfaces wood.
+static var _wood: StandardMaterial3D = null
+static func _wood_fix(n: Node) -> void:
+	if n == null:
+		return
+	if _wood == null:
+		_wood = StandardMaterial3D.new()
+		_wood.albedo_color = Color(0.45, 0.32, 0.2)
+		_wood.roughness = 0.9
+	if n is MeshInstance3D:
+		var mi := n as MeshInstance3D
+		var mesh := mi.mesh
+		if mesh != null:
+			for i in mesh.get_surface_count():
+				var m := mesh.surface_get_material(i)
+				if m is StandardMaterial3D:
+					var sm := m as StandardMaterial3D
+					if sm.albedo_texture == null and sm.albedo_color == Color.WHITE:
+						mi.set_surface_override_material(i, _wood)
+	for c in n.get_children():
+		_wood_fix(c)
 
 ## Instance a CC0 model. Kenney fronts face +Z — rotate the prop
 ## so +Z points at the room. Kenney models are ~half true scale (a 0.38m
@@ -539,7 +565,7 @@ func _build_interactables() -> void:
 ## exist for this barricade to stand anywhere.
 const BARRICADES := [
 	{"locks": "second", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.9, 0.0), "col": Vector3(2.5, 1.0, 0.0), "size": Vector3(0.3, 2.0, 1.6), "scale": 1.4},
-	{"locks": "basement", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.9, 1.8), "col": Vector3(2.5, 1.0, 1.5), "size": Vector3(0.3, 2.0, 1.2), "scale": 1.4},
+	{"locks": "basement", "requires": [], "on": "ground", "prop": Vector3(2.5, 0.9, 1.5), "col": Vector3(2.5, 1.0, 1.5), "size": Vector3(0.3, 2.0, 1.2), "scale": 1.4},
 	{"locks": "attic", "requires": ["second"], "on": "second", "prop": Vector3(2.5, 0.9, 1.5), "col": Vector3(2.5, 1.0, 1.5), "size": Vector3(0.3, 0.6, 1.0), "scale": 1.0},
 ]
 

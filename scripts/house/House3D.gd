@@ -499,13 +499,15 @@ func _build_stairs_visuals() -> void:
 	f1.name = "stairs_F1"
 	add_child(f1)
 	_build_stair_flight(FLOOR_Y["ground"], 3.2, f1)
-	_build_stair_landing(FLOOR_Y["second"], f1)
 	var f0 := Node3D.new()
 	f0.name = "stairs_F0"
 	add_child(f0)
 	_build_stair_flight(FLOOR_Y["ground"], -3.2, f0)
 	_build_hatch_guards(f0)
 	if _unlocked_floors.has("second"):
+		# Landing + arrival rails live with the second floor — on locked days
+		# they would float in the void above the hall.
+		_build_stair_landing(FLOOR_Y["second"], f1)
 		var f2 := Node3D.new()
 		f2.name = "stairs_F2"
 		add_child(f2)

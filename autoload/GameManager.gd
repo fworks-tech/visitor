@@ -84,8 +84,8 @@ func _ready() -> void:
 	const HARNESS := {
 		"--door-test": "res://tests/DoorFlowTest.gd",
 		"--house-test": "res://tests/HouseWalkTest.gd",
-		"--balance-test": "res://tests/BalanceSimTest.gd",
 		"--screenshot": "res://tools/screenshot_mode.gd",
+		"--stairshot": "res://tools/stairshot.gd",
 	}
 	for flag in HARNESS.keys():
 		if flag in OS.get_cmdline_args() or flag in OS.get_cmdline_user_args():

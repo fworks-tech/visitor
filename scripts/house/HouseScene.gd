@@ -19,6 +19,14 @@ const ROOM_NAMES := {
 	"kitchen": "KITCHEN",
 	"office": "OFFICE",
 	"bathroom": "BATHROOM",
+	"hall_up": "UPPER HALL",
+	"storage": "STORAGE",
+	"guest_room": "GUEST ROOM",
+	"attic_hall": "ATTIC",
+	"attic_storage": "ATTIC STORAGE",
+	"basement_hall": "BASEMENT",
+	"generator_room": "GENERATOR ROOM",
+	"cellar": "CELLAR",
 }
 
 const TOOL_LABELS := {

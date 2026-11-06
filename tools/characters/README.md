@@ -44,3 +44,23 @@ Blender is not installed in this sandbox. The blockout lane exists so the demo
 can ship before the sculpt is ready. The production replacement should keep
 the node name `v001`/`v003`/`v008` and the same origin so no scene code changes.
 See `docs/CHARACTER_PIPELINE.md` for the full stage list and QA gates.
+
+
+## OpenCode / Blender handoff
+
+When the work moves from blockout to a real Blender asset, give the agent:
+
+- `docs/BLENDER_AGENT_PLAYBOOK.md` (rules, contract, acceptance, stop conditions)
+- `tools/characters/OPENCODE_TASK.md` (copy-paste task for one character)
+- `tools/characters/blender_export.py` (export + 3-angle review renders)
+- `tools/characters/validate_blender_output.py` (strict GLB contract check)
+
+Start with the environment check:
+
+```bash
+tools/characters/check_blender_env.sh
+```
+
+The expected target is **L2 GAME_READY**: silhouette, clothes, hands, hair and
+face; 15k tris; 20-25 bones; `idle` and `talk`; validated GLB. L3 HERO needs a
+sculpted base or a human artist, not an LLM-only pass.

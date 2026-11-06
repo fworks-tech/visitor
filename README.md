@@ -83,7 +83,10 @@ python3 tools/characters/validate_characters.py
 ```
 
 Full stage list, budgets and Godot integration:
-[docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md).
+[docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md). For Blender work via
+OpenCode, start with
+[docs/BLENDER_AGENT_PLAYBOOK.md](docs/BLENDER_AGENT_PLAYBOOK.md) and
+`tools/characters/OPENCODE_TASK.md`.
 
 ## The Shelter
 

@@ -43,7 +43,8 @@ the `demo` feature. `GameManager.start_new_game()` reads `total_nights` into
 automatically loads `res://assets/models/visitors/<id>.glb`. The blockout
 generator lives in `tools/characters/`; the production contract (metres, feet at
 origin, +Z forward, `portrait_face` material, 15k tri budget) is in
-`docs/CHARACTER_PIPELINE.md`. Keep external models optional: the full game still
+`docs/CHARACTER_PIPELINE.md` and the OpenCode handoff in
+`docs/BLENDER_AGENT_PLAYBOOK.md`. Keep external models optional: the full game still
 falls back to the procedural body, and `show_sign()`/`reveal()` no-op safely
 when an external model has no procedural head.
 

@@ -16,3 +16,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 demo_shots/
+
+# Blender working files and review renders
+assets/models/visitors/_wip/
+docs/renders/characters/

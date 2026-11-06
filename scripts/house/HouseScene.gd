@@ -379,8 +379,12 @@ func _action_stairs(action: String) -> void:
 	if not house3d._unlocked_floors.has(target_floor):
 		_open_popup("BLOCKED", "", "The way is barricaded. It will open when the time comes.")
 		return
+	if house3d.player == null:
+		return
 	var y_off: float = house3d.FLOOR_Y[target_floor]
-	house3d.player.position = Vector3(2.3, y_off + 0.05, STAIRS_LAND_Z[action])
+	var land_z: float = float(STAIRS_LAND_Z.get(action, 0.0))
+	house3d.player.position = Vector3(2.3, y_off + 0.05, clampf(land_z, -2.6, 2.6))
+	house3d.player.velocity = Vector3.ZERO
 	house3d._current_floor = target_floor
 	_open_popup("STAIRS" if "ladder" not in action else "LADDER", "", "You climb to the %s." % target_floor)
 

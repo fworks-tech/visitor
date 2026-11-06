@@ -84,6 +84,7 @@ func _ready() -> void:
 	const HARNESS := {
 		"--door-test": "res://tests/DoorFlowTest.gd",
 		"--house-test": "res://tests/HouseWalkTest.gd",
+		"--layout-test": "res://tests/HouseLayoutTest.gd",
 		"--balance-test": "res://tests/BalanceSimTest.gd",
 		"--screenshot": "res://tools/screenshot_mode.gd",
 		"--stairshot": "res://tools/stairshot.gd",

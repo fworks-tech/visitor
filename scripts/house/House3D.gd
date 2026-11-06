@@ -15,79 +15,9 @@ const EARTH_COL := Color(0.05, 0.05, 0.06)
 ## Floor offsets: each floor is 3.2m above the one below.
 const FLOOR_Y := {"ground": 0.0, "second": 3.2, "attic": 6.4, "basement": -3.2}
 
-## Rooms sized like what they are: hall is the hub, bathroom is tight.
-const ROOM_POSITIONS := {
-	"hall": Vector3(0, 0, 0),
-	"bedroom": Vector3(-6.25, 0, 0),
-	"kitchen": Vector3(6.0, 0, 0),
-	"office": Vector3(0, 0, -6.0),
-	"bathroom": Vector3(0, 0, 5.5),
-}
-
-## Upper/lower floors unlock as days progress.
-const SECOND_FLOOR_ROOMS := {
-	"hall_up": Vector3(0, 0, 0),
-	"storage": Vector3(-6.25, 0, 0),
-	"guest_room": Vector3(6.0, 0, 0),
-}
-const SECOND_FLOOR_SIZES := {
-	"hall_up": Vector2(6, 6),
-	"storage": Vector2(4, 4),
-	"guest_room": Vector2(4, 4),
-}
-const SECOND_FLOOR_DOORS := {
-	"hall_up": {"n": false, "s": false, "e": true, "w": true},
-	"storage": {"e": true},
-	"guest_room": {"w": true},
-}
-
-const ATTIC_ROOMS := {
-	"attic_hall": Vector3(0, 0, 0),
-	"attic_storage": Vector3(-6.25, 0, 0),
-}
-const ATTIC_SIZES := {
-	"attic_hall": Vector2(6, 6),
-	"attic_storage": Vector2(4, 4),
-}
-const ATTIC_DOORS := {
-	"attic_hall": {"n": false, "s": false, "e": true, "w": false},
-	"attic_storage": {"e": true},
-}
-
-const BASEMENT_ROOMS := {
-	"basement_hall": Vector3(0, 0, 0),
-	"generator_room": Vector3(-6.25, 0, 0),
-	"cellar": Vector3(6.0, 0, 0),
-}
-const BASEMENT_SIZES := {
-	"basement_hall": Vector2(6, 6),
-	"generator_room": Vector2(4, 4),
-	"cellar": Vector2(4, 4),
-}
-const BASEMENT_DOORS := {
-	"basement_hall": {"n": false, "s": false, "e": true, "w": true},
-	"generator_room": {"e": true},
-	"cellar": {"w": true},
-}
-const ROOM_SIZES := {
-	"hall": Vector2(6, 6),
-	"bedroom": Vector2(4.5, 4),
-	"kitchen": Vector2(4, 4),
-	"office": Vector2(4.5, 4),
-	"bathroom": Vector2(3, 3),
-}
-
-const DOORS := {
-	"hall": {"n": true, "s": true, "e": true, "w": true},
-	"bedroom": {"e": true},
-	"kitchen": {"w": true},
-	"office": {"s": true},
-	"bathroom": {"n": true},
-}
-
 ## Single source of truth for the floor plan: floor -> room -> {pos, size, doors}.
-## Mirrors the per-floor tables above (kept for the geometry builders until the
-## shell rebuild); new code reads LAYOUT. get_room_at + _half already do.
+## Every builder derives its rooms/sizes/doors from here; there are no per-floor
+## copies to drift. Room positions are local to their floor (y is FLOOR_Y).
 const LAYOUT := {
 	"ground": {
 		"hall": {"pos": Vector3(0, 0, 0), "size": Vector2(6, 6), "doors": {"n": true, "s": true, "e": true, "w": true}},
@@ -111,6 +41,30 @@ const LAYOUT := {
 		"cellar": {"pos": Vector3(6.0, 0, 0), "size": Vector2(4, 4), "doors": {"w": true}},
 	},
 }
+
+
+## Derived floor-plan views. The geometry builders still take plain dictionaries
+## (rooms/sizes/doors), so LAYOUT stays the only copy of the plan.
+func _floor_rooms(floor: String) -> Dictionary:
+	var out := {}
+	for room in LAYOUT[floor]:
+		out[room] = LAYOUT[floor][room]["pos"]
+	return out
+
+func _floor_sizes(floor: String) -> Dictionary:
+	var out := {}
+	for room in LAYOUT[floor]:
+		out[room] = LAYOUT[floor][room]["size"]
+	return out
+
+func _floor_doors(floor: String) -> Dictionary:
+	var out := {}
+	for room in LAYOUT[floor]:
+		out[room] = LAYOUT[floor][room]["doors"]
+	return out
+
+func _room_pos(room: String, floor: String = "ground") -> Vector3:
+	return LAYOUT[floor][room]["pos"]
 
 var player: HousePlayer3D
 var _interactables: Array = []
@@ -177,19 +131,34 @@ func set_unlocked_floors(floors: Array) -> void:
 	_build_obstacles()
 	_build_interactables()
 	if player != null:
-		player.position = ROOM_POSITIONS["bedroom"] + Vector3(0.2, FLOOR_Y["ground"] + 0.05, 1.2)
+		player.position = _room_pos("bedroom") + Vector3(0.2, FLOOR_Y["ground"] + 0.05, 1.2)
 
-func get_room_at(pos: Vector3) -> String:
-	var best := "hall"
+## Nearest floor by height. Room ids repeat across floors (every hall sits at
+## the same x/z), so a room lookup that ignores y always resolves to the ground
+## floor first and the HUD names the wrong room upstairs.
+func floor_at_y(y: float) -> String:
+	var best := "ground"
 	var best_d := 1e9
-	for floor in LAYOUT:
-		for room in LAYOUT[floor]:
-			var rp: Vector3 = LAYOUT[floor][room]["pos"]
-			var d: float = Vector2(pos.x - rp.x, pos.z - rp.z).length()
-			if d < best_d:
-				best_d = d
-				best = room
+	for floor in FLOOR_Y:
+		var d: float = absf(y - float(FLOOR_Y[floor]))
+		if d < best_d:
+			best_d = d
+			best = floor
 	return best
+
+## Room id for a world position. Floor first, then nearest room on that floor.
+func get_room_at(pos: Vector3) -> String:
+	var floor := floor_at_y(pos.y)
+	var rooms: Dictionary = LAYOUT.get(floor, LAYOUT["ground"])
+	var best := ""
+	var best_d := 1e9
+	for room in rooms:
+		var rp: Vector3 = rooms[room]["pos"]
+		var d: float = Vector2(pos.x - rp.x, pos.z - rp.z).length()
+		if d < best_d:
+			best_d = d
+			best = room
+	return best if not best.is_empty() else "hall"
 
 ## The focus the crosshair actually points at. Statics: the camera ray must
 ## pierce the interactable's captured surface box AND not be blocked by a
@@ -272,9 +241,9 @@ func _ray_box_t(from: Vector3, to: Vector3, box: AABB) -> float:
 func _spawn_player() -> void:
 	player = HousePlayer3D.new()
 	add_child(player)
-	player.position = ROOM_POSITIONS["bedroom"] + Vector3(0.2, 0.05, 1.2)
+	player.position = _room_pos("bedroom") + Vector3(0.2, 0.05, 1.2)
 	# Wake facing the bed, not the corner between bed and TV.
-	var to_bed: Vector3 = (ROOM_POSITIONS["bedroom"] + Vector3(-1.72, 0, -0.8)) - player.position
+	var to_bed: Vector3 = (_room_pos("bedroom") + Vector3(-1.72, 0, -0.8)) - player.position
 	player.yaw = atan2(-to_bed.x, -to_bed.z)
 	player.rotation.y = player.yaw
 
@@ -534,19 +503,22 @@ func _build_stair_ramps() -> void:
 func _build_collisions() -> void:
 	# Ground floor.
 	_solid(Vector3(0, -0.15, 0), Vector3(24, 0.3, 24))
-	_floor_collisions_for(FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
+	_floor_collisions_for("ground")
 	if _unlocked_floors.has("second"):
-		_floor_collisions_for(FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+		_floor_collisions_for("second")
 	if _unlocked_floors.has("attic"):
-		_floor_collisions_for(FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+		_floor_collisions_for("attic")
 	if _unlocked_floors.has("basement"):
 		_solid(Vector3(0, FLOOR_Y["basement"] - 0.15, 0), Vector3(24, 0.3, 24))
-		_floor_collisions_for(FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
+		_floor_collisions_for("basement")
 	_build_bridges()
 	_build_furniture_solids()
 
-func _floor_collisions_for(y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
-	doors = _linked_doors(rooms, sizes, doors)
+func _floor_collisions_for(floor: String) -> void:
+	var y_off: float = FLOOR_Y[floor]
+	var rooms := _floor_rooms(floor)
+	var sizes := _floor_sizes(floor)
+	var doors: Dictionary = _linked_doors(rooms, sizes, _floor_doors(floor))
 	for room in rooms:
 		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
@@ -614,7 +586,11 @@ func _linked_doors(rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> D
 		out[link["b"]][_LINK_OPP[link["d"]]] = true
 	return out
 
-func _build_connectors_for(y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary) -> void:
+func _build_connectors_for(floor: String) -> void:
+	var y_off: float = FLOOR_Y[floor]
+	var rooms := _floor_rooms(floor)
+	var sizes := _floor_sizes(floor)
+	var doors := _floor_doors(floor)
 	for link in _connector_links(rooms, sizes, doors):
 		var mid: Vector3 = link["mid"] + Vector3(0, y_off, 0)
 		var span: float = link["span"]
@@ -641,14 +617,14 @@ func _build_connectors_for(y_off: float, rooms: Dictionary, sizes: Dictionary, d
 ## on all four floors, not just ground. Stair ramps ride along: collision is
 ## rebuilt on every unlock change, so ramps can't go stale.
 func _build_bridges() -> void:
-	_build_connectors_for(FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS)
+	_build_connectors_for("ground")
 	_build_stair_ramps()
 	if _unlocked_floors.has("second"):
-		_build_connectors_for(FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS)
+		_build_connectors_for("second")
 	if _unlocked_floors.has("attic"):
-		_build_connectors_for(FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS)
+		_build_connectors_for("attic")
 	if _unlocked_floors.has("basement"):
-		_build_connectors_for(FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
+		_build_connectors_for("basement")
 
 func _solid_wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: bool) -> void:
 	var length := hz.x * 2.0 if axis == "x" else hz.y * 2.0
@@ -672,10 +648,10 @@ func _solid_wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_
 		_solid(pos2 + Vector3(0, 1.1, 0), Vector3(1.6, 0.8, 0.2))
 
 func _build_furniture_solids() -> void:
-	var b: Vector3 = ROOM_POSITIONS["bedroom"]
-	var k: Vector3 = ROOM_POSITIONS["kitchen"]
-	var o: Vector3 = ROOM_POSITIONS["office"]
-	var t: Vector3 = ROOM_POSITIONS["bathroom"]
+	var b: Vector3 = _room_pos("bedroom")
+	var k: Vector3 = _room_pos("kitchen")
+	var o: Vector3 = _room_pos("office")
+	var t: Vector3 = _room_pos("bathroom")
 	_solid(b + Vector3(-1.72, 0.35, -0.8), Vector3(1.1, 0.7, 2.0))
 	_solid(b + Vector3(-1.3, 0.31, 1.75), Vector3(1.6, 0.62, 0.5))
 	_solid(b + Vector3(-0.85, 0.25, -1.6), Vector3(0.7, 0.5, 0.5))
@@ -688,11 +664,11 @@ func _build_furniture_solids() -> void:
 	_solid(t + Vector3(-1.1, 0.36, 1.11), Vector3(0.5, 0.7, 0.78))
 
 func _build_interactables() -> void:
-	var b: Vector3 = ROOM_POSITIONS["bedroom"]
-	var h: Vector3 = ROOM_POSITIONS["hall"]
-	var k: Vector3 = ROOM_POSITIONS["kitchen"]
-	var o: Vector3 = ROOM_POSITIONS["office"]
-	var t: Vector3 = ROOM_POSITIONS["bathroom"]
+	var b: Vector3 = _room_pos("bedroom")
+	var h: Vector3 = _room_pos("hall")
+	var k: Vector3 = _room_pos("kitchen")
+	var o: Vector3 = _room_pos("office")
+	var t: Vector3 = _room_pos("bathroom")
 	_interactables = [
 		_it("bed", b + Vector3(-1.72, 0.7, -0.8), "SLEEP"),
 		_it("tv", b + Vector3(-1.3, 1.0, 1.75), "WATCH TV"),
@@ -822,15 +798,15 @@ func set_guests(guests: Array) -> void:
 	var per_room := {}
 	for g in guests:
 		var room := str(g.get("room", "hall"))
-		if not ROOM_POSITIONS.has(room):
+		if not LAYOUT["ground"].has(room):
 			continue
 		var i: int = int(per_room.get(room, 0))
 		per_room[room] = i + 1
-		var pos: Vector3 = ROOM_POSITIONS[room] + offsets[i % offsets.size()]
+		var pos: Vector3 = _room_pos(room) + offsets[i % offsets.size()]
 		# Small rooms (bathroom) can't fit the wide offsets — pull inside.
 		var hz := _half(room)
-		pos.x = clampf(pos.x, ROOM_POSITIONS[room].x - hz.x + 0.3, ROOM_POSITIONS[room].x + hz.x - 0.3)
-		pos.z = clampf(pos.z, ROOM_POSITIONS[room].z - hz.y + 0.3, ROOM_POSITIONS[room].z + hz.y - 0.3)
+		pos.x = clampf(pos.x, _room_pos(room).x - hz.x + 0.3, _room_pos(room).x + hz.x - 0.3)
+		pos.z = clampf(pos.z, _room_pos(room).z - hz.y + 0.3, _room_pos(room).z + hz.y - 0.3)
 		# Same body as the door: portrait face, sampled palette, full legs.
 		var body := VisitorBody3D.new()
 		_figures_root.add_child(body)
@@ -934,7 +910,7 @@ func _half(room: String) -> Vector2:
 
 func _build_house() -> void:
 	_build_groundscape()
-	_build_floor_at("ground", FLOOR_Y["ground"], ROOM_POSITIONS, ROOM_SIZES, DOORS,
+	_build_floor_at("ground",
 		{"hall": Rect2(1.65, -2.4, 1.35, 4.8)})
 	_build_stairs_visuals()
 	_build_bedroom()
@@ -948,22 +924,22 @@ func _build_house() -> void:
 	_box(self, Vector3(2.5, FLOOR_Y["ground"] + 0.05, 2.7), Vector3(1.2, 0.1, 0.6), DOOR_COL)
 	# Basement descent: visible through the stairwell slot (west rail guards it).
 	if _unlocked_floors.has("second"):
-		_build_floor_at("second", FLOOR_Y["second"], SECOND_FLOOR_ROOMS, SECOND_FLOOR_SIZES, SECOND_FLOOR_DOORS,
+		_build_floor_at("second",
 			{"hall_up": Rect2(1.65, -2.4, 1.35, 4.8)})
 		_build_second_floor()
 	if _unlocked_floors.has("attic"):
-		_build_floor_at("attic", FLOOR_Y["attic"], ATTIC_ROOMS, ATTIC_SIZES, ATTIC_DOORS,
+		_build_floor_at("attic",
 			{"attic_hall": Rect2(1.65, -2.4, 1.35, 4.8)})
 		_build_attic()
 	if _unlocked_floors.has("basement"):
-		_build_floor_at("basement", FLOOR_Y["basement"], BASEMENT_ROOMS, BASEMENT_SIZES, BASEMENT_DOORS)
+		_build_floor_at("basement")
 		_build_basement()
 
 ## Earth under the composition + the front stoop: window and door views meet
 ## dirt and concrete, never void. Visual only — collision already spans it.
 func _build_groundscape() -> void:
 	_box(self, Vector3(-0.25, -0.4, -0.5), Vector3(20.5, 0.2, 19.0), EARTH_COL)
-	var h: Vector3 = ROOM_POSITIONS["hall"]
+	var h: Vector3 = _room_pos("hall")
 	_box(self, h + Vector3(-2.2, -0.1, 3.6), Vector3(2.0, 0.2, 1.2), FLOOR_COL)
 
 func _build_room_shell(base: Vector3, hz: Vector2, drs: Dictionary) -> void:
@@ -987,8 +963,11 @@ func _build_room_with_slot(base: Vector3, hz: Vector2, drs: Dictionary, slot: Re
 	_build_room_shell(base, hz, drs)
 ## Builds floor geometry (floor slab + walls + lights) for a set of rooms at a
 ## Y offset. slots maps room name -> world-XZ Rect2 hole (stairwells, hatch).
-func _build_floor_at(floor_name: String, y_off: float, rooms: Dictionary, sizes: Dictionary, doors: Dictionary, slots: Dictionary = {}) -> void:
-	doors = _linked_doors(rooms, sizes, doors)
+func _build_floor_at(floor_name: String, slots: Dictionary = {}) -> void:
+	var y_off: float = FLOOR_Y[floor_name]
+	var rooms := _floor_rooms(floor_name)
+	var sizes := _floor_sizes(floor_name)
+	var doors: Dictionary = _linked_doors(rooms, sizes, _floor_doors(floor_name))
 	for room in rooms:
 		var base := Vector3(rooms[room].x, y_off, rooms[room].z)
 		var sz: Vector2 = sizes.get(room, Vector2(4, 4))
@@ -1033,7 +1012,7 @@ func _wall(base: Vector3, hz: Vector2, axis: String, dir_sign: float, has_gap: b
 
 
 func _build_bedroom() -> void:
-	var base: Vector3 = ROOM_POSITIONS["bedroom"]
+	var base: Vector3 = _room_pos("bedroom")
 	_build_window(base + Vector3(-2.19, 1.8, 0), PI / 2.0, false)
 	var bed := _prop("bedSingle.glb", base + Vector3(-1.72, 0, -0.8), 0.0, 1.7)
 	_prop("pillow.glb", base + Vector3(-1.72, 0.62, -1.5), 0.0, 1.7)
@@ -1051,7 +1030,7 @@ func _build_bedroom() -> void:
 	_focus_boxes["radio"] = _world_box(radio).grow(0.12)
 
 func _build_hall() -> void:
-	var base: Vector3 = ROOM_POSITIONS["hall"]
+	var base: Vector3 = _room_pos("hall")
 	_build_window(base + Vector3(1.8, 1.8, -2.94))
 	# Real door leaf in the frame, west of the bathroom passage — the slab read
 	# as a hole in the wall.
@@ -1096,7 +1075,7 @@ func _build_window(center: Vector3, rot_y: float = 0.0, focus: bool = true) -> v
 	_box(holder, Vector3(0, 0.72, 0.06), Vector3(1.9, 0.05, 0.05), WOOD_COL)
 
 func _build_kitchen() -> void:
-	var base: Vector3 = ROOM_POSITIONS["kitchen"]
+	var base: Vector3 = _room_pos("kitchen")
 	_build_window(base + Vector3(1.94, 1.8, 0), -PI / 2.0, false)
 	var sink := _prop("kitchenSink.glb", base + Vector3(1.55, 0, 0.0), -PI / 2.0, 2.0)
 	var cab_n := _prop("kitchenCabinet.glb", base + Vector3(1.55, 0, -1.0), -PI / 2.0, 2.0)
@@ -1186,7 +1165,7 @@ func _wall_cabinet(center: Vector3, hinge_sign: float, tint: Color) -> void:
 	_cab_bodies.append(cab)
 
 func _build_office() -> void:
-	var base: Vector3 = ROOM_POSITIONS["office"]
+	var base: Vector3 = _room_pos("office")
 	_build_window(base + Vector3(0, 1.8, -1.94), 0.0, false)
 	_prop("desk.glb", base + Vector3(-1.0, 0, -1.61), 0.0, 2.0)
 	_prop("chairDesk.glb", base + Vector3(-1.0, 0, -0.9), PI, 1.6)
@@ -1198,7 +1177,7 @@ func _build_office() -> void:
 	_box(self, base + Vector3(-1.2, 1.4, -1.95), Vector3(2.6, 0.2, 0.1), DOOR_COL)
 
 func _build_bathroom() -> void:
-	var base: Vector3 = ROOM_POSITIONS["bathroom"]
+	var base: Vector3 = _room_pos("bathroom")
 	_build_window(base + Vector3(0, 2.2, 1.44), PI, false)
 	# The north wall is mostly door gap — sink and mirror live on the east
 	# wall, facing west into the room (sink depth 0.46 scaled).
@@ -1263,17 +1242,17 @@ func _build_basement() -> void:
 # and kit pieces land where they read: doors, barricades, baseboards, pipes.
 
 func _build_structure() -> void:
-	var h: Vector3 = ROOM_POSITIONS["hall"]
-	var o: Vector3 = ROOM_POSITIONS["office"]
-	var b: Vector3 = ROOM_POSITIONS["bedroom"]
+	var h: Vector3 = _room_pos("hall")
+	var o: Vector3 = _room_pos("office")
+	var b: Vector3 = _room_pos("bedroom")
 	# Boarded office opening over the plank fortify: flat panel against the
 	# wall face (rot PI/2 — rot 0 left it perpendicular, planks through the wall).
 	var barricade := _bprop("barricade-window-a.glb", o + Vector3(0, 0.95, -1.94), PI / 2.0, 1.2)
 	_focus_boxes["fortify"] = _world_box(barricade).grow(0.1)
 	# Baseboards kill the floating-wall read (crossings read as thresholds).
 	var bb := Color(0.1, 0.09, 0.1)
-	for room in ROOM_POSITIONS:
-		var base: Vector3 = ROOM_POSITIONS[room]
+	for room in LAYOUT["ground"]:
+		var base: Vector3 = _room_pos(room)
 		var hz := _half(room)
 		_box(self, base + Vector3(0, 0.06, -(hz.y - 0.015)), Vector3(hz.x * 2.0, 0.12, 0.03), bb)
 		_box(self, base + Vector3(0, 0.06, hz.y - 0.015), Vector3(hz.x * 2.0, 0.12, 0.03), bb)
@@ -1291,11 +1270,11 @@ func _build_structure() -> void:
 # No new collision except floor plants; decor never takes focus.
 
 func _build_decor() -> void:
-	var b: Vector3 = ROOM_POSITIONS["bedroom"]
-	var h: Vector3 = ROOM_POSITIONS["hall"]
-	var k: Vector3 = ROOM_POSITIONS["kitchen"]
-	var o: Vector3 = ROOM_POSITIONS["office"]
-	var t: Vector3 = ROOM_POSITIONS["bathroom"]
+	var b: Vector3 = _room_pos("bedroom")
+	var h: Vector3 = _room_pos("hall")
+	var k: Vector3 = _room_pos("kitchen")
+	var o: Vector3 = _room_pos("office")
+	var t: Vector3 = _room_pos("bathroom")
 	# Rugs (y=0.02 clears the floor; edges slide under furniture).
 	_prop("rugRectangle.glb", b + Vector3(-0.3, 0.02, 0.3), 0.0, 1.3)
 	_prop("rugRound.glb", h + Vector3(0.6, 0.02, 0.8), 0.0, 1.8)

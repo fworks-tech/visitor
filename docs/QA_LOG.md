@@ -66,3 +66,18 @@ Design notes the sim surfaced (not bugs — decide before tuning):
 
 No open blockers. No open majors, or each has a logged reason.
 Tester: ___ Date: ___
+
+## Code QA, 2026-11-05 (`feat/house-rebuild`)
+
+| Check | Result |
+|---|---|
+| GDScript parse (`gdparse`) on changed scripts | PASS |
+| `tests/validate_systems.py` | PASS: 40 signs, 20 visitors, 7 nights, 7 endings, 4 floors, 13 rooms |
+| `--layout-test` (Godot) | Pending: no Godot binary in the review environment |
+| `--house-test` (Godot) | Pending |
+| `--stairshot` visual pass | Pending |
+| Device QA (Android) | Pending |
+
+Layout fixes in this pass: `LAYOUT` is the only floor plan, `get_room_at()` is
+floor-aware, every room has a HUD name, and the data validator runs from the
+repo root without Godot.

@@ -1,67 +1,66 @@
-# AGENTS.md — Visitor (Dead Hours: Visitor)
+# AGENTS.md — Visitor
 
 > Engineering manual for AI agents and collaborators working on this project.
-> Engine: **Godot 4.x** · Target: **Android + iOS (portrait, touch-first)**
+> Engine: **Godot 4.x (Forward Plus)** · Target: **Android + iOS, landscape,
+> touch-first**
 
 ---
 
 ## What This Game Is
 
-A zombie-apocalypse reimagining of the visitor-inspection genre ("Papers, Please" × "No, I'm not a Human" × the Mandela Catalogue). For seven nights, survivors knock on your door. Some are human. Some are infected mimicking humans. You inspect them for signs and decide: **LET IN, TURN AWAY, or ELIMINATE**. Wrong calls have delayed, compounding consequences.
+A zombie-apocalypse reimagining of the visitor-inspection genre ("Papers,
+Please" x "No, I'm not a Human" x the Mandela Catalogue). For seven nights,
+survivors knock on your door. Some are human. Some are infected mimicking
+humans. You inspect them for signs and decide: **LET IN, TURN AWAY, or
+ELIMINATE**. Wrong calls have delayed, compounding consequences.
 
-**Art direction:** hand-drawn illustrations pushed through a rasterizer for an uncanny almost-photographic look. Green monochrome UI. VHS/CRT distortion. The horror is in the *almost right*.
+The day phase is a first-person 3D shelter: four floors, scavenging, flashlight
+battery, guests, and stairs that unlock as the week progresses.
+
+**Art direction:** hand-drawn illustrations pushed through a rasterizer for an
+uncanny almost-photographic look. Green monochrome UI. VHS/CRT distortion. The
+horror is in the *almost right*.
 
 ---
 
 ## Project Layout
 
 ```
-visitor/
-├── project.godot              # 11 autoloads, landscape viewport 1280×720, [input] actions (WASD/setas/gamepad/touch)
-├── autoload/                  # Singletons (load order matters)
-│   ├── GameManager.gd         # State machine: SPLASH→MENU→NIGHT→INSPECTION→DAY→PAUSED→GAME_OVER. Trust & corruption meters, day counter (1-7).
-│   ├── StoryManager.gd        # Night-by-night story beats from story.json
-│   ├── FlagsManager.gd        # Persistent story flags
-│   ├── SaveManager.gd         # JSON save/load to user:// (has_save_file, delete_save)
-│   ├── AudioManager.gd        # Bus control; silence-first design (see docs/AUDIO_DIRECTION.md)
-│   ├── SceneManager.gd        # change_scene(path, fade) — always use this, never get_tree().change_scene
-│   ├── SettingsManager.gd     # set_setting/get_setting, apply/save/load, haptics
-│   ├── VisitorManager.gd      # Visitor queue per night. Decision enum: LET_IN/TURN_AWAY/ELIMINATE. prepare_night_queue(day), start_next_inspection(), process_decision(decision)
-│   ├── SignsManager.gd        # Bridge to SignsSystem — AP-based sign inspection
-│   ├── ResourceSystem.gd     # food/water/ammo/medicine/fuel; add_resources, get_resources, consume_*
-│   └── ConsequenceSystem→scripts/systems/ConsequencesSystem.gd  # Delayed consequence queue (infected_let_in turns days later, etc.)
+.
+├── project.godot             # 11 autoloads, 1280x720 landscape, input actions
+├── autoload/                 # singletons, load order matters
+│   ├── GameManager.gd        # state machine, trust/corruption, day 1-7, harnesses
+│   ├── StoryManager.gd       # night beats from story.json
+│   ├── FlagsManager.gd       # persistent story flags
+│   ├── SaveManager.gd        # JSON save/load in user://
+│   ├── AudioManager.gd       # 5 buses, silence-first
+│   ├── SceneManager.gd       # change_scene(path, fade)
+│   ├── SettingsManager.gd    # settings, locale, haptics
+│   ├── VisitorManager.gd     # queue, decisions, history
+│   ├── SignsManager.gd       # AP-based sign inspection
+│   ├── ResourceSystem.gd     # food/water/ammo/medicine/fuel
+│   └── ConsequenceSystem.gd  # bridge to scripts/systems/ConsequencesSystem.gd
 ├── scripts/
-│   ├── core/                  # SplashScreen.gd, MainMenu.gd
-│   ├── gameplay/              # InspectionScene.gd (core loop)
-│   ├── systems/               # Node-based logic (ConsequencesSystem)
-│   └── ui/                    # GameOver.gd, Settings.gd, PauseMenu.gd, CRTController.gd
-├── scenes/
-│   ├── core/                  # SplashScreen.tscn (main scene), MainMenu.tscn
-│   ├── gameplay/              # InspectionScene.tscn
-│   ├── ui/                    # GameOver.tscn, Settings.tscn, PauseMenu.tscn
-│   └── effects/               # CRTOverlay.tscn
+│   ├── core/                 # splash, main menu
+│   ├── gameplay/             # InspectionScene.gd (door loop)
+│   ├── systems/              # ConsequencesSystem.gd
+│   ├── ui/                   # game over, settings, pause, CRT
+│   ├── house/                # House3D.gd, HouseScene.gd, HousePlayer3D.gd
+│   └── door/                 # VisitorBody3D.gd, VisitorDiorama3D.gd
+├── scenes/                   # core, gameplay, ui, effects, house
 ├── assets/
-│   ├── data/
-│   │   ├── visitors.json      # 20 visitors: backstory, dialogue chains, signs, thresholds, consequences
-│   │   └── story.json         # 7-night arc, 14 day/night events, 7 endings
-│   ├── images/
-│   │   ├── portraits/         # 20 uncanny visitor portraits (analog horror style)
-│   │   └── backgrounds/       # door_view.png, apartment_interior.png
-│   └── models/
-│       ├── furniture/         # Kenney Furniture Kit (CC0)
-│       ├── building/          # Kenney Building Kit (CC0)
-│       ├── atomic/            # Atomic Realm Hospital Assets — commercial use ok, NO raw redistribution (repo stays private)
-│       └── blackmire/         # BlackMire PSX School & Asylum — commercial use ok, NO raw redistribution (repo stays private)
-├── scripts/
-│   ├── house/                 # HouseScene.gd, House3D.gd, HousePlayer3D.gd — first-person walkable shelter
-│   └── door/                  # VisitorBody3D.gd (shared NPC body), VisitorDiorama3D.gd (door stage)
-├── tools/                     # run_gates.py (all gates), measure_models.gd, placement_audit.gd, focus_audit.gd
-├── tests/                     # DoorFlowTest.gd (--door-test), HouseWalkTest.gd (--house-test), validate_systems.py
-├── locale/                    # en.json + pt_BR.json (119 keys, loaded at runtime by SettingsManager)
-├── shaders/                   # crt.gdshader, vhs.gdshader
-├── theme/visitor_theme.tres   # Green monochrome Theme (Courier New / terminal aesthetic)
-├── tests/validate_systems.py  # System integration test runner
-└── docs/                      # AUDIO_DIRECTION.md, PORTRAIT_PROMPTS.md, adr/
+│   ├── data/                 # visitors.json, signs.json, story.json
+│   ├── images/               # portraits, reveal variants, backgrounds
+│   ├── models/               # furniture, building, atomic, blackmire
+│   └── audio/                # synthesized cues
+├── tests/                    # DoorFlowTest, HouseWalkTest, HouseLayoutTest,
+│                             # BalanceSimTest, validate_systems.py
+├── tools/                    # run_gates.py, placement_audit.gd, focus_audit.gd,
+│                             # stairshot.gd, screenshot_mode.gd, audio_synth.py
+├── docs/                     # audio, portraits, house system, ADRs, QA, store
+├── shaders/                  # crt.gdshader, vhs.gdshader, glitch, tint
+├── theme/visitor_theme.tres  # green monochrome theme
+└── locale/                   # en + pt_BR, loaded at runtime
 ```
 
 ---
@@ -69,52 +68,125 @@ visitor/
 ## Core Loop
 
 ```
-NIGHT:  knock → conversational inspection at the door (3D figure + PNG portrait):
-        LISTEN (dialogue_chain beats, typewriter) → unlocks ASK/LOOK →
-        unlocks STUDY + LET_IN / TURN_AWAY / ELIMINATE → consequences queue
-DAY:    walkable shelter (HouseScene, FPS): scavenge, fortify, talk, TV/radio,
-        flashlight battery, check rooms → sleep → advance to next night
-AFTER 7 NIGHTS or on collapse: ending (7 total; Infected > Executioner > Exile
-> Pariah > Hermit > Cure > Gatekeeper)
+NIGHT:  knock -> conversational inspection at the door (3D figure + portrait):
+        LISTEN (dialogue beats, typewriter) -> ASK/LOOK -> STUDY + decision
+        -> consequences queued
+DAY:    walkable shelter: scavenge, fortify, talk, TV/radio, flashlight,
+        guests -> sleep -> next night
+AFTER 7 NIGHTS or on collapse: ending (7 total; priority Infected > Executioner
+> Exile > Pariah > Hermit > Cure > Gatekeeper)
 ```
 
 ### The infection trick
-Every visitor carries a hidden `infection_progress` (0.0–1.0). Signs only manifest past thresholds — an infected visitor at 0.2 looks completely human. LET IN a latent carrier and they turn *inside* days later (delayed consequence). This is the heart of the game's doubt mechanic.
+
+Every visitor carries a hidden `infection_progress` (0.0 to 1.0). Signs only
+manifest past thresholds, so an infected visitor at 0.2 looks completely human.
+LET IN a latent carrier and they turn *inside* days later. That is the heart of
+the game's doubt mechanic.
+
+---
+
+## House System (do not break)
+
+The floor plan lives in **one** table: `House3D.LAYOUT`, keyed
+`floor -> room -> {pos, size, doors}`. Room positions are local to their floor;
+height comes from `FLOOR_Y`.
+
+1. **No per-floor copies.** Walls, connectors, collision, lights and loot all
+   derive from `LAYOUT` through `_floor_rooms()`, `_floor_sizes()` and
+   `_floor_doors()`. Do not reintroduce `SECOND_FLOOR_ROOMS`-style tables.
+2. **Room lookup is floor-first.** `get_room_at(pos)` calls `floor_at_y(pos.y)`
+   before comparing room centers. Every floor repeats x/z, so a lookup that
+   ignores height always returns the ground twin. `HouseLayoutTest` guards this.
+3. **Every room needs a HUD name.** Add the id to `HouseScene.ROOM_NAMES`, or
+   the label falls back to "ROOM".
+4. **Door gaps are linked, not assumed.** `_linked_doors()` only builds a gap
+   when a facing neighbour exists; otherwise the wall is solid on both sides.
+5. **Stairs are real geometry plus a ramp collider.** The `_action_stairs`
+   teleport is a travel shim, not the way you traverse. Landing Z comes from
+   `STAIRS_LAND_Z`, clamped to the stairwell slot.
+6. **Collision rebuilds on unlock.** `set_unlocked_floors()` clears static
+   bodies and rebuilds, so ramps and barricades cannot go stale.
+
+See `docs/HOUSE_SYSTEM.md` and `docs/adr/ADR-003-house-layout-single-source.md`.
 
 ---
 
 ## Conventions (do not break)
 
-1. **Never call `get_tree().change_scene_to_file()`** — use `SceneManager.change_scene(path)`.
-2. **All gameplay state changes go through GameManager** — `change_state()` emits `state_changed`; scenes should listen, not poll.
-3. **Scene scripts must never instantiate autoloads** — they're singletons; call them directly (`GameManager.start_night_phase()`).
-4. **New visitors go in `visitors.json`**, new signs in `signs.json`. Both are loaded at runtime — no hardcoding visitor data in scripts.
-5. **Green monochrome only.** UI colors come from `theme/visitor_theme.tres`. No blues/reds/purples.
-6. **Silence-first audio.** See `docs/AUDIO_DIRECTION.md` — no gameplay music, CRT hum is constant, knocks are the signature sound.
-7. **Portraits stay uncanny.** Generation prompts in `docs/PORTRAIT_PROMPTS.md` — hand-drawn → rasterizer → almost-photographic.
-8. **CC0-only third-party 3D, with two paid-tier exceptions already in repo** (Atomic Hospital, BlackMire PSX) — their raw files must never leave a private repo; ship only inside compiled builds. Notices in `assets/models/*/NOTICE.txt`.
-9. **Every prop rests on something.** Run `godot --headless --path . --script res://tools/placement_audit.gd` after touching House3D; 0 FAIL is the gate.
-10. **Headless gates before done:** run all six with `python3 tools/run_gates.py` (door-test 23 checks, house-test 51 checks, balance-test 6 checks, placement audit, focus audit, validate_systems.py) — exit code 1 on any failure.
+1. **Never call `get_tree().change_scene_to_file()`**. Use
+   `SceneManager.change_scene(path)`.
+2. **All gameplay state changes go through GameManager**. `change_state()` emits
+   `state_changed`; scenes listen, they don't poll.
+3. **Scene scripts must never instantiate autoloads**. They are singletons.
+4. **New visitors go in `visitors.json`**, new signs in `signs.json`. No
+   hardcoded visitor data in scripts.
+5. **Green monochrome only.** Colors come from `theme/visitor_theme.tres`.
+6. **Silence-first audio.** See `docs/AUDIO_DIRECTION.md`.
+7. **Portraits stay uncanny.** Prompts in `docs/PORTRAIT_PROMPTS.md`.
+8. **CC0-only third-party 3D, with two paid-tier exceptions** (Atomic Hospital,
+   BlackMire PSX). Raw files never leave the private repo; ship only inside
+   compiled builds. Notices live in `assets/models/*/NOTICE.txt`.
+9. **Every prop rests on something.** After touching `House3D`, run the
+   placement audit; 0 FAIL is the gate.
+10. **All gates before done:** `python3 tools/run_gates.py` (door, house, layout,
+    balance, placement, focus, data). Exit code 1 on any failure.
+11. **Data contracts run in CI.** `python3 tests/validate_systems.py` must pass
+    without Godot.
 
-## Adding a New Visitor
+---
 
-1. Append to `assets/data/visitors.json`: id, name, portrait path, backstory, dialogue chain, sign map, infection_progress, correct_decision, consequence hooks.
-2. Portrait goes in `assets/images/portraits/` following PORTRAIT_PROMPTS.md style.
+## Adding a Room
+
+1. Add the room to `House3D.LAYOUT` under its floor with `pos`, `size` and
+   `doors`.
+2. Add a matching entry to `HouseScene.ROOM_NAMES`.
+3. If it needs interaction, register it in `_build_interactables()` and, for
+   collision, `_build_furniture_solids()` or the room builder.
+4. Check the door has a facing neighbour; a gap with no neighbour is solid.
+5. Run `--layout-test` and `--house-test`. Both must report zero failures.
+
+## Adding a Visitor
+
+1. Append to `assets/data/visitors.json`: id, name, portrait path, backstory,
+   dialogue chain, sign map, `infection_progress`, consequence hooks.
+2. Portrait goes in `assets/images/portraits/` following PORTRAIT_PROMPTS.md.
 3. Validate: `python3 tests/validate_systems.py`.
+
+---
+
+## Testing
+
+```bash
+python3 tools/run_gates.py                  # every engine gate (needs Godot)
+python3 tests/validate_systems.py           # data + layout contracts (CI)
+
+godot --headless --path . -- --door-test
+godot --headless --path . -- --house-test
+godot --headless --path . -- --layout-test
+godot --headless --path . -- --balance-test
+godot --path . -- --stairshot               # stair screenshots (real window)
+```
+
+`--layout-test` is pure data: four floors, 13 rooms, floor-aware lookup, and a
+HUD name for every room.
 
 ---
 
 ## Status
 
-- ✅ Architecture, autoloads, core systems, shaders, theme, data (20 visitors, 40 signs, 7 endings), base scenes, portraits/backgrounds
-- ✅ Walkable 3D shelter (HouseScene + House3D + HousePlayer3D), door conversation (tiers + typewriter + jump scare + PNG portrait), 3D NPC body shared house/door, flashlight battery loop, locale EN/PT-BR, story events
-- ✅ Multi-floor shelter: 2nd floor (night 3), attic (night 5), basement (night 7) — paths always visible, obstacle-gated until unlock; generator fuel loop, floor-specific loot, guest-room rest
-- ✅ Controls: [input] action table, gamepad (left stick move, right stick look, A/X/Y), touch (virtual joystick + drag-look + on-screen buttons, auto-on for touchscreens), keyboard unchanged
-- ✅ Audio: synthesized silence-first cue set (assets/audio, tools/audio_synth.py), 5-bus AudioManager, knocks/decisions/sign-reveals/glitches/UI clicks wired (see AUDIO_DIRECTION.md)
-- ✅ Day-phase dilemmas wired (Mason bite night 3, Silas proposal night 5)
-- ✅ morale/security stats with round-trip through ConsequenceSystem
-- ✅ All 7 endings verified reachable by condition analysis
-- ✅ All 20 portraits + 7 reveal variants present
-- ⏳ Playtesting on device (blocked on device QA + playtest data)
-- ⏳ Store screenshots + feature graphic
-- ✅ Mobile export presets: Android Debug/Release (landscape 1280×720, min SDK 24, target 34); see docs/EXPORT_GUIDE.md + docs/SIGNING_GUIDE.md
+- Architecture, 11 autoloads, core systems, shaders, theme, data (20 visitors,
+  40 signs, 7 nights, 7 endings), portraits and backgrounds
+- Walkable 3D shelter: multi-floor, real stairs with ramp collision, flashlight
+  battery, guest bodies, floor-specific loot, generator fuel loop
+- Door conversation: tiers, typewriter, jump scare, 3D body plus portrait
+- Floor plan consolidated into `LAYOUT`; floor-aware room lookup fixes the HUD
+  naming upper rooms after their ground twins
+- Controls: keyboard, gamepad, touch (virtual stick, drag look, on-screen
+  buttons)
+- Audio: synthesized silence-first cues, 5-bus AudioManager
+- All 7 endings reachable by condition analysis; 20 portraits and 7 reveals
+- Pending: device playtesting, store screenshots and feature graphic
+
+**Export:** Android Debug/Release, landscape 1280x720, min SDK 24, target 34.
+See `docs/EXPORT_GUIDE.md` and `docs/SIGNING_GUIDE.md`.

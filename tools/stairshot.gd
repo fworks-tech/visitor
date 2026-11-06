@@ -17,7 +17,7 @@ const SHOTS := [
 func _ready() -> void:
 	DisplayServer.window_set_size(Vector2i(1280, 720))
 	DirAccess.make_dir_recursive_absolute("user://screenshots")
-	_next()
+	await _next()
 
 func _next() -> void:
 	if _idx >= SHOTS.size():
@@ -36,19 +36,25 @@ func _next() -> void:
 			await get_tree().process_frame
 	var cam := Camera3D.new()
 	# The house renders inside its own SubViewport — the rig must live there,
-	# a root-level camera never gets picked up by that viewport.
-	scene.get_node("View3D/SubViewport").add_child(cam)
+	# and the frame must be grabbed from that target, never the root viewport.
+	var vp := scene.find_child("SubViewport", true, false) as SubViewport
+	if vp == null:
+		push_error("[stairshot] SubViewport not found")
+		get_tree().quit(1)
+		return
+	vp.add_child(cam)
 	cam.position = SHOTS[_idx][2]
 	cam.look_at(SHOTS[_idx][3])
 	cam.current = true
 	for i in range(8):
 		await get_tree().process_frame
-	var img := get_viewport().get_texture().get_image()
+	await RenderingServer.frame_post_draw
+	var img := vp.get_texture().get_image()
 	var path: String = "user://screenshots/" + SHOTS[_idx][0] + ".png"
-	img.save_png(path)
-	print("[stairshot] " + path)
+	var err := img.save_png(path)
+	print("[stairshot] %s (err=%d) -> %s" % [SHOTS[_idx][0], err, ProjectSettings.globalize_path(path)])
 	cam.queue_free()
 	scene.queue_free()
 	_idx += 1
 	await get_tree().process_frame
-	_next()
+	await _next()

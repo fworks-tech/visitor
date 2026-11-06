@@ -101,6 +101,14 @@ func _run() -> void:
 	# Unlock second floor and verify stairs appear.
 	GameManager.current_day = 3
 	scene.house3d.set_unlocked_floors(["ground", "second"])
+	# HUD room tracking must resolve the floor, not only x/z: every upper room
+	# shares its coordinates with a ground twin.
+	scene.house3d.player.global_position = Vector3(-6.25, 3.25, 0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(scene.current_room == "storage", "upper-floor room tracking (storage, not bedroom)")
+	scene.house3d.player.global_position = Vector3(0, 0.05, 0)
+	await get_tree().process_frame
 	has_stairs = false
 	var has_guest_bed := false
 	for it in scene.house3d._interactables:

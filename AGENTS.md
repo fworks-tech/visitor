@@ -43,10 +43,12 @@ the `demo` feature. `GameManager.start_new_game()` reads `total_nights` into
 automatically loads `res://assets/models/visitors/<id>.glb`. The blockout
 generator lives in `tools/characters/`; the production contract (metres, feet at
 origin, +Z forward, `portrait_face` material, 15k tri budget) is in
-`docs/CHARACTER_PIPELINE.md` and the OpenCode handoff in
-`docs/BLENDER_AGENT_PLAYBOOK.md`. Keep external models optional: the full game still
-falls back to the procedural body, and `show_sign()`/`reveal()` no-op safely
-when an external model has no procedural head.
+`docs/CHARACTER_PIPELINE.md`, the DNA schema in
+`tools/characters/character_dna.schema.json`, and the OpenCode handoff in
+`docs/BLENDER_AGENT_PLAYBOOK.md`. The production rationale and standards are in
+`docs/CHARACTER_GENERATION_RESEARCH.md`. Keep external models optional: the full
+game still falls back to the procedural body, and `show_sign()`/`reveal()`
+no-op safely when an external model has no procedural head.
 
 ## Project Layout
 
@@ -77,12 +79,15 @@ when an external model has no procedural head.
 │   ├── data/                 # visitors.json, signs.json, story.json
 │   ├── images/               # portraits, reveal variants, backgrounds
 │   ├── models/               # furniture, building, atomic, blackmire
+│   │   └── visitors/         # demo GLBs: v001, v003, v008
 │   └── audio/                # synthesized cues
 ├── tests/                    # DoorFlowTest, HouseWalkTest, HouseLayoutTest,
 │                             # BalanceSimTest, validate_systems.py
-├── tools/                    # run_gates.py, placement_audit.gd, focus_audit.gd,
-│                             # stairshot.gd, screenshot_mode.gd, audio_synth.py
-├── docs/                     # audio, portraits, house system, ADRs, QA, store
+├── tools/                    # run_gates.py, audits, captures, audio_synth.py
+│   └── characters/           # blockouts, DNA schema/gate, Blender handoff
+├── docs/                     # systems, art, characters, production, QA
+│   ├── adr/                  # architecture decision records
+│   └── ci/                   # CI workflow template
 ├── shaders/                  # crt.gdshader, vhs.gdshader, glitch, tint
 ├── theme/visitor_theme.tres  # green monochrome theme
 └── locale/                   # en + pt_BR, loaded at runtime
@@ -180,8 +185,8 @@ one-pass aperture shader. The data lives in `assets/data/view_presets.json`.
    placement audit; 0 FAIL is the gate.
 10. **All gates before done:** `python3 tools/run_gates.py` (door, house, layout,
     balance, placement, focus, data). Exit code 1 on any failure.
-11. **Data contracts run in CI.** `python3 tests/validate_systems.py` must pass
-    without Godot.
+11. **Data contracts run in CI.** `python3 tests/validate_systems.py` and
+    `python3 tools/characters/validate_character_dna.py` must pass without Godot.
 
 ---
 
@@ -200,7 +205,11 @@ one-pass aperture shader. The data lives in `assets/data/view_presets.json`.
 1. Append to `assets/data/visitors.json`: id, name, portrait path, backstory,
    dialogue chain, sign map, `infection_progress`, consequence hooks.
 2. Portrait goes in `assets/images/portraits/` following PORTRAIT_PROMPTS.md.
-3. Validate: `python3 tests/validate_systems.py`.
+3. Add or update the matching `dna` block in
+   `tools/characters/character_specs.json` (body, face, outfit, rig, assets,
+   validation, license).
+4. Validate: `python3 tools/characters/validate_character_dna.py` and
+   `python3 tests/validate_systems.py`.
 
 ---
 

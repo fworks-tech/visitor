@@ -12,6 +12,32 @@ Some of the infected look almost human. Almost.
 > Papers, Please x "No, I'm not a Human" x the Mandela Catalogue: a fate-arbiter
 > game where the horror is in the *almost right*.
 
+## Current State
+
+| Area | Status |
+|---|---|
+| Core loop | Seven-night campaign data, 20 visitors, 40 signs, seven endings |
+| Door scene | Full-screen cinematic doorway with 3D visitor, environment plate, typewriter dialogue and choices |
+| Aperture system | `doorway`, `peephole`, `window`, `door_crack`, `hatch`; eight environments |
+| Shelter | Four-floor 3D apartment, scavenging, stairs, flashlight, guests |
+| Demo | Two nights, three visitors, two endings, runnable without the full campaign |
+| Characters | L1 blockouts + Character DNA contract; L2 Blender production is the next gate |
+| Quality | Data, layout, house, door and balance gates pass; device QA is pending |
+
+## Start Here
+
+```bash
+# Play the two-night demo
+tools/run_demo.sh
+# or: godot --path . -- --demo
+
+# Run the data contracts without Godot
+python3 tests/validate_systems.py
+
+# Run every engine gate (Godot 4.x on PATH or GODOT_BIN)
+python3 tools/run_gates.py
+```
+
 ## The Premise
 
 The outbreak started six days ago. You're holed up in your apartment with
@@ -50,43 +76,65 @@ and what you're willing to live with.
 - **Silence-first audio**: no gameplay music. CRT hum, knocks, and what you
   hear through the door.
 
-## Tech
-
-- **Engine:** Godot 4.x (GDScript), Forward Plus renderer, 11 autoload singletons
-- **Viewport:** 1280x720 landscape, `canvas_items` stretch with `expand`
-- **Data-driven:** visitors, signs, story nights, endings and the floor plan live
-  in JSON and one `LAYOUT` table
-- **Platform:** Android + iOS, landscape, touch-first with keyboard and gamepad
-
 ## Demo
 
-A two-night slice with three visitors and two endings is wired through the same
-story/inspection loop. Run it with:
+The two-night slice uses `assets/data/story_demo.json` and the three GLB visitors
+(`v001`, `v003`, `v008`). It runs through the same `StoryManager`,
+`GameManager`, `VisitorManager` and `InspectionScene` as the full game, so a
+demo change cannot silently fork the campaign.
 
-```bash
-tools/run_demo.sh
-# or: godot --path . -- --demo
-```
-
-Scope, data and QA gates: [docs/DEMO.md](docs/DEMO.md). The demo loads
-`assets/data/story_demo.json` and the three GLB visitors without touching the
-full seven-night story.
+Scope, cut list and QA gates: [docs/DEMO.md](docs/DEMO.md).
 
 ## Character Pipeline
 
 Visitors are GLB assets, not pure code. The repository has a runnable blockout
-lane (portrait palette + face card) and the production Blender contract:
+lane (portrait palette + face card), a deterministic Character DNA contract, and
+a production Blender handoff:
 
 ```bash
 python3 tools/characters/build_character.py
+python3 tools/characters/validate_character_dna.py
 python3 tools/characters/validate_characters.py
+python3 tools/characters/validate_blender_output.py --id v001
 ```
 
-Full stage list, budgets and Godot integration:
-[docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md). For Blender work via
-OpenCode, start with
-[docs/BLENDER_AGENT_PLAYBOOK.md](docs/BLENDER_AGENT_PLAYBOOK.md) and
-`tools/characters/OPENCODE_TASK.md`.
+- Blockout and production contract: [docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md)
+- Why character creators work, and what "precision" means:
+  [docs/CHARACTER_GENERATION_RESEARCH.md](docs/CHARACTER_GENERATION_RESEARCH.md)
+- Blender + OpenCode handoff:
+  [docs/BLENDER_AGENT_PLAYBOOK.md](docs/BLENDER_AGENT_PLAYBOOK.md)
+- Copy-paste task: [tools/characters/OPENCODE_TASK.md](tools/characters/OPENCODE_TASK.md)
+
+The current demo cast is L1: low-poly bodies with portrait face cards. The L2
+gate requires a rig, `idle`/`talk`, at most 15k triangles and at most four
+materials. Blender is not required to play or test the game.
+
+## Tech
+
+- **Engine:** Godot 4.x (GDScript), Forward Plus renderer, 11 autoload singletons
+- **Viewport:** 1280x720 landscape, `canvas_items` stretch with `expand`
+- **Data-driven:** visitors, signs, story nights, endings, aperture presets and
+  the floor plan live in JSON and one `LAYOUT` table
+- **Character data:** `tools/characters/character_specs.json` v2 with a
+  validated `dna` block per visitor
+- **Platform:** Android + iOS, landscape, touch-first with keyboard and gamepad
+
+## Project Structure
+
+| Path | What |
+|------|------|
+| `autoload/` | GameManager, StoryManager, FlagsManager, SaveManager, AudioManager, SceneManager, SettingsManager, VisitorManager, SignsManager, ResourceSystem, and the ConsequencesSystem bridge |
+| `scripts/gameplay/` | `InspectionScene` (the core door loop) |
+| `scripts/house/` | `House3D` (floor plan and builders), `HouseScene` (HUD and actions), `HousePlayer3D` (walker) |
+| `scripts/door/` | `ApertureStage`, `VisitorBody3D`, `VisitorDiorama3D` |
+| `scripts/ui/` | CRT, aperture overlay, weapon and bolt overlays, menus |
+| `scenes/` | Core, gameplay, house, UI and effects scenes |
+| `assets/data/` | `visitors.json` (20 visitors), `signs.json` (40 signs), `story.json` (7 nights, 7 endings), `story_demo.json`, `view_presets.json` |
+| `assets/models/visitors/` | Demo GLBs (`v001`, `v003`, `v008`) |
+| `tools/characters/` | Blockout generator, DNA schema/validator, Blender export, OpenCode task |
+| `tests/` | Door, house walk, house layout, balance and data contracts |
+| `docs/` | Systems, art, audio, production, research and QA; index in [docs/README.md](docs/README.md) |
+| `docs/adr/` | Architecture decision records |
 
 ## The Shelter
 
@@ -121,39 +169,50 @@ python3 tools/run_gates.py
 # Data + layout contracts only (no Godot required, runs in CI)
 python3 tests/validate_systems.py
 
+# Character contracts
+python3 tools/characters/validate_character_dna.py
+python3 tools/characters/validate_characters.py
+
 # Individual engine gates
 godot --headless --path . -- --door-test
 godot --headless --path . -- --house-test
 godot --headless --path . -- --layout-test
 godot --headless --path . -- --balance-test
 
-# Stairwell screenshots for visual review (real window)
-godot --path . -- --stairshot
-
-# Aperture view playground (peephole, window, crack, hatch)
+# Aperture view playground
 godot --path . -- --aperture-demo
 ```
 
-## Project Structure
+CI is available as a template in `docs/ci/contract-workflow.yml`. This
+repository has not enabled GitHub Actions yet; copy it to
+`.github/workflows/contract.yml` to run the data gate on every push.
 
-See [AGENTS.md](AGENTS.md) for the architecture map and conventions, and
-[docs/HOUSE_SYSTEM.md](docs/HOUSE_SYSTEM.md) for the floor plan contract.
+## Documentation
 
-| Path | What |
-|------|------|
-| `autoload/` | GameManager, VisitorManager, SignsManager, ResourceSystem, ConsequenceSystem, SaveManager, AudioManager, SceneManager, SettingsManager, StoryManager, FlagsManager |
-| `scripts/gameplay/` | `InspectionScene` (the core door loop) |
-| `scripts/house/` | `House3D` (floor plan and builders), `HouseScene` (HUD and actions), `HousePlayer3D` (walker) |
-| `scripts/door/` | `VisitorBody3D`, `VisitorDiorama3D` |
-| `assets/data/` | `visitors.json` (20 visitors), `signs.json` (40 signs), `story.json` (7 nights, 7 endings) |
-| `tests/` | `DoorFlowTest`, `HouseWalkTest`, `HouseLayoutTest`, `BalanceSimTest`, `validate_systems.py` |
-| `docs/` | Audio direction, portrait prompts, house system, ADRs, QA and store docs |
+Start with [docs/README.md](docs/README.md). The most-used documents are:
+
+- [AGENTS.md](AGENTS.md): architecture map, conventions and agent rules
+- [docs/HOUSE_SYSTEM.md](docs/HOUSE_SYSTEM.md): floor plan and collision contract
+- [docs/APERTURE_VIEWS.md](docs/APERTURE_VIEWS.md): door and window composition
+- [docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md): blockout to L2/L3
+- [docs/CHARACTER_GENERATION_RESEARCH.md](docs/CHARACTER_GENERATION_RESEARCH.md): research and DNA rationale
+- [docs/BLENDER_AGENT_PLAYBOOK.md](docs/BLENDER_AGENT_PLAYBOOK.md): OpenCode production rules
+- [docs/QA_LOG.md](docs/QA_LOG.md): test history and open QA items
 
 ## The Seven Endings
 
 Survive all seven nights and the epilogue is decided by your accumulated trust,
 corruption, and who's still breathing inside your walls: the Gatekeeper, the
 Pariah, the Executioner, the Hermit, the Cure, the Infected, the Exile.
+
+## Known Gaps
+
+- Android and iOS device QA is still pending: safe area, touch targets, final
+  framing and performance.
+- L2 character models and rigs are not produced yet; the demo uses L1 blockouts.
+- Environment plates are first-pass placeholders and can be replaced without
+  touching the composite code.
+- The CI workflow is a template, not active in this repository.
 
 ---
 

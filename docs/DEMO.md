@@ -74,9 +74,9 @@ document is the only content the run reads.
 - [ ] All three demo visitors load a GLB (no procedural fallback in demo mode).
 - [ ] Both endings are reachable: hold the line; admit one infected.
 - [ ] Demo ends after night 2, not after seven.
-- [ ] `--demo --door-test` passes with 0 failures.
+- [x] `--demo --door-test` passes with 0 failures (2026-11-05).
 - [ ] Phone capture: safe area, dialogue box, choices, close-ups.
-- [ ] `python3 tests/validate_systems.py` includes the demo contract.
+- [x] `python3 tests/validate_systems.py` includes the demo contract (2026-11-05).
 
 ## Known limits
 

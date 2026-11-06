@@ -94,3 +94,18 @@ repo root without Godot.
 The door now uses the wide `doorway` aperture, a bottom-right dialogue panel
 with typewriter text, and the reference choice pair. The old split layout
 remains behind `ViewPresets.ENABLED = false`. Device QA is still pending.
+
+## Merge gate, 2026-11-05 (`feat/house-rebuild` -> `master`)
+
+| Check | Result |
+|---|---|
+| `python3 tools/run_gates.py` | PASS: door, house, balance, layout, placement, focus, data |
+| `--demo --door-test` | PASS: 0 failures |
+| `python3 tools/characters/validate_character_dna.py` | PASS: 3 characters |
+| `python3 tools/characters/validate_characters.py` | PASS: v001, v003, v008 GLBs |
+| `python3 tests/validate_systems.py` | PASS: 5 apertures, 8 environments, 40 signs, 20 visitors, 7 nights, 7 endings, 4 floors, 13 rooms, demo contract |
+| Device QA (Android/iOS) | Pending: safe area, touch targets, framing, performance |
+
+The merge gate covers data, engine flow, placement, focus and character
+contracts. It does not replace the device pass or the visual review of the L1
+blockouts.

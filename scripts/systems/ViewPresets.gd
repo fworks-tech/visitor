@@ -6,6 +6,7 @@ extends RefCounted
 ## One JSON file, no autoload ordering.
 
 const PATH := "res://assets/data/view_presets.json"
+const ENABLED := true
 
 static func data() -> Dictionary:
 	if not FileAccess.file_exists(PATH):

@@ -40,8 +40,9 @@ and what you're willing to live with.
 - **A shelter you walk**: first-person 3D apartment across four floors, with
   scavenging, flashlight battery, guests, and stairs that open as the week
   progresses.
-- **Aperture views**: look through the peephole, windows, door cracks and
-  hatches at composable environments with the visitor standing inside them. See
+- **A door conversation**: a full-screen doorway with the visitor standing in
+  the environment, typewriter dialogue and choices ("Come in." / "You better
+  leave."). Peephole, window, crack and hatch views use the same composite. See
   [docs/APERTURE_VIEWS.md](docs/APERTURE_VIEWS.md).
 - **Delayed consequences**: the infected don't reveal themselves at the door.
   A wrong LET IN turns days later, inside.

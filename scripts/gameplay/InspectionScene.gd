@@ -58,8 +58,27 @@ var asked_about_marks: bool = false
 var studied_face: bool = false
 var visual_evidence_revealed: bool = false
 
+# Aperture composite (plate + body + doorway shader). Null when disabled.
+var aperture_stage: ApertureStage
+
+# Cinematic layout: full-screen scene, dialogue box and choices.
+var _cinematic := false
+var _cinematic_view: SubViewportContainer
+var _cinematic_vp: SubViewport
+var _dialogue_layer: Control
+var _dialogue_text: Label
+var _speaker_label: Label
+var _choice_row: HBoxContainer
+var _hud_line: Label
+var _notes_panel: PanelContainer
+var _notes_text: RichTextLabel
+var _notes_button: Button
+var _choice_buttons: Array = []
+
 
 func _ready() -> void:
+	_build_cinematic_ui()
+	_setup_aperture_view()
 	_init_visitor_queue()
 	_update_resources_ui()
 	_connect_signals()
@@ -106,6 +125,11 @@ func _update_resources_ui() -> void:
 		ammo_label.text = "AMMO: " + str(res.get("ammo", 0))
 	if medicine_label:
 		medicine_label.text = "MEDS: " + str(res.get("medicine", 0))
+	if _hud_line:
+		_hud_line.text = "NIGHT %d   %s   FOOD %d  WATER %d  AMMO %d  MEDS %d" % [
+			GameManager.current_day, current_time_guess(),
+			int(res.get("food", 0)), int(res.get("water", 0)),
+			int(res.get("ammo", 0)), int(res.get("medicine", 0))]
 
 
 func current_time_guess() -> String:
@@ -139,6 +163,8 @@ func _load_visitor(index: int) -> void:
 
 	if visitor_name_label:
 		visitor_name_label.text = "SUBJECT: " + str(current_visitor.get("name", "UNKNOWN")).to_upper()
+	if _speaker_label:
+		_speaker_label.text = str(current_visitor.get("name", "UNKNOWN")).to_upper()
 	for btn in [let_in_btn, turn_away_btn, eliminate_btn]:
 		if btn:
 			btn.visible = false  # judgment is earned through conversation
@@ -162,9 +188,180 @@ func _load_visitor(index: int) -> void:
 	_populate_physical_signs()
 	_reset_question_buttons()
 	_grab_tier_focus()
+	_refresh_choices()
 
+
+func _build_cinematic_ui() -> void:
+	if not ViewPresets.ENABLED:
+		return
+	_cinematic = true
+	for path in ["Background", "TopBar", "MainSplit", "BottomBar"]:
+		var n := get_node_or_null(path)
+		if n:
+			n.visible = false
+
+	_cinematic_view = SubViewportContainer.new()
+	_cinematic_view.name = "CinematicView"
+	_cinematic_view.stretch = true
+	_cinematic_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_cinematic_view)
+	_cinematic_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	move_child(_cinematic_view, 0)
+
+	_cinematic_vp = SubViewport.new()
+	_cinematic_vp.name = "CinematicViewport"
+	_cinematic_vp.size = Vector2i(1280, 720)
+	_cinematic_vp.own_world_3d = true
+	_cinematic_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_cinematic_view.add_child(_cinematic_vp)
+
+	_build_dialogue_panel()
+	_build_hud()
+	_build_notes()
+	if crt_overlay:
+		move_child(crt_overlay, get_child_count() - 1)
+
+func _build_dialogue_panel() -> void:
+	_dialogue_layer = Control.new()
+	_dialogue_layer.name = "CinematicUI"
+	_dialogue_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dialogue_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dialogue_layer)
+
+	var panel := PanelContainer.new()
+	panel.name = "DialoguePanel"
+	panel.anchor_left = 0.48
+	panel.anchor_top = 0.56
+	panel.anchor_right = 0.97
+	panel.anchor_bottom = 0.95
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.015, 0.022, 0.016, 0.88)
+	style.border_color = Color(0.22, 0.34, 0.25, 0.90)
+	style.set_border_width_all(1)
+	style.set_content_margin_all(18)
+	panel.add_theme_stylebox_override("panel", style)
+	_dialogue_layer.add_child(panel)
+
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 10)
+	panel.add_child(vb)
+
+	_speaker_label = Label.new()
+	_speaker_label.text = "THE DOOR"
+	_speaker_label.add_theme_font_size_override("font_size", 13)
+	_speaker_label.add_theme_color_override("font_color", Color(0.48, 0.66, 0.50))
+	vb.add_child(_speaker_label)
+
+	_dialogue_text = Label.new()
+	_dialogue_text.text = ""
+	_dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_dialogue_text.custom_minimum_size = Vector2(0, 92)
+	_dialogue_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_dialogue_text.add_theme_font_size_override("font_size", 20)
+	_dialogue_text.add_theme_color_override("font_color", Color(0.86, 0.93, 0.84))
+	vb.add_child(_dialogue_text)
+
+	var rule := ColorRect.new()
+	rule.color = Color(0.20, 0.32, 0.22, 0.80)
+	rule.custom_minimum_size = Vector2(0, 1)
+	vb.add_child(rule)
+
+	_choice_row = HBoxContainer.new()
+	_choice_row.alignment = BoxContainer.ALIGNMENT_END
+	_choice_row.add_theme_constant_override("separation", 22)
+	vb.add_child(_choice_row)
+
+func _build_hud() -> void:
+	_hud_line = Label.new()
+	_hud_line.position = Vector2(28, 22)
+	_hud_line.add_theme_font_size_override("font_size", 14)
+	_hud_line.add_theme_color_override("font_color", Color(0.55, 0.72, 0.55, 0.85))
+	_dialogue_layer.add_child(_hud_line)
+
+func _build_notes() -> void:
+	_notes_button = Button.new()
+	_notes_button.text = "LOG"
+	_notes_button.flat = true
+	_notes_button.add_theme_font_size_override("font_size", 14)
+	_notes_button.add_theme_color_override("font_color", Color(0.55, 0.75, 0.55))
+	_dialogue_layer.add_child(_notes_button)
+	_notes_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 24)
+	_notes_button.pressed.connect(_toggle_notes)
+
+	_notes_panel = PanelContainer.new()
+	_notes_panel.anchor_left = 0.62
+	_notes_panel.anchor_top = 0.08
+	_notes_panel.anchor_right = 0.97
+	_notes_panel.anchor_bottom = 0.50
+	_notes_panel.visible = false
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.015, 0.022, 0.016, 0.94)
+	style.border_color = Color(0.22, 0.34, 0.25, 0.90)
+	style.set_border_width_all(1)
+	style.set_content_margin_all(12)
+	_notes_panel.add_theme_stylebox_override("panel", style)
+	_dialogue_layer.add_child(_notes_panel)
+
+	_notes_text = RichTextLabel.new()
+	_notes_text.bbcode_enabled = true
+	_notes_text.scroll_active = true
+	_notes_text.add_theme_font_size_override("normal_font_size", 13)
+	_notes_panel.add_child(_notes_text)
+
+func _toggle_notes() -> void:
+	if _notes_panel:
+		_notes_panel.visible = not _notes_panel.visible
+
+func _setup_aperture_view() -> void:
+	if not ViewPresets.ENABLED:
+		return
+	var vp: SubViewport = _cinematic_vp
+	if vp == null and diorama != null:
+		vp = diorama.get_parent() as SubViewport
+	if vp == null:
+		return
+	aperture_stage = ApertureStage.new()
+	aperture_stage.name = "ApertureStage"
+	vp.add_child(aperture_stage)
+	aperture_stage.set_active(false)
+	if diorama and diorama.camera:
+		diorama.camera.current = false if _cinematic else true
+
+func _use_aperture() -> bool:
+	return aperture_stage != null
+
+func _view_environment() -> String:
+	var env := str(current_visitor.get("view_environment", "env_porch_night"))
+	if not ViewPresets.is_compatible("doorway", env):
+		env = "env_porch_night"
+	return env
+
+func _activate_aperture(active: bool) -> void:
+	if aperture_stage == null:
+		return
+	aperture_stage.set_active(active)
+	if diorama:
+		diorama.visible = not active and not _cinematic
+		diorama.set_environment_enabled(not active and not _cinematic)
+		if diorama.camera:
+			diorama.camera.current = not active and not _cinematic
+
+func _update_aperture(revealed: bool) -> void:
+	var signs: Array = current_visitor.get("assigned_signs", [])
+	aperture_stage.set_view("doorway", _view_environment(), str(current_visitor.get("id", "")))
+	aperture_stage.set_visitor(current_visitor, signs)
+	aperture_stage.set_corruption(suspicion_level)
+	_activate_aperture(true)
+	if revealed:
+		aperture_stage.reveal()
+	if portrait_art:
+		portrait_art.visible = false
 
 func _update_diorama(revealed: bool) -> void:
+	if _use_aperture():
+		_update_aperture(revealed)
+		return
 	if diorama == null:
 		return
 	if revealed:
@@ -180,6 +377,10 @@ func _update_diorama(revealed: bool) -> void:
 ## you actually judge. Swaps to the reveal variant when scrutiny (or a
 ## lethal mistake) strips the mask.
 func _update_portrait(revealed: bool) -> void:
+	if _use_aperture():
+		if portrait_art:
+			portrait_art.visible = false
+		return
 	if portrait_art == null or current_visitor.is_empty():
 		return
 	var path := str(current_visitor.get("portrait", ""))
@@ -248,18 +449,23 @@ func _populate_physical_signs() -> void:
 # --- behavioral log ---------------------------------------------------------
 
 func _seed_behavioral_log(lines: Array) -> void:
-	if not behavioral_notes_text:
-		return
-	behavioral_notes_text.clear()
-	behavioral_notes_text.append_text("[b][u]INSPECTION LOG[/u][/b]\n\n")
-	for note in lines:
-		behavioral_notes_text.append_text("[color=#aaffaa]> " + str(note) + "[/color]\n\n")
+	if behavioral_notes_text:
+		behavioral_notes_text.clear()
+		behavioral_notes_text.append_text("[b][u]INSPECTION LOG[/u][/b]\n\n")
+		for note in lines:
+			behavioral_notes_text.append_text("[color=#aaffaa]> " + str(note) + "[/color]\n\n")
+	if _notes_text:
+		_notes_text.clear()
+		_notes_text.append_text("[b]INSPECTION LOG[/b]\n\n")
+		for note in lines:
+			_notes_text.append_text("[color=#aaffaa]> " + str(note) + "[/color]\n\n")
 
 
 func _add_behavioral_note(note_text: String) -> void:
-	if not behavioral_notes_text:
-		return
-	behavioral_notes_text.append_text("[color=#aaffaa]> " + note_text + "[/color]\n\n")
+	if behavioral_notes_text:
+		behavioral_notes_text.append_text("[color=#aaffaa]> " + note_text + "[/color]\n\n")
+	if _notes_text:
+		_notes_text.append_text("[color=#aaffaa]> " + note_text + "[/color]\n\n")
 	# The latest line doubles as the floating door dialogue — like the
 	# reference's "You alone?" moment hanging beside the figure.
 	if status_label and not note_text.begins_with("[color"):
@@ -271,18 +477,28 @@ var _say_blips: int = 0
 
 ## Dialogue line with typewriter reveal — suspense lives in the pacing.
 func _say(text: String) -> void:
-	if status_label == null:
+	if status_label == null and _dialogue_text == null:
 		return
 	if _say_tween and _say_tween.is_valid():
 		_say_tween.kill()
 	if question_story_btn:
 		question_story_btn.disabled = true  # LISTEN espera o typewriter acabar
-	status_label.text = text
-	status_label.visible_ratio = 0.0
+	if status_label:
+		status_label.text = text
+		status_label.visible_ratio = 0.0
+	if _dialogue_text:
+		_dialogue_text.text = text
+		_dialogue_text.visible_ratio = 0.0
 	_say_blips = 0
 	var dur := clampf(text.length() * 0.018, 0.3, 2.5)
 	_say_tween = create_tween()
-	_say_tween.tween_property(status_label, "visible_ratio", 1.0, dur)
+	if status_label:
+		_say_tween.tween_property(status_label, "visible_ratio", 1.0, dur)
+	if _dialogue_text:
+		if status_label:
+			_say_tween.parallel().tween_property(_dialogue_text, "visible_ratio", 1.0, dur)
+		else:
+			_say_tween.tween_property(_dialogue_text, "visible_ratio", 1.0, dur)
 	_say_tween.finished.connect(_on_say_finished)
 
 
@@ -298,10 +514,10 @@ func _process(_delta: float) -> void:
 
 
 func _on_say_finished() -> void:
-	if question_story_btn == null:
-		return
-	var beats: Array = current_visitor.get("dialogue_chain", [])
-	question_story_btn.disabled = line_index >= beats.size() - 1
+	if question_story_btn:
+		var beats: Array = current_visitor.get("dialogue_chain", [])
+		question_story_btn.disabled = line_index >= beats.size() - 1
+	_refresh_choices()
 
 
 # Moldura + scanlines sutis sobre o retrato, no verde do tema terminal.
@@ -339,6 +555,12 @@ func _frame_bar(col: Color, al: float, at: float, ar: float, ab: float, off: Vec
 func _grab_tier_focus() -> void:
 	if get_viewport() == null:
 		return
+	if _cinematic:
+		for b in _choice_buttons:
+			if b.visible and not b.disabled:
+				b.grab_focus()
+				return
+		return
 	var owner := get_viewport().gui_get_focus_owner() as Button
 	if owner != null and owner.visible and not owner.disabled:
 		return
@@ -373,6 +595,7 @@ func _update_conversation_tiers() -> void:
 		_reveal_button(turn_away_btn)
 		_reveal_button(eliminate_btn)
 	_grab_tier_focus()
+	_refresh_choices()
 
 
 func _reset_question_buttons() -> void:
@@ -382,11 +605,14 @@ func _reset_question_buttons() -> void:
 			btn.visible = btn == question_story_btn  # LISTEN first; rest is earned
 			btn.modulate.a = 1.0
 			btn.scale = Vector2.ONE
+	_refresh_choices()
 
 
 func _increase_suspicion(delta: float) -> void:
 	suspicion_level = clampf(suspicion_level + delta, 0.0, 1.0)
-	if diorama and diorama.has_model():
+	if _use_aperture():
+		aperture_stage.set_corruption(suspicion_level)
+	elif diorama and diorama.has_model():
 		diorama.set_corruption(suspicion_level)
 	if crt_overlay:
 		crt_overlay.set_glitch_intensity(suspicion_level)
@@ -412,7 +638,9 @@ func _on_inspect_physical_pressed() -> void:
 		else:
 			_increase_suspicion(0.05)
 		_add_behavioral_note("Noticed: " + finding)
-		if diorama:
+		if _use_aperture():
+			aperture_stage.show_sign(s)
+		elif diorama:
 			diorama.show_sign(s)
 		_check_visual_evidence()
 		_update_conversation_tiers()
@@ -599,6 +827,7 @@ func _set_decisions_enabled(enabled: bool) -> void:
 	if let_in_btn: let_in_btn.disabled = not enabled
 	if turn_away_btn: turn_away_btn.disabled = not enabled
 	if eliminate_btn: eliminate_btn.disabled = not enabled
+	_refresh_choices()
 
 
 func _next_visitor() -> void:
@@ -616,8 +845,10 @@ func _show_no_more_visitors() -> void:
 			question_wounds_btn, question_story_btn, test_reaction_btn]:
 		if btn:
 			btn.visible = false
-	if diorama:
-		diorama.clear_visitor()  # empty doorway; the figure is gone
+	if _use_aperture():
+		aperture_stage.clear_visitor()  # empty doorway; the figure is gone
+	elif diorama:
+		diorama.clear_visitor()
 	if portrait_art:
 		portrait_art.visible = false  # no one left to look at
 	var briefing := _night_briefing()
@@ -628,8 +859,83 @@ func _show_no_more_visitors() -> void:
 	_add_behavioral_note("[color=#aaffaa]Press RETURN HOME — inside you can peek at rooms, the window, and sleep.[/color]")
 	if end_night_btn:
 		end_night_btn.visible = true
+	if _speaker_label:
+		_speaker_label.text = "THE DOOR"
 	_grab_tier_focus()
+	_refresh_choices()
 
+
+## Rebuilds the choice row from the conversation tier. The decision tier shows
+## the two lines from the reference ("Come in." / "You better leave.") plus
+## ELIMINATE only when the weapon option is actually available.
+func _refresh_choices() -> void:
+	if _choice_row == null:
+		return
+	for child in _choice_row.get_children():
+		_choice_row.remove_child(child)
+		child.queue_free()
+	_choice_buttons.clear()
+
+	if current_visitor.is_empty():
+		if end_night_btn and end_night_btn.visible:
+			_add_choice("Return home.", "end_night")
+		return
+
+	if let_in_btn and let_in_btn.visible and let_in_btn.disabled:
+		return
+
+	if let_in_btn and let_in_btn.visible:
+		_add_choice("Come in.", "let_in")
+		_add_choice("You better leave.", "turn_away")
+		if eliminate_btn and eliminate_btn.visible:
+			_add_choice("Eliminate.", "eliminate", true)
+		return
+
+	if question_story_btn and question_story_btn.visible and not question_story_btn.disabled:
+		_add_choice("Listen.", "listen")
+	if inspect_btn and inspect_btn.visible and not inspect_btn.disabled:
+		_add_choice("Look them over.", "inspect")
+	if question_wounds_btn and question_wounds_btn.visible and not question_wounds_btn.disabled:
+		_add_choice("Ask about the wounds.", "wounds")
+	if test_reaction_btn and test_reaction_btn.visible and not test_reaction_btn.disabled:
+		_add_choice("Study their face.", "study")
+
+func _add_choice(text: String, id: String, danger: bool = false) -> void:
+	var b := Button.new()
+	b.text = text
+	b.flat = true
+	b.focus_mode = Control.FOCUS_ALL
+	b.custom_minimum_size = Vector2(0, 40)
+	b.add_theme_font_size_override("font_size", 18)
+	var col := Color(1.0, 0.42, 0.34) if danger else Color(0.72, 1.0, 0.72)
+	b.add_theme_color_override("font_color", col)
+	b.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	b.add_theme_color_override("font_focus_color", Color(1.0, 1.0, 1.0))
+	b.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	b.pressed.connect(_on_choice.bind(id))
+	_choice_row.add_child(b)
+	_choice_buttons.append(b)
+
+func _on_choice(id: String) -> void:
+	match id:
+		"listen":
+			_on_question_story_pressed()
+		"inspect":
+			_on_inspect_physical_pressed()
+		"wounds":
+			_on_question_wounds_pressed()
+		"study":
+			_on_test_reaction_pressed()
+		"let_in":
+			_on_let_in_pressed()
+		"turn_away":
+			_on_turn_away_pressed()
+		"eliminate":
+			_on_eliminate_pressed()
+		"end_night":
+			_on_end_night_pressed()
+			return
+	_refresh_choices()
 
 func _night_briefing() -> String:
 	var nights: Array = StoryManager.story_data.get("nights", [])

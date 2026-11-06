@@ -31,14 +31,16 @@ float hash(vec2 p) {
 }
 
 float mask_value(vec2 uv) {
+	float soft = max(mask_softness, 0.001);
 	if (mask_shape == 0) {
 		vec2 mp = (uv - mask_center) * vec2(aspect, 1.0);
-		float r = length(mp) / max(mask_size.x * 0.5 * aspect, 0.001);
-		return 1.0 - smoothstep(1.0 - mask_softness, 1.0, r);
+		float unit = min(aspect, 1.0);
+		float r = length(mp) / max(mask_size.x * 0.5 * unit, 0.001);
+		return 1.0 - smoothstep(1.0 - soft, 1.0, r);
 	}
 	vec2 q = abs(uv - mask_center) - mask_size * 0.5;
 	float d = max(q.x, q.y);
-	return 1.0 - smoothstep(-mask_softness, 0.0, d);
+	return 1.0 - smoothstep(-soft, 0.0, d);
 }
 
 void fragment() {
@@ -54,30 +56,28 @@ void fragment() {
 	float band = smoothstep(0.015, 0.0, abs(fract(uv.y * 2.0 + TIME * 0.07) - 0.5));
 	suv.x += band * tracking * (hash(vec2(floor(uv.y * 140.0), floor(TIME))) - 0.5);
 
-	if (suv.x < 0.0 || suv.x > 1.0 || suv.y < 0.0 || suv.y > 1.0) {
-		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
-		return;
+	vec3 col = vec3(0.0);
+	bool inside = suv.x >= 0.0 && suv.x <= 1.0 && suv.y >= 0.0 && suv.y <= 1.0;
+	if (inside) {
+		vec2 d = suv - 0.5;
+		col.r = texture(screen_texture, suv + d * aberration).r;
+		col.g = texture(screen_texture, suv).g;
+		col.b = texture(screen_texture, suv - d * aberration).b;
+
+		float lum = dot(col, vec3(0.299, 0.587, 0.114));
+		col = mix(col, vec3(lum) * tint.rgb, tint_mix);
+		col *= exposure;
+
+		float n = hash(uv * vec2(1280.0, 720.0) + fract(TIME));
+		col += (n - 0.5) * grain;
+
+		float scan = 0.5 + 0.5 * sin(uv.y * 720.0 * 3.14159);
+		col *= 1.0 - scan * scanlines;
+
+		vec2 vd = (suv - 0.5) * vec2(aspect, 1.0);
+		float vig = smoothstep(0.95, 0.30, length(vd));
+		col *= mix(1.0, vig, vignette);
 	}
-
-	vec2 d = suv - 0.5;
-	vec3 col;
-	col.r = texture(screen_texture, suv + d * aberration).r;
-	col.g = texture(screen_texture, suv).g;
-	col.b = texture(screen_texture, suv - d * aberration).b;
-
-	float lum = dot(col, vec3(0.299, 0.587, 0.114));
-	col = mix(col, vec3(lum) * tint.rgb, tint_mix);
-	col *= exposure;
-
-	float n = hash(uv * vec2(1280.0, 720.0) + fract(TIME));
-	col += (n - 0.5) * grain;
-
-	float scan = 0.5 + 0.5 * sin(uv.y * 720.0 * 3.14159);
-	col *= 1.0 - scan * scanlines;
-
-	vec2 vd = (suv - 0.5) * vec2(aspect, 1.0);
-	float vig = smoothstep(0.95, 0.30, length(vd));
-	col *= mix(1.0, vig, vignette);
 
 	COLOR = vec4(clamp(col, 0.0, 1.0) * mask_value(uv), 1.0);
 }

@@ -21,6 +21,8 @@ var _post_mat: ShaderMaterial
 var _key: OmniLight3D
 var _fill: OmniLight3D
 var _rim: OmniLight3D
+var _world_env: WorldEnvironment
+var _env_resource: Environment
 var _preset: Dictionary = {}
 
 func _ready() -> void:
@@ -76,11 +78,12 @@ func _build_environment() -> void:
 	env.background_color = Color(0.004, 0.006, 0.005)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.30, 0.36, 0.32)
-	env.ambient_light_energy = 0.22
+	env.ambient_light_energy = 0.38
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	var we := WorldEnvironment.new()
-	we.environment = env
-	add_child(we)
+	_env_resource = env
+	_world_env = WorldEnvironment.new()
+	_world_env.environment = env
+	add_child(_world_env)
 
 func _build_post() -> void:
 	_post_layer = CanvasLayer.new()
@@ -104,12 +107,10 @@ func _build_post() -> void:
 	_resize_post()
 
 func _resize_post() -> void:
-	if _post_rect == null:
+	if _post_mat == null:
 		return
-	var size := get_viewport().size
-	_post_rect.size = Vector2(size)
-	if _post_mat:
-		_post_mat.set_shader_parameter("aspect", float(size.x) / maxf(1.0, float(size.y)))
+	var size: Vector2i = get_viewport().size
+	_post_mat.set_shader_parameter("aspect", float(size.x) / maxf(1.0, float(size.y)))
 
 ## Applies aperture + environment + visitor override. Does not build the body.
 func set_view(aperture_id: String, environment_id: String, visitor_id: String = "") -> void:
@@ -152,6 +153,39 @@ func clear_visitor() -> void:
 func get_preset() -> Dictionary:
 	return _preset.duplicate()
 
+## Turns the whole stage (3D children, camera and post layer) on or off.
+func set_active(active: bool) -> void:
+	visible = active
+	if _post_layer:
+		_post_layer.visible = active
+	if camera:
+		camera.current = active
+	# Only one WorldEnvironment may drive the viewport: hand it back to the
+	# diorama when the aperture stage sleeps.
+	if _world_env:
+		_world_env.environment = _env_resource if active else null
+
+func has_model() -> bool:
+	return _body != null
+
+func show_sign(sign_data: Dictionary) -> void:
+	if _body:
+		_body.show_sign(sign_data)
+
+func set_corruption(v: float) -> void:
+	if _body:
+		_body.set_corruption(v)
+
+func reveal() -> void:
+	if _body:
+		_body.reveal()
+	if camera == null:
+		return
+	var base := camera.fov
+	var tw := create_tween()
+	tw.tween_property(camera, "fov", base * 0.85, 0.09)
+	tw.tween_property(camera, "fov", base, 0.4)
+
 func _apply_camera() -> void:
 	var cam: Dictionary = _preset.get("camera", {})
 	camera.position = Vector3(0, float(cam.get("height", 1.55)), float(cam.get("distance", 1.35)))
@@ -172,7 +206,7 @@ func _apply_backdrop() -> void:
 
 	var depth := float(_preset.get("depth", -6.0))
 	var dist: float = camera.position.z - depth
-	var vp_size := get_viewport().size
+	var vp_size: Vector2i = get_viewport().size
 	var aspect: float = 16.0 / 9.0
 	if vp_size.y > 0:
 		aspect = float(vp_size.x) / float(vp_size.y)

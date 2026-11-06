@@ -81,3 +81,16 @@ Tester: ___ Date: ___
 Layout fixes in this pass: `LAYOUT` is the only floor plan, `get_room_at()` is
 floor-aware, every room has a HUD name, and the data validator runs from the
 repo root without Godot.
+
+## Cinematic door, 2026-11-05
+
+| Check | Result |
+|---|---|
+| `--door-test` | PASS: 0 failures, full-screen `CinematicView` + choice row |
+| `--door-test --door-shot` | `demo_shots/door_cinematic.png` captured at 1280x720 |
+| `tests/validate_systems.py` | PASS: 5 apertures, 8 environments |
+| `--layout-test` / `--house-test` / `--balance-test` | PASS: 0 failures each |
+
+The door now uses the wide `doorway` aperture, a bottom-right dialogue panel
+with typewriter text, and the reference choice pair. The old split layout
+remains behind `ViewPresets.ENABLED = false`. Device QA is still pending.

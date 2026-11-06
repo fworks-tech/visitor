@@ -1,12 +1,13 @@
 # Aperture Views
 
-A composable way to look through a peephole, window, door crack or hatch and
-see an environment with a visitor standing in it. The reference is the peephole
-framing of "No, I'm not a Human": one green, grainy, fisheye image, a face close
-to the glass, and a dialogue box on the right.
+A composable way to look through a doorway, peephole, window, door crack or
+hatch and see an environment with a visitor standing in it. The reference is
+"No, I'm not a Human": one green, grainy image, a visitor close to the door, and
+a dialogue box with choices on the right.
 
-The system is a prototype. It runs as a demo today and is not yet wired into
-`InspectionScene` or the house windows.
+It is wired into the door inspection and the night window behind
+`ViewPresets.ENABLED`. Set that constant to false to fall back to the
+`VisitorDiorama3D` and the old split layout.
 
 ## Why a hybrid composite
 
@@ -144,31 +145,48 @@ godot --path . -- --aperture-demo
 
 The demo filters environments by `compatible`, so a hatch never shows a porch.
 
-## Wiring into InspectionScene
+## Cinematic door layout
 
-The current `DoorView` already renders `VisitorDiorama3D` in a SubViewport. The
-least risky integration is a second stage, hidden until a preset exists:
+`InspectionScene` now hides the old split panels and builds a full-screen
+composition:
 
-1. Add an `ApertureStage` next to `Diorama` in the same SubViewport, or replace
-   `Diorama` when the visitor has a `view_environment` field.
-2. In `InspectionScene._show_visitor` (or `_update_portrait`), call
-   `stage.set_view("peephole", visitor.get("view_environment", ""), visitor.id)`.
-3. Call `stage.set_visitor(visitor, assigned_signs)`.
-4. Keep the current diorama as fallback when the field is empty.
-5. Move the dialogue box over the image only after the composite is approved on
-   device; the current split layout still works.
+```
+CinematicView (SubViewportContainer)
+  └── SubViewport (1280x720)
+        └── ApertureStage (plate + body + doorway shader)
+CinematicUI (Control)
+  ├── HUD line: night, time, food, water, ammo, meds
+  ├── Dialogue panel (bottom right)
+  │     ├── speaker
+  │     ├── typewriter line
+  │     └── choice row: Listen / Look them over / Ask / Study,
+  │         then Come in / You better leave / Eliminate
+  └── LOG drawer (inspection notes)
+```
 
-## Wiring into the house
+The door uses the `doorway` aperture for the wide, full-frame view of the
+reference. `peephole` stays available for a tighter view. The two primary
+decision choices are exactly "Come in." and "You better leave."; ELIMINATE only
+appears when the weapon option is available.
 
-For windows and interior gaps, add an interactable in `House3D`:
+`InspectionScene._setup_aperture_view()` creates the stage in the full-screen
+viewport. `_update_aperture()` sets the view, body, corruption and reveal.
+`_refresh_choices()` rebuilds the choice row from the current conversation
+tier; the old buttons remain as the state source, so the tests and consequences
+still drive the flow.
 
-- id: `window_view`, `door_crack`, `hatch_view`;
-- action opens a full-screen `ApertureStage` overlay in `HouseScene`;
-- aperture id comes from the interactable, environment id from the room or the
-  time of day;
-- close returns to the walk. Freeze player input while open.
+Set `ViewPresets.ENABLED = false` to return to the old diorama and split UI.
 
-Start with one window and one room, then add the rest.
+## Night window
+
+`HouseScene._action_window()` opens `ApertureOverlay` at night:
+
+- the overlay freezes the player, shows the `window` aperture and returns on
+  `E` / `ESC` / STEP BACK;
+- `_window_environment()` maps the current room to a plate (bedroom porch,
+  office road, kitchen and hall yard);
+- the hazard and rejected-figure text still appears as the overlay caption;
+- daylight keeps the text popup because the plates are night plates.
 
 ## Art direction for plates
 
@@ -195,3 +213,7 @@ Start with one window and one room, then add the rest.
 - The visitor body is 3D, not a photographed cutout. The green grade hides most
   of the mismatch, but close inspection will show it.
 - No weather variants yet. Add `_rain`, `_snow` plates or shader overlays later.
+- The cinematic door is 16:9; the house overlay fills the device screen. The
+  final safe-area and font-size pass still needs device QA.
+- The reference has a wooden floor foreground. The current plate stops at the
+  door; a foreground layer is a later art task.

@@ -122,14 +122,20 @@ See `docs/HOUSE_SYSTEM.md` and `docs/adr/ADR-003-house-layout-single-source.md`.
 `ApertureStage` composites a 2D environment plate, the 3D visitor body and a
 one-pass aperture shader. The data lives in `assets/data/view_presets.json`.
 
-- Apertures: `peephole`, `window`, `door_crack`, `hatch`.
+- Apertures: `doorway`, `peephole`, `window`, `door_crack`, `hatch`.
 - Environments: porch, yard, road, hallway, kitchen, basement, bedroom,
   bathroom.
 - Each environment lists compatible apertures and a character anchor for each.
 - `ViewPresets.resolve()` merges defaults, aperture, environment, anchor and
   visitor override. Later wins.
-- The stage is not yet wired into `InspectionScene` or the house. Preview with
-  `godot --path . -- --aperture-demo`.
+- Wired into the door (`InspectionScene`) and the night window (`HouseScene` +
+  `ApertureOverlay`) behind `ViewPresets.ENABLED`. The door is full-screen:
+  `CinematicView` + `CinematicUI`, with a dialogue panel and the reference
+  choice pair "Come in." / "You better leave.".
+- Set `ViewPresets.ENABLED = false` to fall back to `VisitorDiorama3D` and the
+  old split layout.
+- Preview with `godot --path . -- --aperture-demo`; captures with
+  `--aperture-demo --aperture-shot` or `--door-test --door-shot`.
 - Keep plates 1280x720, ungraded, with the center clear for a 1.8 m body.
 - See `docs/APERTURE_VIEWS.md`.
 

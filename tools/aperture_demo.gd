@@ -23,6 +23,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_rebuild_envs()
 	_refresh()
+	if "--aperture-shot" in OS.get_cmdline_user_args():
+		await _capture_shots()
+		get_tree().quit()
 
 func _build() -> void:
 	var view_layer := CanvasLayer.new()
@@ -81,6 +84,31 @@ func _build() -> void:
 	hint.text = "A/D aperture   W/S environment   V visitor   Esc quit"
 	hint.add_theme_color_override("font_color", Color(0.50, 0.62, 0.50))
 	vb.add_child(hint)
+
+func _capture_shots() -> void:
+	DirAccess.make_dir_recursive_absolute("res://demo_shots")
+	var shots := [
+		{"ap": "peephole", "env": "env_porch_night", "visitor": -1, "name": "00_peephole_porch_empty"},
+		{"ap": "peephole", "env": "env_porch_night", "visitor": 0, "name": "01_peephole_porch"},
+		{"ap": "peephole", "env": "env_road_fog", "visitor": 3, "name": "02_peephole_road"},
+		{"ap": "window", "env": "env_yard_night", "visitor": -1, "name": "03_window_yard"},
+		{"ap": "door_crack", "env": "env_hallway", "visitor": 9, "name": "04_crack_hallway"},
+		{"ap": "hatch", "env": "env_basement", "visitor": 12, "name": "05_hatch_basement"},
+	]
+	for shot in shots:
+		var ap := str(shot["ap"])
+		var env := str(shot["env"])
+		var idx: int = int(shot["visitor"])
+		var visitor: Dictionary = visitors[idx] if idx >= 0 and idx < visitors.size() else {}
+		stage.set_view(ap, env, str(visitor.get("id", "")))
+		stage.set_visitor(visitor, [])
+		stage.set_active(true)
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		var img := stage.get_viewport().get_texture().get_image()
+		var path := "res://demo_shots/%s.png" % str(shot["name"])
+		var err := img.save_png(path)
+		print("SHOT %s -> %s" % [path, error_string(err)])
 
 func _load_visitors() -> Array:
 	var f := FileAccess.open("res://assets/data/visitors.json", FileAccess.READ)

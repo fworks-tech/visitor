@@ -88,6 +88,7 @@ func _ready() -> void:
 		"--balance-test": "res://tests/BalanceSimTest.gd",
 		"--screenshot": "res://tools/screenshot_mode.gd",
 		"--stairshot": "res://tools/stairshot.gd",
+		"--aperture-demo": "res://tools/aperture_demo.gd",
 	}
 	for flag in HARNESS.keys():
 		if flag in OS.get_cmdline_args() or flag in OS.get_cmdline_user_args():

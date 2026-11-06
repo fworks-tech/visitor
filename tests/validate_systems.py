@@ -108,6 +108,37 @@ def test_layout_contract():
     print(f"SUCCESS: layout contract valid ({len(floors)} floors, {len(rooms)} rooms)")
 
 
+def test_view_presets():
+    data = load_json("assets/data/view_presets.json")
+    apertures = data.get("apertures", {})
+    environments = data.get("environments", {})
+    assert apertures, "view_presets.json has no apertures"
+    assert environments, "view_presets.json has no environments"
+
+    for aid, ap in apertures.items():
+        assert ap.get("shape") in (0, 1, 2), f"{aid}: shape must be 0/1/2"
+        assert len(ap.get("mask_size", [])) == 2, f"{aid}: mask_size needs 2 values"
+        assert "camera" in ap, f"{aid}: missing camera"
+        for key in ("fov", "height", "distance"):
+            assert key in ap["camera"], f"{aid}: camera missing {key}"
+
+    used_apertures = set()
+    for eid, env in environments.items():
+        texture = str(env.get("texture", "")).replace("res://", "")
+        assert (ROOT / texture).exists(), f"{eid}: missing plate {env.get('texture')}"
+        for aid in env.get("compatible", []):
+            assert aid in apertures, f"{eid}: unknown aperture {aid}"
+            assert aid in env.get("anchors", {}), f"{eid}: no anchor for {aid}"
+            anchor = env["anchors"][aid]
+            for key in ("x", "y", "z", "scale"):
+                assert key in anchor, f"{eid}/{aid}: anchor missing {key}"
+            used_apertures.add(aid)
+
+    unused = [a for a in apertures if a not in used_apertures]
+    assert not unused, f"Apertures with no environment: {unused}"
+    print(f"SUCCESS: view presets valid ({len(apertures)} apertures, {len(environments)} environments)")
+
+
 def test_consequence_system():
     path = ROOT / "scripts/systems/ConsequencesSystem.gd"
     assert path.exists(), "ConsequencesSystem.gd missing"
@@ -121,5 +152,6 @@ if __name__ == "__main__":
     test_visitors_json()
     test_story_json()
     test_layout_contract()
+    test_view_presets()
     test_consequence_system()
     print("\nALL DATA CONTRACTS PASS")

@@ -40,6 +40,9 @@ and what you're willing to live with.
 - **A shelter you walk**: first-person 3D apartment across four floors, with
   scavenging, flashlight battery, guests, and stairs that open as the week
   progresses.
+- **Aperture views**: look through the peephole, windows, door cracks and
+  hatches at composable environments with the visitor standing inside them. See
+  [docs/APERTURE_VIEWS.md](docs/APERTURE_VIEWS.md).
 - **Delayed consequences**: the infected don't reveal themselves at the door.
   A wrong LET IN turns days later, inside.
 - **Resource pressure**: survivors inside eat and drink. Generosity has a cost.
@@ -95,6 +98,9 @@ godot --headless --path . -- --balance-test
 
 # Stairwell screenshots for visual review (real window)
 godot --path . -- --stairshot
+
+# Aperture view playground (peephole, window, crack, hatch)
+godot --path . -- --aperture-demo
 ```
 
 ## Project Structure

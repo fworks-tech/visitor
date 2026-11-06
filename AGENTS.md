@@ -117,6 +117,24 @@ See `docs/HOUSE_SYSTEM.md` and `docs/adr/ADR-003-house-layout-single-source.md`.
 
 ---
 
+## Aperture Views (prototype)
+
+`ApertureStage` composites a 2D environment plate, the 3D visitor body and a
+one-pass aperture shader. The data lives in `assets/data/view_presets.json`.
+
+- Apertures: `peephole`, `window`, `door_crack`, `hatch`.
+- Environments: porch, yard, road, hallway, kitchen, basement, bedroom,
+  bathroom.
+- Each environment lists compatible apertures and a character anchor for each.
+- `ViewPresets.resolve()` merges defaults, aperture, environment, anchor and
+  visitor override. Later wins.
+- The stage is not yet wired into `InspectionScene` or the house. Preview with
+  `godot --path . -- --aperture-demo`.
+- Keep plates 1280x720, ungraded, with the center clear for a 1.8 m body.
+- See `docs/APERTURE_VIEWS.md`.
+
+---
+
 ## Conventions (do not break)
 
 1. **Never call `get_tree().change_scene_to_file()`**. Use

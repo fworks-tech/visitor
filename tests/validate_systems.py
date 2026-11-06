@@ -139,6 +139,27 @@ def test_view_presets():
     print(f"SUCCESS: view presets valid ({len(apertures)} apertures, {len(environments)} environments)")
 
 
+def test_demo_contract():
+    story = load_json("assets/data/story_demo.json")
+    assert story.get("demo") is True, "Demo story must declare demo: true"
+    assert int(story.get("total_nights", 0)) == 2, "Demo must be 2 nights"
+    assert len(story.get("nights", [])) == 2, "Demo must have 2 nights"
+    assert len(story.get("endings", {})) == 2, "Demo must have 2 endings"
+    visitors = load_json("assets/data/visitors.json")["visitors"]
+    ids = {v["id"] for v in visitors}
+    for night in story["nights"]:
+        pool = night.get("available_visitor_pool", [])
+        assert pool, f"Demo night {night.get('night_number')} has no pool"
+        for vid in pool:
+            assert vid in ids, f"Demo pool references missing visitor {vid}"
+    specs = load_json("tools/characters/character_specs.json")["characters"]
+    spec_ids = {c["id"] for c in specs}
+    for vid in ("v001", "v003", "v008"):
+        assert vid in spec_ids, f"Missing character spec {vid}"
+        assert (ROOT / f"assets/models/visitors/{vid}.glb").exists(), f"Missing model {vid}.glb"
+    print("SUCCESS: demo contract valid (2 nights, 3 visitors, 2 endings)")
+
+
 def test_consequence_system():
     path = ROOT / "scripts/systems/ConsequencesSystem.gd"
     assert path.exists(), "ConsequencesSystem.gd missing"
@@ -153,5 +174,6 @@ if __name__ == "__main__":
     test_story_json()
     test_layout_contract()
     test_view_presets()
+    test_demo_contract()
     test_consequence_system()
     print("\nALL DATA CONTRACTS PASS")

@@ -58,6 +58,33 @@ and what you're willing to live with.
   in JSON and one `LAYOUT` table
 - **Platform:** Android + iOS, landscape, touch-first with keyboard and gamepad
 
+## Demo
+
+A two-night slice with three visitors and two endings is wired through the same
+story/inspection loop. Run it with:
+
+```bash
+tools/run_demo.sh
+# or: godot --path . -- --demo
+```
+
+Scope, data and QA gates: [docs/DEMO.md](docs/DEMO.md). The demo loads
+`assets/data/story_demo.json` and the three GLB visitors without touching the
+full seven-night story.
+
+## Character Pipeline
+
+Visitors are GLB assets, not pure code. The repository has a runnable blockout
+lane (portrait palette + face card) and the production Blender contract:
+
+```bash
+python3 tools/characters/build_character.py
+python3 tools/characters/validate_characters.py
+```
+
+Full stage list, budgets and Godot integration:
+[docs/CHARACTER_PIPELINE.md](docs/CHARACTER_PIPELINE.md).
+
 ## The Shelter
 
 The apartment is one floor plan loaded from `House3D.LAYOUT`: ground floor,

@@ -28,6 +28,25 @@ monochrome UI, readable grain.
 
 ---
 
+## Demo Mode
+
+The two-night demo is a data slice, not a fork. `StoryManager` loads
+`assets/data/story_demo.json` when `--demo` is in the user args or the build has
+the `demo` feature. `GameManager.start_new_game()` reads `total_nights` into
+`max_days`, so the same progression code ends the demo after night 2.
+`VisitorManager` limits the cast through the night pools. Run it with
+`tools/run_demo.sh`; validate with `--demo --door-test`.
+
+## Character Pipeline
+
+`VisitorBody3D` prefers a visitor's `character_model` path, and in demo mode it
+automatically loads `res://assets/models/visitors/<id>.glb`. The blockout
+generator lives in `tools/characters/`; the production contract (metres, feet at
+origin, +Z forward, `portrait_face` material, 15k tri budget) is in
+`docs/CHARACTER_PIPELINE.md`. Keep external models optional: the full game still
+falls back to the procedural body, and `show_sign()`/`reveal()` no-op safely
+when an external model has no procedural head.
+
 ## Project Layout
 
 ```

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "contract": {
+    "id": "visitor id from visitors.json",
+    "portrait": "res:// path to the source portrait",
+    "height_scale": "1.0 = 1.82 m blockout",
+    "shoulder": "shoulder width in metres",
+    "hair": "short | long | cap | bald",
+    "coat_tint": "RGB multiplier applied to the sampled coat colour",
+    "hair_tint": "RGB multiplier applied to the sampled hair colour"
+  },
+  "characters": [
+    {
+      "id": "v001",
+      "name": "Marcus Vane",
+      "portrait": "res://assets/images/portraits/visitor_01_marcus_vane.png",
+      "height_scale": 1.02,
+      "shoulder": 0.58,
+      "hair": "short",
+      "coat_tint": [0.82, 0.94, 0.84],
+      "hair_tint": [0.85, 0.90, 0.85]
+    },
+    {
+      "id": "v003",
+      "name": "Arthur Pendelton",
+      "portrait": "res://assets/images/portraits/visitor_03_arthur_pendelton.png",
+      "height_scale": 0.98,
+      "shoulder": 0.56,
+      "hair": "cap",
+      "coat_tint": [1.02, 0.92, 0.80],
+      "hair_tint": [0.75, 0.70, 0.62]
+    },
+    {
+      "id": "v008",
+      "name": "Veronica Reyes",
+      "portrait": "res://assets/images/portraits/visitor_08_veronica_reyes.png",
+      "height_scale": 0.99,
+      "shoulder": 0.50,
+      "hair": "long",
+      "coat_tint": [0.88, 1.00, 0.90],
+      "hair_tint": [0.65, 0.70, 0.62]
+    }
+  ]
+}

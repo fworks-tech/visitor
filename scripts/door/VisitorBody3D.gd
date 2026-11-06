@@ -28,6 +28,7 @@ var reveal_face_tex: Texture2D
 
 var _sign_ids: Array = []
 var _shown_signs: Array = []
+var _external_model: Node3D
 var _corruption: float = 0.0
 var _time: float = 0.0
 var _blink_timer: float = 2.0
@@ -45,6 +46,11 @@ func build(visitor: Dictionary, assigned_signs: Array, with_legs: bool) -> void:
 	for s in assigned_signs:
 		if s is Dictionary:
 			_sign_ids.append(str(s.get("id", "")))
+	var model_path := _model_path(visitor)
+	if model_path != "" and _build_external_model(model_path):
+		_built = true
+		return
+
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(str(visitor.get("id", "x")))
 	var tex := _portrait_tex(visitor)
@@ -61,7 +67,7 @@ func build(visitor: Dictionary, assigned_signs: Array, with_legs: bool) -> void:
 
 func show_sign(sign_data: Dictionary) -> void:
 	var sid := str(sign_data.get("id", ""))
-	if sid == "" or sid in _shown_signs or not _built:
+	if sid == "" or sid in _shown_signs or not _built or head == null:
 		return
 	if sid in PHYSICAL_SIGN_IDS:
 		_build_attachment(sid)
@@ -72,6 +78,8 @@ func set_corruption(v: float) -> void:
 	_apply_corruption()
 
 func reveal() -> void:
+	if head == null:
+		return
 	for sid in _sign_ids:
 		if sid in PHYSICAL_SIGN_IDS and sid not in _shown_signs:
 			_build_attachment(sid)
@@ -79,6 +87,27 @@ func reveal() -> void:
 	if face_mat and reveal_face_tex:
 		face_mat.albedo_texture = reveal_face_tex
 	set_corruption(1.0)
+
+func _model_path(visitor: Dictionary) -> String:
+	var explicit := str(visitor.get("character_model", ""))
+	if explicit != "":
+		return explicit
+	if bool(StoryManager.story_data.get("demo", false)):
+		var path := "res://assets/models/visitors/%s.glb" % str(visitor.get("id", ""))
+		if ResourceLoader.exists(path):
+			return path
+	return ""
+
+func _build_external_model(path: String) -> bool:
+	var packed := load(path) as PackedScene
+	if packed == null:
+		return false
+	var inst := packed.instantiate()
+	if inst == null:
+		return false
+	add_child(inst)
+	_external_model = inst
+	return true
 
 func _reset_state() -> void:
 	head = null
@@ -91,6 +120,7 @@ func _reset_state() -> void:
 	skin_mats.clear()
 	face_mat = null
 	reveal_face_tex = null
+	_external_model = null
 	_sign_ids.clear()
 	_shown_signs.clear()
 	_corruption = 0.0
@@ -256,6 +286,8 @@ func _build_humanoid(rng: RandomNumberGenerator, pal: Dictionary, with_legs: boo
 		jaw.position.x = jaw_offset_x
 
 func _build_attachment(sid: String) -> void:
+	if head == null:
+		return
 	match sid:
 		"s001":  # rash patches on cheek and neck
 			var rash := _mat(Color(0.45, 0.12, 0.1))

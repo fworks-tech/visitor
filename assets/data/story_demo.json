@@ -1,0 +1,116 @@
+{
+  "version": "demo-1.0",
+  "title": "The Visitor \u2014 Demo",
+  "game_title": "The Visitor",
+  "description": "A two-night slice of the full game: three visitors, two outcomes, one threshold.",
+  "demo": true,
+  "demo_length_minutes": 10,
+  "total_nights": 2,
+  "tracked_stats": [
+    "trust",
+    "corruption",
+    "morale",
+    "food_rations",
+    "medicine_supplies",
+    "ammo_count",
+    "infected_admitted",
+    "humans_killed",
+    "visitors_turned_away",
+    "player_infected"
+  ],
+  "events": {},
+  "nights": [
+    {
+      "night_number": 1,
+      "title": "Night 1: The Threshold",
+      "subtitle": "Demo \u2014 First Knock",
+      "briefing": "The fog takes the road. Two people are at the checkpoint door before midnight. Let the right ones in; the wrong one ends the demo early.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard"
+      ],
+      "environmental_hazard": "Ground fog reduces the view through the inspection window.",
+      "day_phase_events": {
+        "summary": "Viktor checks the lock. Vera counts cans. The radio will not hold a station.",
+        "shelter_event": "A short tutorial in the house; the front door is the only way out.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Viktor",
+            "text": "Five minutes at the door. If it looks wrong, it is wrong."
+          },
+          {
+            "speaker": "Vera",
+            "text": "And if it looks right, look again."
+          }
+        ]
+      },
+      "scripted_events": [
+        {
+          "event_id": "demo_tutorial_arrival",
+          "description": "Marcus Vane is the first knock. He teaches the inspection loop.",
+          "mandatory_visitor": "v001"
+        }
+      ],
+      "available_visitor_pool": [
+        "v001",
+        "v003"
+      ]
+    },
+    {
+      "night_number": 2,
+      "title": "Night 2: The Last Dusk",
+      "subtitle": "Demo \u2014 Final Verdict",
+      "briefing": "Three knocks before dawn. The demo ends when the road goes quiet.",
+      "unlocked_tools": [
+        "flashlight",
+        "interrogation_clipboard"
+      ],
+      "environmental_hazard": "The generator is low; the porch light stutters.",
+      "day_phase_events": {
+        "summary": "The shelter waits for daylight. No one sleeps.",
+        "shelter_event": "The final night of the demo. Every decision is counted.",
+        "dialogue_highlights": [
+          {
+            "speaker": "Viktor",
+            "text": "Last night. Make it count."
+          },
+          {
+            "speaker": "Vera",
+            "text": "If the road clears, we will know we did."
+          }
+        ]
+      },
+      "scripted_events": [],
+      "available_visitor_pool": [
+        "v001",
+        "v003",
+        "v008"
+      ]
+    }
+  ],
+  "endings": {
+    "ending_01_gatekeeper": {
+      "id": "ending_gatekeeper",
+      "title": "The Gatekeeper",
+      "subtitle": "Demo \u2014 The Line Held",
+      "conditions": {
+        "infected_admitted": 0,
+        "corruption_max": 30,
+        "min_trust": 50,
+        "min_survivors_alive": 2
+      },
+      "summary": "You held the line for two nights. No infected crossed the threshold, and the shelter still has a morning.",
+      "epilogue": "At dawn the fog lifts just enough to see the road. Viktor opens the inner door. Vera puts a cup in your hand. The demo ends here; in the full game, the road goes on for five more nights."
+    },
+    "ending_02_pariah": {
+      "id": "ending_pariah",
+      "title": "The Pariah",
+      "subtitle": "Demo \u2014 The Door Opened",
+      "conditions": {
+        "min_infected_admitted": 1
+      },
+      "summary": "Something crossed the threshold that should not have. The shelter's trust did not survive the night.",
+      "epilogue": "At 03:40 the first scream comes from the bunks. By dawn the checkpoint is quiet for the wrong reason. The demo ends here; the full game gives you five more nights to live with it."
+    }
+  }
+}

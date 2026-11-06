@@ -69,6 +69,15 @@ landing height is resolved per action.
 the upper halls and storage rooms report their own names instead of their
 ground-floor twins.
 
+## Visual Direction
+
+The target is analog horror in the vein of "No, I'm not a Human": uncanny,
+almost-photographic faces, one lit detail in a dark frame, green monochrome UI
+and analog decay. The Godot implementation, starting values and one-week sprint
+live in [docs/ART_DIRECTION_ANALOG.md](docs/ART_DIRECTION_ANALOG.md). The engine
+decision is recorded in
+[docs/ENGINE_EVALUATION.md](docs/ENGINE_EVALUATION.md).
+
 ## Testing and Gates
 
 ```bash

@@ -21,6 +21,11 @@ battery, guests, and stairs that unlock as the week progresses.
 uncanny almost-photographic look. Green monochrome UI. VHS/CRT distortion. The
 horror is in the *almost right*.
 
+**Direction:** Godot 4.x for Visitor and DEEPTALES, recorded in
+`docs/ENGINE_EVALUATION.md`. The visual target is the analog-horror pipeline in
+`docs/ART_DIRECTION_ANALOG.md`: uncanny faces, practical light, green
+monochrome UI, readable grain.
+
 ---
 
 ## Project Layout

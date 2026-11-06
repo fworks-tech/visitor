@@ -1,0 +1,551 @@
+{
+  "version": 1,
+  "defaults": {
+    "aperture": "peephole",
+    "environment": "env_porch_night"
+  },
+  "apertures": {
+    "peephole": {
+      "label": "Peephole",
+      "shape": 0,
+      "mask_center": [
+        0.5,
+        0.5
+      ],
+      "mask_size": [
+        0.92,
+        0.92
+      ],
+      "mask_softness": 0.02,
+      "fisheye": 0.32,
+      "zoom": 1.05,
+      "tint": [
+        0.72,
+        0.86,
+        0.72
+      ],
+      "tint_mix": 0.55,
+      "grain": 0.05,
+      "scanlines": 0.06,
+      "vignette": 0.75,
+      "aberration": 0.002,
+      "tracking": 0.002,
+      "camera": {
+        "height": 1.55,
+        "fov": 62.0,
+        "distance": 1.35
+      }
+    },
+    "window": {
+      "label": "Window",
+      "shape": 1,
+      "mask_center": [
+        0.5,
+        0.5
+      ],
+      "mask_size": [
+        0.84,
+        0.8
+      ],
+      "mask_softness": 0.04,
+      "fisheye": 0.08,
+      "zoom": 1.0,
+      "tint": [
+        0.74,
+        0.88,
+        0.74
+      ],
+      "tint_mix": 0.45,
+      "grain": 0.035,
+      "scanlines": 0.035,
+      "vignette": 0.45,
+      "aberration": 0.0012,
+      "tracking": 0.001,
+      "camera": {
+        "height": 1.55,
+        "fov": 65.0,
+        "distance": 1.35
+      }
+    },
+    "door_crack": {
+      "label": "Door crack",
+      "shape": 2,
+      "mask_center": [
+        0.5,
+        0.5
+      ],
+      "mask_size": [
+        0.24,
+        0.94
+      ],
+      "mask_softness": 0.01,
+      "fisheye": 0.0,
+      "zoom": 1.02,
+      "tint": [
+        0.7,
+        0.85,
+        0.7
+      ],
+      "tint_mix": 0.5,
+      "grain": 0.045,
+      "scanlines": 0.045,
+      "vignette": 0.6,
+      "aberration": 0.0015,
+      "tracking": 0.001,
+      "camera": {
+        "height": 1.55,
+        "fov": 60.0,
+        "distance": 1.35
+      }
+    },
+    "hatch": {
+      "label": "Hatch",
+      "shape": 1,
+      "mask_center": [
+        0.5,
+        0.52
+      ],
+      "mask_size": [
+        0.7,
+        0.55
+      ],
+      "mask_softness": 0.05,
+      "fisheye": 0.05,
+      "zoom": 1.0,
+      "tint": [
+        0.7,
+        0.86,
+        0.72
+      ],
+      "tint_mix": 0.5,
+      "grain": 0.05,
+      "scanlines": 0.05,
+      "vignette": 0.55,
+      "aberration": 0.0015,
+      "tracking": 0.001,
+      "camera": {
+        "height": 1.5,
+        "fov": 60.0,
+        "distance": 1.35
+      }
+    },
+    "doorway": {
+      "label": "Doorway",
+      "shape": 1,
+      "mask_center": [
+        0.5,
+        0.5
+      ],
+      "mask_size": [
+        1.04,
+        1.04
+      ],
+      "mask_softness": 0.0,
+      "fisheye": 0.1,
+      "zoom": 1.0,
+      "tint": [
+        0.72,
+        0.86,
+        0.72
+      ],
+      "tint_mix": 0.48,
+      "grain": 0.045,
+      "scanlines": 0.045,
+      "vignette": 0.38,
+      "aberration": 0.0015,
+      "tracking": 0.001,
+      "camera": {
+        "height": 1.55,
+        "fov": 65.0,
+        "distance": 1.35
+      }
+    }
+  },
+  "environments": {
+    "env_porch_night": {
+      "label": "Front porch",
+      "texture": "res://assets/images/environments/env_porch_night.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "doorway",
+        "peephole",
+        "door_crack",
+        "window"
+      ],
+      "light": {
+        "key_color": [
+          1.0,
+          0.82,
+          0.62
+        ],
+        "key_energy": 2.8,
+        "fill_color": [
+          0.25,
+          0.4,
+          0.32
+        ],
+        "fill_energy": 0.6,
+        "rim_color": [
+          0.3,
+          0.9,
+          0.6
+        ],
+        "rim_energy": 1.0
+      },
+      "anchors": {
+        "peephole": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        },
+        "door_crack": {
+          "x": 0.05,
+          "y": 0.0,
+          "z": 0.15,
+          "scale": 0.98,
+          "yaw": 0.0
+        },
+        "window": {
+          "x": 0.15,
+          "y": 0.0,
+          "z": -0.2,
+          "scale": 0.95,
+          "yaw": 0.0
+        },
+        "doorway": {
+          "x": -0.35,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_yard_night": {
+      "label": "Front yard",
+      "texture": "res://assets/images/environments/env_yard_night.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "doorway",
+        "peephole",
+        "window"
+      ],
+      "light": {
+        "key_color": [
+          0.55,
+          0.7,
+          0.62
+        ],
+        "key_energy": 2.2,
+        "fill_color": [
+          0.2,
+          0.35,
+          0.3
+        ],
+        "fill_energy": 0.5,
+        "rim_color": [
+          0.25,
+          0.7,
+          0.5
+        ],
+        "rim_energy": 0.8
+      },
+      "anchors": {
+        "peephole": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        },
+        "window": {
+          "x": 0.15,
+          "y": 0.0,
+          "z": -0.2,
+          "scale": 0.95,
+          "yaw": 0.0
+        },
+        "doorway": {
+          "x": -0.35,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_road_fog": {
+      "label": "Road in fog",
+      "texture": "res://assets/images/environments/env_road_fog.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "doorway",
+        "peephole",
+        "window"
+      ],
+      "light": {
+        "key_color": [
+          0.5,
+          0.65,
+          0.6
+        ],
+        "key_energy": 2.0,
+        "fill_color": [
+          0.18,
+          0.3,
+          0.26
+        ],
+        "fill_energy": 0.45,
+        "rim_color": [
+          0.22,
+          0.65,
+          0.48
+        ],
+        "rim_energy": 0.7
+      },
+      "anchors": {
+        "window": {
+          "x": 0.15,
+          "y": 0.0,
+          "z": -0.2,
+          "scale": 0.95,
+          "yaw": 0.0
+        },
+        "peephole": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        },
+        "doorway": {
+          "x": -0.35,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_hallway": {
+      "label": "Hallway",
+      "texture": "res://assets/images/environments/env_hallway.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "doorway",
+        "peephole",
+        "door_crack"
+      ],
+      "light": {
+        "key_color": [
+          1.0,
+          0.85,
+          0.65
+        ],
+        "key_energy": 2.8,
+        "fill_color": [
+          0.3,
+          0.35,
+          0.3
+        ],
+        "fill_energy": 0.6,
+        "rim_color": [
+          0.2,
+          0.6,
+          0.45
+        ],
+        "rim_energy": 0.9
+      },
+      "anchors": {
+        "peephole": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        },
+        "door_crack": {
+          "x": 0.05,
+          "y": 0.0,
+          "z": 0.15,
+          "scale": 0.98,
+          "yaw": 0.0
+        },
+        "doorway": {
+          "x": -0.35,
+          "y": 0.0,
+          "z": 0.0,
+          "scale": 1.0,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_kitchen": {
+      "label": "Kitchen",
+      "texture": "res://assets/images/environments/env_kitchen.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "window",
+        "door_crack"
+      ],
+      "light": {
+        "key_color": [
+          1.0,
+          0.88,
+          0.7
+        ],
+        "key_energy": 2.8,
+        "fill_color": [
+          0.25,
+          0.35,
+          0.28
+        ],
+        "fill_energy": 0.6,
+        "rim_color": [
+          0.2,
+          0.6,
+          0.4
+        ],
+        "rim_energy": 0.9
+      },
+      "anchors": {
+        "window": {
+          "x": 0.15,
+          "y": 0.0,
+          "z": -0.2,
+          "scale": 0.95,
+          "yaw": 0.0
+        },
+        "door_crack": {
+          "x": 0.05,
+          "y": 0.0,
+          "z": 0.15,
+          "scale": 0.98,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_basement": {
+      "label": "Basement stairs",
+      "texture": "res://assets/images/environments/env_basement.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "hatch"
+      ],
+      "light": {
+        "key_color": [
+          0.7,
+          0.85,
+          0.7
+        ],
+        "key_energy": 2.4,
+        "fill_color": [
+          0.15,
+          0.25,
+          0.2
+        ],
+        "fill_energy": 0.5,
+        "rim_color": [
+          0.2,
+          0.7,
+          0.5
+        ],
+        "rim_energy": 0.8
+      },
+      "anchors": {
+        "hatch": {
+          "x": 0.0,
+          "y": -0.1,
+          "z": 0.0,
+          "scale": 0.9,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_bedroom": {
+      "label": "Bedroom",
+      "texture": "res://assets/images/environments/env_bedroom.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "window",
+        "door_crack"
+      ],
+      "light": {
+        "key_color": [
+          1.0,
+          0.8,
+          0.6
+        ],
+        "key_energy": 2.6,
+        "fill_color": [
+          0.2,
+          0.3,
+          0.25
+        ],
+        "fill_energy": 0.55,
+        "rim_color": [
+          0.2,
+          0.6,
+          0.45
+        ],
+        "rim_energy": 0.85
+      },
+      "anchors": {
+        "window": {
+          "x": 0.15,
+          "y": 0.0,
+          "z": -0.2,
+          "scale": 0.95,
+          "yaw": 0.0
+        },
+        "door_crack": {
+          "x": 0.05,
+          "y": 0.0,
+          "z": 0.15,
+          "scale": 0.98,
+          "yaw": 0.0
+        }
+      }
+    },
+    "env_bathroom": {
+      "label": "Bathroom",
+      "texture": "res://assets/images/environments/env_bathroom.jpg",
+      "depth": -6.0,
+      "compatible": [
+        "door_crack"
+      ],
+      "light": {
+        "key_color": [
+          0.8,
+          0.9,
+          0.8
+        ],
+        "key_energy": 2.4,
+        "fill_color": [
+          0.2,
+          0.3,
+          0.28
+        ],
+        "fill_energy": 0.5,
+        "rim_color": [
+          0.2,
+          0.65,
+          0.5
+        ],
+        "rim_energy": 0.8
+      },
+      "anchors": {
+        "door_crack": {
+          "x": 0.05,
+          "y": 0.0,
+          "z": 0.15,
+          "scale": 0.98,
+          "yaw": 0.0
+        }
+      }
+    }
+  },
+  "visitor_overrides": {}
+}

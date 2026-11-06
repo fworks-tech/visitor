@@ -5,6 +5,7 @@
       "name": "Marcus Vane",
       "portrait": "res://assets/images/portraits/visitor_01_marcus_vane.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": true,
       "dialogue_chain": [
         "Knock. A single fist, steady.",
@@ -34,6 +35,7 @@
       "name": "Elena and Leo",
       "portrait": "res://assets/images/portraits/visitor_02_elena_and_leo.png",
       "reveal_portrait": "",
+      "view_environment": "env_yard_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A woman with a boy, both shivering.",
@@ -63,6 +65,7 @@
       "name": "Arthur Pendelton",
       "portrait": "res://assets/images/portraits/visitor_03_arthur_pendelton.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "An old man, immaculate suit, cane.",
@@ -91,6 +94,7 @@
       "name": "Sgt. Sergei Volkov",
       "portrait": "res://assets/images/portraits/visitor_04_sgt_sergei_volkov.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_04_sgt_sergei_volkov_reveal.png",
+      "view_environment": "env_road_fog",
       "is_actually_infected": true,
       "dialogue_chain": [
         "Boots on the landing. Heavy breathing.",
@@ -119,6 +123,7 @@
       "name": "Martha Gillespie",
       "portrait": "res://assets/images/portraits/visitor_05_martha_gillespie.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A neighbor with a casserole dish.",
@@ -148,6 +153,7 @@
       "name": "Toby Renner",
       "portrait": "res://assets/images/portraits/visitor_06_toby_renner.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_06_toby_renner_reveal.png",
+      "view_environment": "env_yard_night",
       "is_actually_infected": true,
       "dialogue_chain": [
         "A teenager, restless, hood up.",
@@ -175,6 +181,7 @@
       "name": "Trio: Conrad, Mira, Sam",
       "portrait": "res://assets/images/portraits/visitor_07_trio_conrad_mira_sam.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_07_trio_conrad_mira_sam_reveal.png",
+      "view_environment": "env_yard_night",
       "is_actually_infected": true,
       "dialogue_chain": [
         "Three people, too close, speaking in turns.",
@@ -201,6 +208,7 @@
       "name": "Veronica Reyes",
       "portrait": "res://assets/images/portraits/visitor_08_veronica_reyes.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_08_veronica_reyes_reveal.png",
+      "view_environment": "env_road_fog",
       "is_actually_infected": true,
       "dialogue_chain": [
         "A nurse in stained scrubs.",
@@ -228,6 +236,7 @@
       "name": "Dr. Evelyn Thorne",
       "portrait": "res://assets/images/portraits/visitor_09_dr_evelyn_thorne.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A doctor with a flashlight and a satchel.",
@@ -256,6 +265,7 @@
       "name": "Julian Vance",
       "portrait": "res://assets/images/portraits/visitor_10_julian_vance.png",
       "reveal_portrait": "",
+      "view_environment": "env_hallway",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A man who looks like Marcus, but older.",
@@ -283,6 +293,7 @@
       "name": "Clara Doppelganger",
       "portrait": "res://assets/images/portraits/visitor_11_clara_doppelganger.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_11_clara_doppelganger_reveal.png",
+      "view_environment": "env_hallway",
       "is_actually_infected": true,
       "dialogue_chain": [
         "A woman wearing your face.",
@@ -308,6 +319,7 @@
       "name": "Father Thomas",
       "portrait": "res://assets/images/portraits/visitor_12_father_thomas.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A priest with soot on his collar.",
@@ -336,6 +348,7 @@
       "name": "Cadet Mia",
       "portrait": "res://assets/images/portraits/visitor_13_cadet_mia.png",
       "reveal_portrait": "",
+      "view_environment": "env_road_fog",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A young cadet, uniform torn.",
@@ -362,6 +375,7 @@
       "name": "Jax Corvin",
       "portrait": "res://assets/images/portraits/visitor_14_jax_corvin.png",
       "reveal_portrait": "",
+      "view_environment": "env_yard_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A courier with a sealed envelope.",
@@ -389,6 +403,7 @@
       "name": "Hannah Cross",
       "portrait": "res://assets/images/portraits/visitor_15_hannah_cross.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A woman in a hazmat suit, visor up.",
@@ -415,6 +430,7 @@
       "name": "Gideon Vance",
       "portrait": "res://assets/images/portraits/visitor_16_gideon_vance.png",
       "reveal_portrait": "",
+      "view_environment": "env_road_fog",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A gaunt man claiming to be the Vance patriarch.",
@@ -440,6 +456,7 @@
       "name": "Lily Cooper",
       "portrait": "res://assets/images/portraits/visitor_17_lily_cooper.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_17_lily_cooper_reveal.png",
+      "view_environment": "env_yard_night",
       "is_actually_infected": true,
       "dialogue_chain": [
         "A child's silhouette behind frosted glass.",
@@ -466,6 +483,7 @@
       "name": "Richard Vance (Hazmat)",
       "portrait": "res://assets/images/portraits/visitor_18_richard_vance_hazmat.png",
       "reveal_portrait": "",
+      "view_environment": "env_road_fog",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A hazmat officer with no unit patch.",
@@ -490,6 +508,7 @@
       "name": "Kane Blackwood",
       "portrait": "res://assets/images/portraits/visitor_19_kane_blackwood.png",
       "reveal_portrait": "",
+      "view_environment": "env_porch_night",
       "is_actually_infected": false,
       "dialogue_chain": [
         "A drifter with a transistor radio.",
@@ -515,6 +534,7 @@
       "name": "Nadia Volkova",
       "portrait": "res://assets/images/portraits/visitor_20_nadia_volkova.png",
       "reveal_portrait": "res://assets/images/portraits/visitor_20_nadia_volkova_reveal.png",
+      "view_environment": "env_road_fog",
       "is_actually_infected": true,
       "dialogue_chain": [
         "A woman in uniform, similar to Sergei.",

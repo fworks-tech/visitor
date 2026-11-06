@@ -23,6 +23,8 @@ GATES = [
      "RESULT 0 failures"),
     ("balance", [GODOT, "--headless", "--path", str(ROOT), "--", "--balance-test"],
      "RESULT 0 failures"),
+    ("layout", [GODOT, "--headless", "--path", str(ROOT), "--", "--layout-test"],
+     "RESULT 0 failures"),
     ("placement", [GODOT, "--headless", "--path", str(ROOT), "--script",
                    "res://tools/placement_audit.gd"], "0 FAIL"),
     ("focus", [GODOT, "--headless", "--path", str(ROOT), "--script",
@@ -36,7 +38,7 @@ def main() -> int:
     for name, cmd, expect in GATES:
         print(f"== {name} ==")
         try:
-            proc = subprocess.run(cmd, cwd=ROOT.parent, capture_output=True,
+            proc = subprocess.run(cmd, cwd=ROOT, capture_output=True,
                                   text=True, errors="replace", timeout=300)
         except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
             failed.append(name)

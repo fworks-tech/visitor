@@ -19,6 +19,14 @@ const ROOM_NAMES := {
 	"kitchen": "KITCHEN",
 	"office": "OFFICE",
 	"bathroom": "BATHROOM",
+	"hall_up": "UPPER HALL",
+	"storage": "STORAGE",
+	"guest_room": "GUEST ROOM",
+	"attic_hall": "ATTIC",
+	"attic_storage": "ATTIC STORAGE",
+	"basement_hall": "BASEMENT",
+	"generator_room": "GENERATOR ROOM",
+	"cellar": "CELLAR",
 }
 
 const TOOL_LABELS := {
@@ -55,6 +63,7 @@ var _touch_layer: Control
 var _stick_vec := Vector2.ZERO
 var _stick_touch := -1
 var _look_touch := -1
+var _aperture_overlay: ApertureOverlay
 
 func _ready() -> void:
 	AudioManager.stop_music()
@@ -63,6 +72,7 @@ func _ready() -> void:
 	house3d.set_guests(VisitorManager.admitted_visitors)
 	_refresh_hud()
 	_build_touch_controls()
+	_build_aperture_overlay()
 	_capture_mouse()
 	if _is_day():
 		if not GameManager.tv_watched_today:
@@ -81,14 +91,25 @@ func _ready() -> void:
 func _is_day() -> bool:
 	return GameManager.current_state == GameManager.GameState.DAY
 
+func _build_aperture_overlay() -> void:
+	_aperture_overlay = ApertureOverlay.new()
+	_aperture_overlay.name = "ApertureOverlay"
+	add_child(_aperture_overlay)
+	_aperture_overlay.closed.connect(_on_aperture_closed)
+
 func _capture_mouse() -> void:
-	if not popup.visible:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if popup.visible:
+		return
+	if _aperture_overlay and _aperture_overlay.visible:
+		return
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 # --- first-person presence -----------------------------------------------------
 
 func _process(_delta: float) -> void:
 	if house3d.player == null:
+		return
+	if _aperture_overlay and _aperture_overlay.visible:
 		return
 	house3d.player.touch_move = _stick_vec if _touch_layer.visible else Vector2.ZERO
 	var room := house3d.get_room_at(house3d.player.global_position)
@@ -100,6 +121,10 @@ func _process(_delta: float) -> void:
 
 func _refresh_focus() -> void:
 	_focus = {}
+	if _aperture_overlay and _aperture_overlay.visible:
+		prompt_label.text = ""
+		crosshair.modulate.a = 0.35
+		return
 	if popup.visible or house3d.player == null or house3d.player.camera == null:
 		prompt_label.text = ""
 		crosshair.modulate.a = 0.35
@@ -126,6 +151,8 @@ func _interact_glyph() -> String:
 
 
 func _input(event: InputEvent) -> void:
+	if _aperture_overlay and _aperture_overlay.visible:
+		return
 	if event is InputEventKey or event is InputEventMouseButton:
 		_last_device = "keyboard"
 	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
@@ -137,6 +164,8 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if popup.visible:
+		return
+	if _aperture_overlay and _aperture_overlay.visible:
 		return
 	var use := false
 	if event is InputEventMouseButton:
@@ -263,22 +292,50 @@ func _action_radio() -> void:
 	_open_popup("RADIO", "", text)
 
 func _action_window() -> void:
+	if ViewPresets.ENABLED and not _is_day():
+		_open_window_aperture(_window_caption())
+		return
+	_open_popup("WINDOW", HOUSE_IMG_DIR + "house_window_outside.png", _window_caption())
+
+func _window_caption() -> String:
 	var hazard := ""
 	var nights: Array = StoryManager.story_data.get("nights", [])
 	for n in nights:
 		if int(n.get("night_number", 0)) == GameManager.current_day:
 			hazard = str(n.get("environmental_hazard", ""))
 			break
-	var text := ""
 	if _is_day():
-		text = "Daylight burns the streets empty. %s" % hazard
-	else:
-		var figures: int = VisitorManager.rejected_visitors.size()
-		if figures > 0:
-			text = "%s\n\nFigures linger near the wire — %d you turned away, still out there in the dark." % [hazard, figures]
-		else:
-			text = "%s\n\nNothing moves out there. For now." % hazard
-	_open_popup("WINDOW", HOUSE_IMG_DIR + "house_window_outside.png", text)
+		return "Daylight burns the streets empty. %s" % hazard
+	var figures: int = VisitorManager.rejected_visitors.size()
+	if figures > 0:
+		return "%s\n\nFigures linger near the wire — %d you turned away, still out there in the dark." % [hazard, figures]
+	return "%s\n\nNothing moves out there. For now." % hazard
+
+func _window_environment() -> String:
+	match current_room:
+		"bedroom":
+			return "env_porch_night"
+		"office":
+			return "env_road_fog"
+		"kitchen", "hall":
+			return "env_yard_night"
+		_:
+			return "env_yard_night"
+
+func _open_window_aperture(caption: String = "") -> void:
+	if _aperture_overlay == null:
+		return
+	if house3d.player:
+		house3d.player.velocity = Vector3.ZERO
+		house3d.player.set_physics_process(false)
+		house3d.player.set_process(false)
+	_aperture_overlay.open("window", _window_environment(), "WINDOW", caption)
+
+func _on_aperture_closed() -> void:
+	if house3d.player:
+		house3d.player.set_physics_process(true)
+		house3d.player.set_process(true)
+	_capture_mouse()
 
 func _action_front_door() -> void:
 	if _is_day():
@@ -343,7 +400,8 @@ func _action_mirror() -> void:
 
 # --- multi-floor navigation ---------------------------------------------------
 
-## Maps each stairs/ladder action to the target floor. Spawn offset is always the same.
+## Maps each stairs/ladder action to the target floor. Landing z is per action:
+## north landings (top of an upward flight) vs the down-run top (south entry).
 const STAIRS_TARGET := {
 	"stairs_up": "second",
 	"stairs_down": "basement",
@@ -351,6 +409,14 @@ const STAIRS_TARGET := {
 	"stairs_up_from_basement": "ground",
 	"ladder_up": "attic",
 	"ladder_down": "second",
+}
+const STAIRS_LAND_Z := {
+	"stairs_up": -2.5,
+	"stairs_down": -2.6,
+	"stairs_down_from_second": -2.5,
+	"stairs_up_from_basement": 2.6,
+	"ladder_up": -2.5,
+	"ladder_down": -2.5,
 }
 
 func _action_stairs(action: String) -> void:
@@ -362,8 +428,12 @@ func _action_stairs(action: String) -> void:
 	if not house3d._unlocked_floors.has(target_floor):
 		_open_popup("BLOCKED", "", "The way is barricaded. It will open when the time comes.")
 		return
+	if house3d.player == null:
+		return
 	var y_off: float = house3d.FLOOR_Y[target_floor]
-	house3d.player.position = Vector3(2.5, y_off + 0.05, 0.0)
+	var land_z: float = float(STAIRS_LAND_Z.get(action, 0.0))
+	house3d.player.position = Vector3(2.3, y_off + 0.05, clampf(land_z, -2.6, 2.6))
+	house3d.player.velocity = Vector3.ZERO
 	house3d._current_floor = target_floor
 	_open_popup("STAIRS" if "ladder" not in action else "LADDER", "", "You climb to the %s." % target_floor)
 

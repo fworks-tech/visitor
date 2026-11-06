@@ -38,11 +38,31 @@ func _run() -> void:
 	get_tree().root.add_child(scene)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	if "--door-shot" in OS.get_cmdline_user_args():
+		await get_tree().create_timer(2.4).timeout
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		DirAccess.make_dir_recursive_absolute("res://demo_shots")
+		var img := get_viewport().get_texture().get_image()
+		var err := img.save_png("res://demo_shots/door_cinematic.png")
+		print("SHOT door_cinematic -> ", error_string(err))
 
 	# 1. A visitor is actually at the door, with a real portrait.
 	check(not scene.current_visitor.is_empty(), "visitor loaded at door")
-	check(scene.diorama.has_model(), "3D figure built (no placeholder)")
-	check(scene.portrait_art.texture != null, "visitor PNG art shown at door")
+	var _b = scene.diorama._body
+	var _p = _b._model_path(scene.current_visitor) if _b else ""
+	if StoryManager.demo_mode:
+		check(int(StoryManager.story_data.get("total_nights", 0)) == 2, "demo is two nights")
+		check(StoryManager.story_data.get("endings", {}).size() == 2, "demo has two endings")
+		check(scene.aperture_stage != null and scene.aperture_stage._body != null \
+			and scene.aperture_stage._body._external_model != null, "demo visitor uses a GLB model")
+	var aperture_ok: bool = scene.aperture_stage != null and scene.aperture_stage.has_model()
+	var figure_ok: bool = scene.diorama.has_model() or aperture_ok
+	check(figure_ok, "3D figure built (no placeholder)")
+	var art_ok: bool = scene.portrait_art.texture != null or aperture_ok
+	check(art_ok, "visitor PNG art shown at door")
+	if ViewPresets.ENABLED:
+		check(aperture_ok, "aperture stage carries the figure")
 	check(scene.question_story_btn.visible, "listen offered first")
 	check(not scene.inspect_btn.visible, "examine hidden until heard")
 	check(not scene.let_in_btn.visible, "judgment hidden until earned")
@@ -65,6 +85,33 @@ func _run() -> void:
 	check(scene.asked_about_marks, "ask draws out the reveal")
 	scene._on_test_reaction_pressed()  # STUDY
 	check(scene.studied_face, "study registers the gaze")
+
+	# 2b. NINAH-style inspection: targeted part, close-up, one light charge.
+	var charges_before: int = scene.inspection_charges
+	scene._on_choice("inspect_enter")
+	check(scene._inspection_mode, "inspection submenu opens")
+	scene._on_choice("inspect_mouth")
+	check(scene.inspection_charges == charges_before - 1, "inspection spends one light")
+	check(scene._closeup_panel.visible, "inspection close-up shown")
+	if "--door-shot" in OS.get_cmdline_user_args():
+		await get_tree().create_timer(0.9).timeout
+		await RenderingServer.frame_post_draw
+		var shot := get_viewport().get_texture().get_image()
+		shot.save_png("res://demo_shots/door_inspection.png")
+	scene._on_choice("inspect_back")
+	check(not scene._inspection_mode, "inspection submenu closes")
+
+	# 2c. Weapon drawn: exactly Shoot / Hear out, then lower.
+	if int(ResourceSystem.get_resources().get("ammo", 0)) > 0:
+		scene._on_choice("draw")
+		check(scene._weapon_drawn, "weapon drawn")
+		if "--door-shot" in OS.get_cmdline_user_args():
+			await get_tree().create_timer(0.9).timeout
+			await RenderingServer.frame_post_draw
+			var shot := get_viewport().get_texture().get_image()
+			shot.save_png("res://demo_shots/door_weapon.png")
+		scene._on_choice("hear_out")
+		check(not scene._weapon_drawn, "weapon lowered")
 
 	# 3. The decision actually reaches the sim (flags, trust, house guests).
 	var trust_before: int = GameManager.trust_value

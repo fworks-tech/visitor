@@ -13,16 +13,21 @@ var current_event_data: Dictionary = {}
 var current_dialogue_index: int = 0
 
 const STORY_FILE_PATH: String = "res://assets/data/story.json"
+const DEMO_STORY_FILE_PATH: String = "res://assets/data/story_demo.json"
+
+var demo_mode := false
 
 func _ready() -> void:
 	load_story_data()
 
 func load_story_data() -> void:
-	if not FileAccess.file_exists(STORY_FILE_PATH):
-		push_error("[StoryManager] story.json not found at %s" % STORY_FILE_PATH)
+	demo_mode = "--demo" in OS.get_cmdline_user_args() or OS.has_feature("demo")
+	var path := DEMO_STORY_FILE_PATH if demo_mode else STORY_FILE_PATH
+	if not FileAccess.file_exists(path):
+		push_error("[StoryManager] story file not found at %s" % path)
 		return
 		
-	var file := FileAccess.open(STORY_FILE_PATH, FileAccess.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
 	var json_string := file.get_as_text()
 	file.close()
 	
@@ -30,7 +35,7 @@ func load_story_data() -> void:
 	var error := json.parse(json_string)
 	if error == OK and json.data is Dictionary:
 		story_data = json.data
-		print("[StoryManager] story.json loaded successfully (%d events)." % story_data.get("events", {}).size())
+		print("[StoryManager] %s loaded successfully (%d events)." % [path.get_file(), story_data.get("events", {}).size()])
 	else:
 		push_error("[StoryManager] Failed to parse story.json: %s" % json.get_error_message())
 

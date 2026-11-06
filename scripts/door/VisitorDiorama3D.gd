@@ -8,6 +8,8 @@ extends Node3D
 var camera: Camera3D
 var _doorframe: Node3D
 var _body: VisitorBody3D
+var _world_env: WorldEnvironment
+var _environment: Environment
 
 func _ready() -> void:
 	_build_environment()
@@ -71,9 +73,10 @@ func _build_environment() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.3, 0.36, 0.4)
 	env.ambient_light_energy = 0.14
-	var we := WorldEnvironment.new()
-	we.environment = env
-	add_child(we)
+	_environment = env
+	_world_env = WorldEnvironment.new()
+	_world_env.environment = env
+	add_child(_world_env)
 	var key := OmniLight3D.new()
 	key.position = Vector3(0.4, 2.1, 1.6)
 	key.light_color = Color(1.0, 0.9, 0.78)
@@ -86,6 +89,11 @@ func _build_environment() -> void:
 	rim.light_energy = 2.4
 	rim.omni_range = 5.0
 	add_child(rim)
+
+## The aperture stage brings its own environment; only one may drive a viewport.
+func set_environment_enabled(enabled: bool) -> void:
+	if _world_env:
+		_world_env.environment = _environment if enabled else null
 
 func _build_doorframe() -> void:
 	_doorframe = Node3D.new()

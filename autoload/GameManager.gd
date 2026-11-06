@@ -84,8 +84,11 @@ func _ready() -> void:
 	const HARNESS := {
 		"--door-test": "res://tests/DoorFlowTest.gd",
 		"--house-test": "res://tests/HouseWalkTest.gd",
+		"--layout-test": "res://tests/HouseLayoutTest.gd",
 		"--balance-test": "res://tests/BalanceSimTest.gd",
 		"--screenshot": "res://tools/screenshot_mode.gd",
+		"--stairshot": "res://tools/stairshot.gd",
+		"--aperture-demo": "res://tools/aperture_demo.gd",
 	}
 	for flag in HARNESS.keys():
 		if flag in OS.get_cmdline_args() or flag in OS.get_cmdline_user_args():
@@ -108,6 +111,7 @@ func change_state(new_state: GameState) -> void:
 	print("[GameManager] State changed from %s to %s" % [_state_to_string(previous_state), _state_to_string(current_state)])
 
 func start_new_game() -> void:
+	max_days = int(StoryManager.story_data.get("total_nights", 7))
 	current_day = 1
 	trust_value = 60
 	corruption_value = 10
@@ -202,7 +206,7 @@ func spend_energy(amount: int = 1) -> bool:
 
 func advance_to_next_day() -> void:
 	if current_day >= max_days:
-		trigger_ending(evaluate_endings(), "You survived all 7 days of the Visitor crisis.")
+		trigger_ending(evaluate_endings(), "You survived all %d nights of the Visitor crisis." % max_days)
 		return
 
 	current_day += 1

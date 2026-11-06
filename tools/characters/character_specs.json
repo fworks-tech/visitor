@@ -1,0 +1,443 @@
+{
+  "version": 2,
+  "contract": {
+    "id": "visitor id from visitors.json",
+    "portrait": "res:// path to the source portrait",
+    "height_scale": "1.0 = 1.82 m blockout",
+    "shoulder": "shoulder width in metres",
+    "hair": "short | long | cap | bald",
+    "coat_tint": "RGB multiplier applied to the sampled coat colour",
+    "hair_tint": "RGB multiplier applied to the sampled hair colour",
+    "dna": "deterministic assembly spec: body, face, outfit, rig, animations, assets, validation, license",
+    "dna.body.height_m": "target height in metres (production contract)",
+    "dna.face.mode": "card | mesh | scan; card is the Fears-to-Fathom-style hybrid",
+    "dna.validation.level": "L1 blockout, L2 game-ready, L3 hero"
+  },
+  "characters": [
+    {
+      "id": "v001",
+      "name": "Marcus Vane",
+      "portrait": "res://assets/images/portraits/visitor_01_marcus_vane.png",
+      "height_scale": 1.02,
+      "shoulder": 0.58,
+      "hair": "short",
+      "coat_tint": [
+        0.82,
+        0.94,
+        0.84
+      ],
+      "hair_tint": [
+        0.85,
+        0.9,
+        0.85
+      ],
+      "dna": {
+        "version": 1,
+        "seed": 1001,
+        "body": {
+          "height_m": 1.78,
+          "shoulder_m": 0.58,
+          "build": "lean",
+          "head_scale": 1.0,
+          "limb_length": 1.0,
+          "posture": "guarded"
+        },
+        "face": {
+          "mode": "card",
+          "source": "res://assets/images/portraits/visitor_01_marcus_vane.png",
+          "uv_band": [
+            0.34,
+            0.13,
+            0.28,
+            0.3
+          ],
+          "expression": "neutral",
+          "blendshapes": [],
+          "eye_color": [
+            0.28,
+            0.32,
+            0.26
+          ]
+        },
+        "hair": {
+          "style": "short",
+          "color": [
+            0.72,
+            0.7,
+            0.66
+          ],
+          "coverage": 1.0
+        },
+        "outfit": {
+          "layers": [
+            {
+              "slot": "coat",
+              "asset": "generated_coat",
+              "color": [
+                0.22,
+                0.24,
+                0.22
+              ],
+              "fit": "loose",
+              "material": "wool"
+            },
+            {
+              "slot": "shirt",
+              "asset": "generated_shirt",
+              "color": [
+                0.34,
+                0.36,
+                0.33
+              ],
+              "fit": "regular",
+              "material": "fabric"
+            },
+            {
+              "slot": "pants",
+              "asset": "generated_pants",
+              "color": [
+                0.14,
+                0.15,
+                0.14
+              ],
+              "fit": "regular",
+              "material": "denim"
+            },
+            {
+              "slot": "shoes",
+              "asset": "generated_shoes",
+              "color": [
+                0.1,
+                0.1,
+                0.09
+              ],
+              "fit": "regular",
+              "material": "leather"
+            }
+          ]
+        },
+        "rig": {
+          "profile": "humanoid_20",
+          "mixamo": true,
+          "vrm": true,
+          "max_influences": 2
+        },
+        "animations": [
+          "idle",
+          "talk"
+        ],
+        "assets": {
+          "model": "res://assets/models/visitors/v001.glb",
+          "textures": []
+        },
+        "lod": [
+          {
+            "level": 0,
+            "max_tris": 15000,
+            "screen_size": 1.0
+          },
+          {
+            "level": 1,
+            "max_tris": 4000,
+            "screen_size": 0.35
+          }
+        ],
+        "validation": {
+          "level": "L1",
+          "max_tris": 15000,
+          "max_materials": 4,
+          "require_rig": false,
+          "require_animations": false
+        },
+        "license": "original"
+      }
+    },
+    {
+      "id": "v003",
+      "name": "Arthur Pendelton",
+      "portrait": "res://assets/images/portraits/visitor_03_arthur_pendelton.png",
+      "height_scale": 0.98,
+      "shoulder": 0.56,
+      "hair": "cap",
+      "coat_tint": [
+        1.02,
+        0.92,
+        0.8
+      ],
+      "hair_tint": [
+        0.75,
+        0.7,
+        0.62
+      ],
+      "dna": {
+        "version": 1,
+        "seed": 1003,
+        "body": {
+          "height_m": 1.7,
+          "shoulder_m": 0.56,
+          "build": "heavy",
+          "head_scale": 1.02,
+          "limb_length": 0.98,
+          "posture": "tired"
+        },
+        "face": {
+          "mode": "card",
+          "source": "res://assets/images/portraits/visitor_03_arthur_pendelton.png",
+          "uv_band": [
+            0.34,
+            0.13,
+            0.28,
+            0.3
+          ],
+          "expression": "wary",
+          "blendshapes": [],
+          "eye_color": [
+            0.24,
+            0.27,
+            0.23
+          ]
+        },
+        "hair": {
+          "style": "cap",
+          "color": [
+            0.44,
+            0.42,
+            0.36
+          ],
+          "coverage": 0.65
+        },
+        "outfit": {
+          "layers": [
+            {
+              "slot": "coat",
+              "asset": "generated_coat",
+              "color": [
+                0.28,
+                0.25,
+                0.2
+              ],
+              "fit": "oversized",
+              "material": "wool"
+            },
+            {
+              "slot": "shirt",
+              "asset": "generated_shirt",
+              "color": [
+                0.38,
+                0.36,
+                0.31
+              ],
+              "fit": "regular",
+              "material": "fabric"
+            },
+            {
+              "slot": "pants",
+              "asset": "generated_pants",
+              "color": [
+                0.16,
+                0.16,
+                0.15
+              ],
+              "fit": "regular",
+              "material": "denim"
+            },
+            {
+              "slot": "shoes",
+              "asset": "generated_shoes",
+              "color": [
+                0.12,
+                0.11,
+                0.1
+              ],
+              "fit": "regular",
+              "material": "leather"
+            },
+            {
+              "slot": "hat",
+              "asset": "generated_cap",
+              "color": [
+                0.2,
+                0.22,
+                0.19
+              ],
+              "fit": "regular",
+              "material": "fabric"
+            }
+          ]
+        },
+        "rig": {
+          "profile": "humanoid_20",
+          "mixamo": true,
+          "vrm": true,
+          "max_influences": 2
+        },
+        "animations": [
+          "idle",
+          "talk"
+        ],
+        "assets": {
+          "model": "res://assets/models/visitors/v003.glb",
+          "textures": []
+        },
+        "lod": [
+          {
+            "level": 0,
+            "max_tris": 15000,
+            "screen_size": 1.0
+          },
+          {
+            "level": 1,
+            "max_tris": 4000,
+            "screen_size": 0.35
+          }
+        ],
+        "validation": {
+          "level": "L1",
+          "max_tris": 15000,
+          "max_materials": 4,
+          "require_rig": false,
+          "require_animations": false
+        },
+        "license": "original"
+      }
+    },
+    {
+      "id": "v008",
+      "name": "Veronica Reyes",
+      "portrait": "res://assets/images/portraits/visitor_08_veronica_reyes.png",
+      "height_scale": 0.99,
+      "shoulder": 0.5,
+      "hair": "long",
+      "coat_tint": [
+        0.88,
+        1.0,
+        0.9
+      ],
+      "hair_tint": [
+        0.65,
+        0.7,
+        0.62
+      ],
+      "dna": {
+        "version": 1,
+        "seed": 1008,
+        "body": {
+          "height_m": 1.7,
+          "shoulder_m": 0.5,
+          "build": "slim",
+          "head_scale": 0.98,
+          "limb_length": 1.0,
+          "posture": "upright"
+        },
+        "face": {
+          "mode": "card",
+          "source": "res://assets/images/portraits/visitor_08_veronica_reyes.png",
+          "uv_band": [
+            0.34,
+            0.13,
+            0.28,
+            0.3
+          ],
+          "expression": "controlled",
+          "blendshapes": [],
+          "eye_color": [
+            0.23,
+            0.28,
+            0.25
+          ]
+        },
+        "hair": {
+          "style": "long",
+          "color": [
+            0.18,
+            0.16,
+            0.14
+          ],
+          "coverage": 1.0
+        },
+        "outfit": {
+          "layers": [
+            {
+              "slot": "coat",
+              "asset": "generated_coat",
+              "color": [
+                0.18,
+                0.2,
+                0.19
+              ],
+              "fit": "fitted",
+              "material": "wool"
+            },
+            {
+              "slot": "shirt",
+              "asset": "generated_shirt",
+              "color": [
+                0.3,
+                0.32,
+                0.29
+              ],
+              "fit": "fitted",
+              "material": "fabric"
+            },
+            {
+              "slot": "pants",
+              "asset": "generated_pants",
+              "color": [
+                0.12,
+                0.13,
+                0.12
+              ],
+              "fit": "fitted",
+              "material": "denim"
+            },
+            {
+              "slot": "shoes",
+              "asset": "generated_shoes",
+              "color": [
+                0.09,
+                0.09,
+                0.08
+              ],
+              "fit": "regular",
+              "material": "leather"
+            }
+          ]
+        },
+        "rig": {
+          "profile": "humanoid_20",
+          "mixamo": true,
+          "vrm": true,
+          "max_influences": 2
+        },
+        "animations": [
+          "idle",
+          "talk"
+        ],
+        "assets": {
+          "model": "res://assets/models/visitors/v008.glb",
+          "textures": []
+        },
+        "lod": [
+          {
+            "level": 0,
+            "max_tris": 15000,
+            "screen_size": 1.0
+          },
+          {
+            "level": 1,
+            "max_tris": 4000,
+            "screen_size": 0.35
+          }
+        ],
+        "validation": {
+          "level": "L1",
+          "max_tris": 15000,
+          "max_materials": 4,
+          "require_rig": false,
+          "require_animations": false
+        },
+        "license": "original"
+      }
+    }
+  ]
+}

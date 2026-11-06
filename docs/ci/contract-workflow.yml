@@ -1,0 +1,19 @@
+# Copy this file to .github/workflows/contract.yml to enable CI.
+# GitHub blocks workflow creation from tokens without the workflow scope.
+
+name: contract
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Data and layout contracts
+        run: python3 tests/validate_systems.py

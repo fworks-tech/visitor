@@ -66,3 +66,46 @@ Design notes the sim surfaced (not bugs — decide before tuning):
 
 No open blockers. No open majors, or each has a logged reason.
 Tester: ___ Date: ___
+
+## Code QA, 2026-11-05 (`feat/house-rebuild`)
+
+| Check | Result |
+|---|---|
+| GDScript parse (`gdparse`) on changed scripts | PASS |
+| `tests/validate_systems.py` | PASS: 40 signs, 20 visitors, 7 nights, 7 endings, 4 floors, 13 rooms |
+| `--layout-test` (Godot) | Pending: no Godot binary in the review environment |
+| `--house-test` (Godot) | Pending |
+| `--stairshot` visual pass | Pending |
+| Device QA (Android) | Pending |
+
+Layout fixes in this pass: `LAYOUT` is the only floor plan, `get_room_at()` is
+floor-aware, every room has a HUD name, and the data validator runs from the
+repo root without Godot.
+
+## Cinematic door, 2026-11-05
+
+| Check | Result |
+|---|---|
+| `--door-test` | PASS: 0 failures, full-screen `CinematicView` + choice row |
+| `--door-test --door-shot` | `demo_shots/door_cinematic.png` captured at 1280x720 |
+| `tests/validate_systems.py` | PASS: 5 apertures, 8 environments |
+| `--layout-test` / `--house-test` / `--balance-test` | PASS: 0 failures each |
+
+The door now uses the wide `doorway` aperture, a bottom-right dialogue panel
+with typewriter text, and the reference choice pair. The old split layout
+remains behind `ViewPresets.ENABLED = false`. Device QA is still pending.
+
+## Merge gate, 2026-11-05 (`feat/house-rebuild` -> `master`)
+
+| Check | Result |
+|---|---|
+| `python3 tools/run_gates.py` | PASS: door, house, balance, layout, placement, focus, data |
+| `--demo --door-test` | PASS: 0 failures |
+| `python3 tools/characters/validate_character_dna.py` | PASS: 3 characters |
+| `python3 tools/characters/validate_characters.py` | PASS: v001, v003, v008 GLBs |
+| `python3 tests/validate_systems.py` | PASS: 5 apertures, 8 environments, 40 signs, 20 visitors, 7 nights, 7 endings, 4 floors, 13 rooms, demo contract |
+| Device QA (Android/iOS) | Pending: safe area, touch targets, framing, performance |
+
+The merge gate covers data, engine flow, placement, focus and character
+contracts. It does not replace the device pass or the visual review of the L1
+blockouts.

@@ -14,6 +14,7 @@ share one contract:
 
 ```bash
 python3 tools/characters/build_character.py
+python3 tools/characters/validate_character_dna.py
 python3 tools/characters/validate_characters.py
 ```
 
@@ -64,3 +65,15 @@ tools/characters/check_blender_env.sh
 The expected target is **L2 GAME_READY**: silhouette, clothes, hands, hair and
 face; 15k tris; 20-25 bones; `idle` and `talk`; validated GLB. L3 HERO needs a
 sculpted base or a human artist, not an LLM-only pass.
+
+
+## Character DNA
+
+`character_specs.json` (version 2) carries a `dna` object per visitor:
+body measurements, face mode/source/UV band, hair, outfit layers, rig profile,
+animations, LOD, validation budget and license. The schema is
+`character_dna.schema.json`; `validate_character_dna.py` is the gate.
+
+The current DNA is L1 (blockout). The Blender target is L2: require a rig,
+`idle`/`talk`, <= 15k tris and <= 4 materials. Research and rationale:
+`docs/CHARACTER_GENERATION_RESEARCH.md`.

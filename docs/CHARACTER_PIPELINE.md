@@ -5,6 +5,8 @@ door. The runtime is Godot 4.x; the asset is a glTF/GLB, not code-generated
 geometry. The blockout lane is runnable in this repository; the production lane
 is the Blender path used for final art.
 
+> Research and the DNA model: [CHARACTER_GENERATION_RESEARCH.md](CHARACTER_GENERATION_RESEARCH.md).
+>
 > OpenCode/Blender handoff: see
 > [BLENDER_AGENT_PLAYBOOK.md](BLENDER_AGENT_PLAYBOOK.md) and
 > `tools/characters/OPENCODE_TASK.md` for the copy-paste production task.

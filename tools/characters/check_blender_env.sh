@@ -19,6 +19,12 @@ else
   echo "OPTIONAL: ffmpeg not found (contact sheets only)" >&2
 fi
 
+if python3 "$ROOT/tools/characters/validate_character_dna.py"; then
+  echo "OK: character DNA"
+else
+  fail=1
+fi
+
 for id in v001 v003 v008; do
   if python3 "$ROOT/tools/characters/validate_blender_output.py" --id "$id" >/dev/null 2>&1; then
     echo "OK: $id blockout contract"

@@ -17,7 +17,7 @@ Antes de qualquer ação, leia:
 - `docs/CHARACTER_PIPELINE.md`
 - `docs/BLENDER_AGENT_PLAYBOOK.md`
 - `docs/ART_DIRECTION_ANALOG.md`
-- `tools/characters/character_specs.json`
+- `tools/characters/character_specs.json` e `character_dna.schema.json`
 - `assets/data/visitors.json` (ficha do `<ID>`)
 - o retrato indicado no spec
 - `assets/models/visitors/<ID>.glb` (blockout de proporção)
@@ -55,6 +55,7 @@ Rode:
 
 ```bash
 blender --version
+python3 tools/characters/validate_character_dna.py
 python3 tools/characters/validate_blender_output.py --id <ID>
 ```
 
@@ -126,6 +127,8 @@ nunca o contrato.
 - [ ] `portrait_face` presente e UVs válidas.
 - [ ] 20-25 bones, pesos normalizados.
 - [ ] `idle` e `talk` no GLB.
+- [ ] DNA do `<ID>` mantém as medidas e o orçamento do spec.
+- [ ] `validate_character_dna.py` = `SUCCESS`.
 - [ ] `validate_blender_output.py --production` = `PASS`.
 - [ ] `--demo --door-test` = `RESULT 0 failures`.
 - [ ] Três renders em `docs/renders/characters/<ID>/`.

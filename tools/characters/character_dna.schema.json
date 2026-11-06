@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fworks.tech/visitor/character-dna.schema.json",
+  "title": "Visitor Character DNA",
+  "description": "Deterministic specification for assembling a Visitor character from a shared humanoid base, face source, outfit layers and rig profile.",
+  "type": "object",
+  "required": ["version", "characters"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 2},
+    "contract": {"type": "object"},
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/character"}
+    }
+  },
+  "$defs": {
+    "rgb": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "character": {
+      "type": "object",
+      "required": ["id", "name", "portrait", "dna"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^v[0-9]{3}$"},
+        "name": {"type": "string", "minLength": 1},
+        "portrait": {"type": "string", "pattern": "^res://"},
+        "height_scale": {"type": "number", "minimum": 0.8, "maximum": 1.2},
+        "shoulder": {"type": "number", "minimum": 0.4, "maximum": 0.7},
+        "hair": {"type": "string"},
+        "coat_tint": {"$ref": "#/$defs/rgb"},
+        "hair_tint": {"$ref": "#/$defs/rgb"},
+        "dna": {"$ref": "#/$defs/dna"}
+      }
+    },
+    "dna": {
+      "type": "object",
+      "required": ["version", "seed", "body", "face", "outfit", "rig", "animations", "assets", "validation", "license"],
+      "properties": {
+        "version": {"type": "integer", "minimum": 1},
+        "seed": {"type": "integer", "minimum": 0},
+        "body": {"$ref": "#/$defs/body"},
+        "face": {"$ref": "#/$defs/face"},
+        "hair": {"$ref": "#/$defs/hair"},
+        "outfit": {"$ref": "#/$defs/outfit"},
+        "rig": {"$ref": "#/$defs/rig"},
+        "animations": {
+          "type": "array",
+          "items": {"type": "string"},
+          "contains": {"const": "idle"},
+          "minItems": 2
+        },
+        "assets": {"$ref": "#/$defs/assets"},
+        "lod": {"type": "array", "items": {"$ref": "#/$defs/lod"}},
+        "validation": {"$ref": "#/$defs/validation"},
+        "license": {"type": "string", "minLength": 1}
+      }
+    },
+    "body": {
+      "type": "object",
+      "required": ["height_m", "shoulder_m", "build", "head_scale", "limb_length"],
+      "properties": {
+        "height_m": {"type": "number", "minimum": 1.55, "maximum": 2.05},
+        "shoulder_m": {"type": "number", "minimum": 0.4, "maximum": 0.7},
+        "build": {"enum": ["slim", "lean", "average", "heavy", "broad"]},
+        "head_scale": {"type": "number", "minimum": 0.85, "maximum": 1.15},
+        "limb_length": {"type": "number", "minimum": 0.9, "maximum": 1.1},
+        "posture": {"enum": ["neutral", "guarded", "tired", "upright", "slouched"]}
+      }
+    },
+    "face": {
+      "type": "object",
+      "required": ["mode", "source", "uv_band", "expression"],
+      "properties": {
+        "mode": {"enum": ["card", "mesh", "scan"]},
+        "source": {"type": "string", "pattern": "^res://"},
+        "uv_band": {
+          "type": "array",
+          "prefixItems": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "number", "minimum": 0, "maximum": 1}
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "expression": {"type": "string"},
+        "blendshapes": {"type": "array", "items": {"type": "string"}},
+        "eye_color": {"$ref": "#/$defs/rgb"}
+      }
+    },
+    "hair": {
+      "type": "object",
+      "properties": {
+        "style": {"enum": ["short", "long", "cap", "bald", "ponytail", "bun", "messy"]},
+        "color": {"$ref": "#/$defs/rgb"},
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "outfit": {
+      "type": "object",
+      "required": ["layers"],
+      "properties": {
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["slot", "asset", "color", "fit"],
+            "properties": {
+              "slot": {"enum": ["coat", "shirt", "pants", "shoes", "hat", "scarf", "bag", "apron"]},
+              "asset": {"type": "string", "minLength": 1},
+              "color": {"$ref": "#/$defs/rgb"},
+              "fit": {"enum": ["fitted", "regular", "loose", "oversized"]},
+              "material": {"enum": ["fabric", "leather", "wool", "denim", "synthetic", "skin"]}
+            }
+          }
+        }
+      }
+    },
+    "rig": {
+      "type": "object",
+      "required": ["profile", "mixamo", "vrm"],
+      "properties": {
+        "profile": {"enum": ["humanoid_20", "humanoid_25", "mixamo", "vrm_humanoid"]},
+        "mixamo": {"type": "boolean"},
+        "vrm": {"type": "boolean"},
+        "max_influences": {"type": "integer", "minimum": 1, "maximum": 4}
+      }
+    },
+    "assets": {
+      "type": "object",
+      "required": ["model"],
+      "properties": {
+        "model": {"type": "string", "pattern": "^res://"},
+        "textures": {"type": "array", "items": {"type": "string"}},
+        "blend": {"type": "string"}
+      }
+    },
+    "lod": {
+      "type": "object",
+      "required": ["level", "max_tris"],
+      "properties": {
+        "level": {"type": "integer", "minimum": 0, "maximum": 3},
+        "max_tris": {"type": "integer", "minimum": 100, "maximum": 50000},
+        "screen_size": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["level", "max_tris", "max_materials"],
+      "properties": {
+        "level": {"enum": ["L1", "L2", "L3"]},
+        "max_tris": {"type": "integer", "minimum": 100, "maximum": 50000},
+        "max_materials": {"type": "integer", "minimum": 1, "maximum": 8},
+        "require_rig": {"type": "boolean"},
+        "require_animations": {"type": "boolean"}
+      }
+    }
+  }
+}

@@ -154,11 +154,11 @@ class GLB:
             indices.extend([base, base + 1, base + 2, base, base + 2, base + 3])
         self._primitive(verts, normals, uvs, indices, material)
 
-    def face(self, center, size, material: int) -> None:
+    def face(self, center, size, material: int, uv=FACE_UV) -> None:
         cx, cy, cz = (c * self.scale for c in center)
         sx, sy = (s * self.scale for s in size)
         hx, hy = sx / 2, sy / 2
-        u0, v0, uw, vh = FACE_UV
+        u0, v0, uw, vh = uv
         verts = [(cx - hx, cy - hy, cz), (cx + hx, cy - hy, cz),
                  (cx + hx, cy + hy, cz), (cx - hx, cy + hy, cz)]
         normals = [(0, 0, 1)] * 4
@@ -204,8 +204,10 @@ def build(spec: dict, root: Path, out_dir: Path) -> Path:
     hair = multiply(avg(img, 0.50, 0.06, 0.035), spec.get("hair_tint", [1, 1, 1]))
     pants = tuple(c * 0.55 for c in coat)
     shoes = (0.035, 0.032, 0.030)
-    shoulder = spec.get("shoulder", 0.54)
+    dna = spec.get("dna", {})
+    shoulder = dna.get("body", {}).get("shoulder_m", spec.get("shoulder", 0.54))
     height = spec.get("height_scale", 1.0)
+    face_uv = tuple(dna.get("face", {}).get("uv_band", FACE_UV))
 
     g = GLB(scale=height)
     m_skin = g.material("skin", skin)
@@ -232,7 +234,7 @@ def build(spec: dict, root: Path, out_dir: Path) -> Path:
     g.box((0, 1.38, 0), (0.13, 0.12, 0.13), m_skin_dark)
     g.box((0, 1.58, 0), (0.21, 0.25, 0.22), m_skin)
     g.box((0, 1.50, 0.015), (0.19, 0.075, 0.20), m_skin_dark)
-    style = spec.get("hair", "short")
+    style = dna.get("hair", {}).get("style", spec.get("hair", "short"))
     if style == "short":
         g.box((0, 1.72, -0.005), (0.24, 0.075, 0.235), m_hair)
     elif style == "long":
@@ -243,7 +245,8 @@ def build(spec: dict, root: Path, out_dir: Path) -> Path:
         g.box((0, 1.72, -0.005), (0.25, 0.06, 0.24), m_hair)
         g.box((0, 1.69, 0.14), (0.23, 0.025, 0.11), m_hair)
     # face card uses the portrait face band; emissive so it survives night light
-    g.face((0, 1.565, 0.113), FACE_SIZE, g.face_material("portrait_face", portrait.read_bytes()))
+    g.face((0, 1.565, 0.113), FACE_SIZE,
+           g.face_material("portrait_face", portrait.read_bytes()), face_uv)
     out = out_dir / (spec["id"] + ".glb")
     g.write(out, spec["id"])
     return out

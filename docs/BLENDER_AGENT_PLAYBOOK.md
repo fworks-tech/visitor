@@ -35,7 +35,8 @@ Leia, nesta ordem:
 1. `AGENTS.md` (regras do projeto, arquitetura, o que não tocar).
 2. `docs/CHARACTER_PIPELINE.md` (contrato técnico e estágios).
 3. `docs/ART_DIRECTION_ANALOG.md` (grade visual: dessaturado, contraste, grain).
-4. `tools/characters/character_specs.json` (id, retrato, altura, ombros, cabelo).
+4. `tools/characters/character_specs.json` e `character_dna.schema.json`
+   (id, retrato, altura, ombros, cabelo, roupa, rig e orçamento).
 5. `assets/data/visitors.json` (personalidade, sinais, roupa, história).
 6. `assets/images/portraits/<retrato>` (paleta e face de referência).
 7. `assets/models/visitors/<id>.glb` (blockout atual, apenas como proporção).
@@ -188,7 +189,8 @@ python3 tools/characters/validate_blender_output.py \
   --production
 ```
 
-O validador checa:
+O validador de DNA checa identidade, medidas, face, roupa, rig, animações,
+assets, LOD, orçamento e licença. O validador de GLB checa:
 
 - glTF 2.0 binário, mesh e primitives;
 - orçamento de triângulos (15k);
